@@ -534,7 +534,7 @@
     html.push('<div class="sub-h"><b>数据</b></div>');
     html.push('<div class="note">学习包：' + esc(D.title) + "（" + esc(D.id) + "）<br>" +
       term("group") + " " + (D.groups || []).length + " · " + term("check") + " " + s.total + " · " + term("qa") + " " + QA_LIST.length + "<br>" +
-      "进度文件：" + (window.Native ? "应用私有目录 state.json" : "浏览器 localStorage") + "</div>");
+      "进度文件：" + (window.Native ? "应用私有目录 states/" + esc(D.id) + ".json" : "浏览器 localStorage（按包分开存）") + "</div>");
     html.push('<div class="btn-row"><button class="btn danger" id="btnReset">清空本机进度</button></div>');
     html.push('<div class="note" style="margin-top:16px">题台 ' + APP_VERSION + ' · 通用学习包引擎，内容与程序分离。</div>');
     $("#view").innerHTML = html.join("");
@@ -694,6 +694,11 @@
       if (note) note.textContent = "已连接 " + (data.name || host) + "，电脑端有 " + (data.qas || 0) + " 条问答。";
       toast("连接成功");
     } else if (path === "/api/pull") {
+      if (data.state && data.state.deck && data.state.deck !== D.id) {
+        toast("电脑上这份进度属于 " + data.state.deck + "，不是当前学习包");
+        if (note) note.textContent = "学习包对不上，没有合并。";
+        return;
+      }
       var n = mergeState(data.state);
       toast("拉取完成");
       paintRing();

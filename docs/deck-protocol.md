@@ -248,7 +248,7 @@
 ### 2.2 生命周期
 
 - 首次启动：`state` 为默认空对象，不落盘直到第一次写入。
-- 写入：内存改动后 350 ms 防抖，经 `Native.saveState()` 落盘到应用私有目录 `files/state.json`（网页版回退 `localStorage["studydesk.state.v1"]`）。
+- 写入：内存改动后 350 ms 防抖，经 `Native.saveState()` 落盘到应用私有目录 `files/states/<deck.id>.json`（网页版回退 `localStorage["studydesk.state.v1:<deck.id>"]`）。老的 `files/state.json` 在首次启动时按其中 `deck` 字段迁移。
 - 清空：「设置 → 清空本机进度」删除三张表与 `settings.tab`，保留 `sync` 与 `settings.theme`。
 
 ---
@@ -261,33 +261,36 @@
 
 | 方法 | 路径 | 请求体 | 响应 |
 |---|---|---|---|
-| GET | `/api/ping` | — | `{ok, name, port, code, deck, title, groups, qas, rev, checks}` |
-| POST | `/api/pull` | `{code, deck}` | `{ok, state}` |
-| POST | `/api/push` | `{code, deck, state}` | `{ok, rev, checks}` |
-| GET | `/` | — | 人看的配对页（配对码、局域网地址、进度摘要） |
-| GET | `/a/` | — | 电脑浏览器里的学习界面（同一套 assets） |
+| GET | `/api/ping[?deck=<id>]` | — | `{ok, name, port, code, deck, title, groups, qas, rev, checks, decks}` |
+| POST | `/api/pull` | `{code, deck}` | `{ok, deck, state}` |
+| POST | `/api/push` | `{code, deck, state}` | `{ok, deck, rev, checks}` |
+| GET | `/api/decks?code=` | — | `{ok, decks:[{id,title,checks,qas,rev,done,favs,quiz}]}` |
+| GET | `/api/deck?id=&code=` | — | 该学习包的 `deck.json` 原文 |
+| GET | `/` | — | 人看的控制台（配对码、地址、每个包的进度表） |
+| GET | `/a/[?deck=<id>]` | — | 电脑浏览器里的学习界面（同一套 assets） |
 
 约定：
 
 - 所有响应 `Content-Type: application/json; charset=utf-8`，允许跨域（`Access-Control-Allow-Origin: *`，仅为局域网便利）。
 - **业务错误也返回 HTTP 200**，用 `{ok:false, msg}` 表达（配对码错误、缺 state 等）；只有路由不存在才 404。这样客户端只需解析一次 JSON。
 - `code` 为 4 位数字，首次启动生成并写入 `sync/code.txt`，之后固定。
+- **进度按包分桶**：服务端存在 `sync/states/<id>.json`，`pull`/`push` 都只读写 `deck` 指定的那一份。客户端拿到的 `state.deck` 与自己的当前包不一致时必须拒绝合并（引擎会提示并跳过）。老的 `sync/state.json` 在首次启动时按其中的 `deck` 字段迁到分桶目录。
 
 ### 3.2 时序
 
 ```
 手机（拉取）                     电脑端 sync.js
   POST /api/pull {code, deck} ─────────────▶
-                              读 state.json
-  ◀───────────── {ok, state}
+                              读 states/<deck>.json
+  ◀───────────── {ok, deck, state}
   mergeState(local, remote)   // 逐 key 取 t 大者
   saveState()                 // 落盘
 
 手机（推送）                     电脑端 sync.js
   POST /api/push {code, deck, state} ───────▶
-                              mergeState(服务器, 手机)
-                              写 state.json（原子：.tmp + rename）
-  ◀───────────── {ok, rev, checks}
+                              mergeState(服务器该桶, 手机)
+                              写 states/<deck>.json（原子：.tmp + rename）
+  ◀───────────── {ok, deck, rev, checks}
 ```
 
 **双方都做合并**，因此：
@@ -431,8 +434,9 @@ node tools/conformance.js a.json b.json                # 一次测多份
 | 切换 | 设置页「学习包」列表，点「切换」；切换只改当前指针，不复制数据 |
 | 删除 | 只有导入包能删（连同它的进度）；内置包删不掉 |
 | 旧进度 | 升级到多包版本后，老的 `state.json` 会一次性迁移到内置包名下 |
+| 同步 | 服务端进度同样按包分桶（`sync/states/<id>.json`），`pull`/`push` 只碰当前包 |
 
-协议上不新增任何字段：`id` 仍然是唯一标识，只是现在可以有多个 `id` 同时存在。**注意**：换包不改同步协议，但 `/api/decks`、`/api/deck?id=` 只在电脑端 `tools/sync.js` 上提供，用于下发学习包。
+协议上不新增任何字段：`id` 仍然是唯一标识，只是现在可以有多个 `id` 同时存在。`/api/decks`、`/api/deck?id=` 只在电脑端 `tools/sync.js` 上提供，用于下发学习包；电脑端 `/a/?deck=<id>` 也按 `id` 选包。
 
 ---
 
