@@ -15,7 +15,7 @@
     "id": {
       "type": "string",
       "pattern": "^[a-z0-9][a-z0-9-]{1,40}$",
-      "description": "学习包标识，如 ue5-pcg"
+      "description": "学习包标识，如 ml-intro"
     },
     "title": { "type": "string", "minLength": 1, "maxLength": 120 },
     "subtitle": { "type": "string", "maxLength": 200 },

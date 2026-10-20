@@ -18,7 +18,7 @@ const path = require("path");
 const ROOT = path.resolve(__dirname, "..");
 const SRC = path.join(ROOT, "tools", "data", "pinyin-src.txt");
 const OUT = path.join(ROOT, "app", "src", "main", "assets", "pinyin.js");
-const DECKS = ["cs-base", "cv-graphics", "ue5-pcg", "ml-math", "ml-intro"];
+const DECKS = ["demo", "ml-math", "ml-intro"];
 
 /* 带声调的元音 → 无声调；ü 系列单独记成 v，方便用户敲 lv/nv */
 const TONE = {

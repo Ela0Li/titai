@@ -2,7 +2,7 @@
 
 一个自用的安卓刷题与自查 App：内容（学习包）与程序分离，进度按时间戳合并，电脑端和手机端可离线各自用、也可以局域网同步。
 
-现在内置五个知识包（计算机基础 / 计算机图形学 / UE5 PCG / 机器学习数学基础 / 机器学习入门）和两个学习计划，默认打开机器学习计划。
+现在内置两个知识包（机器学习数学基础 / 机器学习入门）和一个学习计划，另有一个最小样例包供校验器自测。
 
 当前版本 **0.9.0**（初版发布）。更新日志见 **[CHANGELOG.md](CHANGELOG.md)**，许可证 **[MIT](LICENSE)**。安装包在 [Releases](https://github.com/Ela0Li/titai/releases) 页面，侧载 APK 即可，不需要账号。
 
@@ -25,9 +25,9 @@ studydeck/
 │  │  ├─ MainActivity.java   WebView 壳 + 返回键接管 + 深链
 │  │  └─ Bridge.java         多包读写/切换 + 进度文件 + setChrome / http / versionName
 │  └─ res/               图标与主题
-├─ decks/                **学习包真相**（五个包，一份一个 JSON；改内容就改这里）
+├─ decks/                **学习包真相**（一份一个 JSON；改内容就改这里）
 ├─ decks-src/ml-intro/   ml-intro 的生成源（modules.js + qa-*.js + build.js）
-├─ plans/                学习计划（ml.plan.json、cs-cg-ue5.plan.json）
+├─ plans/                学习计划（ml.plan.json）
 ├─ docs/                 协议 v1.7，拆成三册（章节号沿用总编号）
 │  ├─ protocol-core.md   总纲：保证边界 §0 / 进度层 §2 / 同步层 §3 / 校验器 §4 / 版本 §5 / 掌握度同步 §10 / 附录 A 字段速查
 │  ├─ deck-protocol.md   知识包：示例 §0 / 内容层 §1 / 制作 §6 / 数学公式 §7 / 跨包引用 §8
@@ -49,8 +49,8 @@ studydeck/
 │  ├─ test-math.js       数学解析单测（顺便产出预览页）
 │  ├─ dev.js             构建 + 安装 + 打开 + 截图（开发用）
 │  ├─ sync.js            局域网同步服务 + 电脑端浏览页面 + 学习包下发
-│  ├─ hints/             282 条知识点的「及格线」文案
-│  └─ archive/           一次性迁移脚本（历史留档，日常不用）
+│  ├─ hints/             知识点的「及格线」文案（tools/hints/*.json）
+│  └─ build-pinyin.js    生成搜索用的拼音表（app/src/main/assets/pinyin.js）
 ├─ .github/workflows/    CI：语法检查 + 协议/计划/引用/答案体检
 └─ sync/                 同步服务的运行时数据（配对码与进度，不入库）
 ```
@@ -63,18 +63,15 @@ App 内的进度按包分文件：`files/states/<deck-id>.json`；导入包放�
 
 `plans/*.plan.json` 把多个知识包串成一条学习路径：顶部一条 chip 就能在计划内切包（不重载页面），列表按知识包分区、每个分区可独立展开/收起、模块编号各自从 1 起，问答页可以按包筛选。计划本身可以新建、改名、增删成员、切换、删除、导入导出（设置 → 学习计划）。
 
-现在仓库里有五个包、两个计划：
+现在仓库里有三个包、一个计划：
 
-| 知识包 | 模块 | 知识点 | 问答 | 属于 |
+| 知识包 | 模块 | 知识点 | 问答 | 说明 |
 |---|---|---|---|---|
-| `cs-base` 计算机基础·面试复习 | 6 | 62 | 47 | 计划二 |
-| `cv-graphics` 计算机图形学·图形与渲染 | 3 | 42 | 39 | 计划二 |
-| `ue5-pcg` UE5 PCG·程序化生成 | 9 | 90 | 92 | 计划二 |
-| `ml-math` 机器学习数学基础 | 5 | 32 | 24 | 计划一 |
-| `ml-intro` 机器学习入门·从数据到上线 | 9 | 54 | 60 | 计划一 |
+| `ml-math` 机器学习数学基础 | 5 | 32 | 24 | 计划成员 |
+| `ml-intro` 机器学习入门·从数据到上线 | 9 | 54 | 60 | 计划成员 |
+| `demo` 示例包 | 2 | 5 | 3 | 最小样例，供校验器/一致性测试自测 |
 
-- 计划一 `plans/ml.plan.json`（`order: 1`，**内置默认**）：`ml-math` → `ml-intro`；
-- 计划二 `plans/cs-cg-ue5.plan.json`（`order: 2`）：`cs-base` → `cv-graphics` → `ue5-pcg`。
+- `plans/ml.plan.json`（`order: 1`，**内置默认**）：`ml-math` → `ml-intro`。
 
 `order` 只对内置计划有意义：本机没选过计划时，取 `order` 最小的那个。
 
@@ -150,7 +147,7 @@ adb -s a27457ef shell am start -n com.studydeck.app/.MainActivity
 
 `hint` 写的是**判据**（“说清三点算过”“举一个反例即可”），不是答案要点——答案在 `covers` 指过去的问答里。**写三条以上要点就说明这条该拆成两条知识点**，60 字上限就是为这个留的。
 
-全部 282 条知识点的提示存在 `tools/hints/<deck>.json`，用 `node tools/apply-hints.js` 灌进 `decks/*.json` 与 assets；**重建过知识包之后要重跑一次**，`--check` 只体检不写。
+内置包的知识点提示存在 `tools/hints/<deck>.json`，用 `node tools/apply-hints.js` 灌进 `decks/*.json` 与 assets；**重建过知识包之后要重跑一次**，`--check` 只体检不写。
 
 ---
 
@@ -160,7 +157,7 @@ adb -s a27457ef shell am start -n com.studydeck.app/.MainActivity
 
 ```powershell
 # 1) 校验（改过任何 decks/*.json 都跑一遍）
-node tools/validate-deck.js decks/ue5-pcg.json
+node tools/validate-deck.js decks/ml-intro.json
 node tools/check-links.js decks/*.json
 node tools/audit-answers.js
 
@@ -239,7 +236,7 @@ node tools\sync.js          # 默认 8787
 
 ## 换一个学习目标
 
-引擎不认识「PCG」这三个字，它只认学习包。现在支持**多个学习包共存**，两条路：
+引擎不认识具体学科，它只认学习包。现在支持**多个学习包共存**，两条路：
 
 **A. 内置一个新包（内容随 APK 走）**
 
@@ -351,7 +348,7 @@ node skills/titai-deck-author/scripts/check.js decks/我的包.json
 - `node tools/build-pinyin.js` —— 由 `tools/data/pinyin-src.txt` 生成 `app/src/main/assets/pinyin.js`（汉字 → 全拼/首字母表，搜索用）。**换字表才需要重跑**，平时改代码不用。
 - `node tools/test-search.js [--dump q1 q2 …]` —— 无头跑一组查询，打印每个查询在新知识点页/问答页的命中条数与首条，并核对高亮；写新查询直接改脚本里的 `CASES`。
 - `node tools/split-protocol.js` —— 从 `docs/deck-protocol.src.md` 重新拆出协议三册（总纲 / 知识包 / 计划）。**改协议改 src，再跑这个**，别直接改三册产物。
-- `node tools/conformance.js [deck.json …]` —— 无头渲染一份 deck，确认引擎能真的打开它（默认测 `decks/ue5-pcg.json`）。
+- `node tools/conformance.js [deck.json …]` —— 无头渲染一份 deck，确认引擎能真的打开它（默认测 `decks/ml-intro.json`）。
 
 ---
 
@@ -379,7 +376,7 @@ node skills/titai-deck-author/scripts/check.js decks/我的包.json
 ```powershell
 # 1) 改版本号（app/build.gradle.kts 的 versionCode +1 / versionName）
 # 2) 全量自检
-node tools/validate-deck.js decks/ue5-pcg.json   # 其它包同理，或看 CI
+node tools/validate-deck.js decks/ml-intro.json   # 其它包同理，或看 CI
 node tools/check-links.js decks/*.json
 node tools/audit-answers.js
 node tools/test-math.js
@@ -388,12 +385,12 @@ node tools/test-math.js
 # 4) 装机验收（真机，覆盖安装）
 adb -s a27457ef install -r app\build\outputs\apk\release\app-release.apk
 # 5) 打 tag 并推
-git tag -a v0.9.0 -m "题台 0.9.0"
+git tag -a v0.9.2 -m "题台 0.9.2"
 git push origin main --tags
 # 6) 在 GitHub 建 Release（附 app-release.apk），发布说明抄 CHANGELOG 对应段落
 ```
 
-CI（`.github/workflows/ci.yml`）在每次 push 时跑语法检查、五个包的协议校验、计划校验、跨包引用和答案体检；**构建 APK 不在 CI 里**（需要 Android SDK 与本地签名材料）。
+CI（`.github/workflows/ci.yml`）在每次 push 时跑语法检查、各知识包的协议校验、计划校验、跨包引用、答案体检和技能自检；**构建 APK 不在 CI 里**（需要 Android SDK 与本地签名材料）。
 
 ---
 

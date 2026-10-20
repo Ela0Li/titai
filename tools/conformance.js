@@ -5,7 +5,7 @@
  * 把一份 deck.json 塞进真实的引擎资源（index.html / app.css / app.js），
  * 用无头浏览器渲染一遍，确认它“真的能被打开”，而不只是“看起来符合协议”。
  *
- *   node tools/conformance.js                       # 测 decks/ue5-pcg.json
+ *   node tools/conformance.js                       # 测 decks/ml-intro.json
  *   node tools/conformance.js test/decks/minimal.deck.json
  *   node tools/conformance.js a.json b.json         # 一次测多份
  *
@@ -122,7 +122,7 @@ function parseArgs(argv) {
   argv.slice(2).forEach((a) => {
     if (!a.startsWith("-")) files.push(path.resolve(a));
   });
-  return files.length ? files : [path.join(ROOT, "decks", "ue5-pcg.json")];
+  return files.length ? files : [path.join(ROOT, "decks", "ml-intro.json")];
 }
 
 function runOne(deckPath) {

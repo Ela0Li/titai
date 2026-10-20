@@ -57,7 +57,7 @@
 ```json
 {
   "v": 1,
-  "deck": "ue5-pcg",
+  "deck": "ml-intro",
   "rev": 6,
   "touched": 1792508824668,
   "checks": { "m1.1": { "m": 2, "t": 1792508671041 } },
@@ -161,21 +161,19 @@
 ## 4. 校验器
 
 ```bash
-node tools/validate-deck.js dist/deck.json      # 校验指定文件
-node tools/validate-deck.js                     # 默认 dist/deck.json
-node tools/validate-deck.js --json              # 机器可读输出
-node tools/validate-deck.js --verbose           # 展开 notes（软提示）
+node tools/validate-deck.js decks/ml-intro.json   # 校验指定文件
+node tools/validate-deck.js                      # 不带参数时打印用法
+node tools/validate-deck.js --json               # 机器可读输出
+node tools/validate-deck.js --verbose            # 展开 notes（软提示）
 ```
 
 输出（当前学习包的实际结果）：
 
 ```
-学习包：UE5 PCG 面试复习（ue5-pcg，schema 1）
-  模块 18 · 自查点 194 · 问答 178 · 交叉引用 560（next 367 / peer 193）
-  覆盖 194/194（100.0%） · 分层 L1 16 / L2 55 / L3 70 / L4 37
-  覆盖深度：1 条 163 · 2 条 31 · 3 条 0 · 4+ 条 0
-
-notes（213，协议允许的软提示，加 --verbose 展开）
+学习包：机器学习入门 · 从数据到上线（ml-intro，schema 1）
+  模块 9 · 自查点 54 · 问答 60 · 交叉引用 111（next 45 / peer 66） · 跨包 7
+  覆盖 54/54（100.0%） · 分层 L1 4 / L2 20 / L3 27 / L4 9
+  覆盖深度：1 条 42 · 2 条 12 · 3 条 0 · 4+ 条 0
 
 ✓ 通过协议 v1 校验
 ```
@@ -201,10 +199,10 @@ notes（213，协议允许的软提示，加 --verbose 展开）
 
 > 注意 `W_UNCOVERED`（自查点没有问答覆盖）现在是 **warning**，不算 problems，见 deck §1.7。
 
-推荐在 CI 与 `mkdeck.js` 之后各跑一次：
+推荐在 CI 里针对每份包各跑一次：
 
 ```bash
-node tools/mkdeck.js && node tools/validate-deck.js dist/deck.json
+for f in decks/*.json; do node tools/validate-deck.js "$f"; done
 ```
 
 ### 4.1 一致性测试：证明“能被引擎打开”
@@ -212,7 +210,7 @@ node tools/mkdeck.js && node tools/validate-deck.js dist/deck.json
 校验器只读 JSON，证明不了“引擎渲染不崩”。`tools/conformance.js` 把 deck 塞进真实引擎资源，用无头浏览器跑一遍：
 
 ```bash
-node tools/conformance.js                              # 测 dist/deck.json
+node tools/conformance.js                              # 测 decks/ml-intro.json
 node tools/conformance.js test/decks/minimal.deck.json # 测最小合法包
 node tools/conformance.js a.json b.json                # 一次测多份
 ```
@@ -228,8 +226,8 @@ node tools/conformance.js a.json b.json                # 一次测多份
 输出示例：
 
 ```
-✓ test\decks\minimal.deck.json — 模块 1 · 自查点 2 · 问答 1 · tab「知识点/问答」· 无 JS 异常
-✓ dist\deck.json — 模块 18 · 自查点 194 · 问答 178 · tab「自查点/问答」· 无 JS 异常
+✓ test\decks\minimal.deck.json — 模块 1 · 知识点 2 · 问答 1 · tab「知识点/问答」· 无 JS 异常
+✓ decks\ml-intro.json — 模块 9 · 知识点 54 · 问答 60 · tab「知识点/问答」· 无 JS 异常
 ✓ 全部通过（2 份）
 ```
 
@@ -257,7 +255,7 @@ node tools/conformance.js a.json b.json                # 一次测多份
 | v1.1（v0.5.0） | 多学习包共存（deck §6.1）；手机端导入体检（deck §6.2）；**数学公式 `$…$` / `$$…$$`（deck §7）**；掌握度圆点改为“按等级统一上色” | 1（不变） |
 | v1.2（v0.6.0） | **跨包引用（deck §8）**：`deckId#localId`、`check.seeAlso`、`deps`；`id` 升级为全局唯一命名空间；跳转 = 切包 + 返回栈；跨包默认只读（设置可开）；跨包 `covers` 双向计数；反向引用表随包更新刷新 | 1（不变） |
 | v1.3（v0.7.0） | **学习计划（plan §9）**：`plan.json` 与成员顺序；计划内软切包、列表按知识包分区、模块编号按包独立、问答按包筛选；**掌握度同步（§10）**：跨包 `covers` 双向写入；`terms` 统一为“模块 / 知识点 / 问答” | 1（不变） |
-| v1.4（v0.8.0） | 知识包分区**可同时展开多个**；计划可**新建/编辑/删除/导入**，新增 `order`（plan §9.1）；PCG 大包拆成 `cs-base` / `cv-graphics` / `ue5-pcg`，机器学习拆出 `ml-math`；模块标题与名词全量统一为「模块X · …」；内置计划换成一个机器学习计划（`order` 决定默认） | 1（不变） |
+| v1.4（v0.8.0） | 知识包分区**可同时展开多个**；计划可**新建/编辑/删除/导入**，新增 `order`（plan §9.1）；多包场景下按主题拆分知识包，机器学习拆出 `ml-math`；模块标题与名词全量统一为「模块X · …」；内置计划换成一个机器学习计划（`order` 决定默认） | 1（不变） |
 | v1.5（v0.8.2） | **答案结构自由化（deck §1.6）**：h 自拟、lvl 1..3 层级、可选 list，块上限 4→12；不再要求「结论打头、四段有序」；知识点页只列当前计划内的知识包 | 1（不变） |
 | v1.6（v0.8.5） | **计划内外的引用区分（deck §8.5.1）**：目标包在计划内/计划外/未安装三态各有标签样式；计划外可跳转但会临时离开计划，顶部给「回到计划」；判定按计划成员表而非当前渲染列表 | 1（不变） |
 | v1.7（v0.8.7） | **协议拆三册**：总纲 `protocol-core.md`（边界、进度、同步、校验、版本、掌握度、附录）、知识包 `deck-protocol.md`（示例、内容层、制作、公式、跨包引用）、计划 `plan-protocol.md`（学习计划），章节号沿用不重排，三册共用版本号；**知识点新增 `hint`（deck §1.3，及格线提示，≤60 字）**；`seeAlso` 由 MAY 升为 SHOULD 并给出唯一判据（deck §1.7） | 1（不变） |

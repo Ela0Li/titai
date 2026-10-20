@@ -215,7 +215,6 @@ const QAS = [
     tags: ["期望", "方差", "协方差"],
     covers: ["m3.2"],
     next: ["q.m3.mle"],
-    peer: ["ue5-pcg#q.m2.prob"],
     ans: [
       { h: "结论", p: "E[X]=Σx·p(x)；Var(X)=E[X²]−E[X]²=E[(X−μ)²]；Cov(X,Y)=E[XY]−E[X]E[Y]；相关系数 ρ=Cov/(σxσy)∈[−1,1]。ρ 只刻画线性相关。" },
       { h: "机制", p: "方差是二阶中心矩，可加性要求独立（或至少不相关）：Var(X+Y)=Var X+Var Y+2Cov。协方差矩阵必须半正定，这是很多算法（高斯过程、PCA）的前提。" },

@@ -14,7 +14,9 @@
       var id = String(window.Native.currentDeck() || "");
       if (!id) return;
       var txt = String(window.Native.readDeck(id) || "");
-      if (!txt) { CUR_DECK = id; return; }
+      /* 读不到内容说明这个包已经不在了（被删/被新版本移除）：保持当前兜底包，
+         交给 loadPlan 回落到计划的默认包，避免停在 undefined 的空包上 */
+      if (!txt) return;
       var d = JSON.parse(txt);
       if (d && d.groups && d.groups.length) {
         D = d;
@@ -105,15 +107,16 @@
         });
       } catch (e) {}
     });
-    if (!DECK_CACHE[CUR_DECK]) DECK_CACHE[CUR_DECK] = D;
+    if (D && D.id === CUR_DECK && D.groups && D.groups.length && !DECK_CACHE[CUR_DECK]) DECK_CACHE[CUR_DECK] = D;
 
     /* 当前包不属于这个计划：装了就临时停在这个包（顶部给「回到计划」），没装才落到计划的默认包 */
     if (MEMBERS.indexOf(CUR_DECK) < 0) {
       var inst = DECK_CACHE[CUR_DECK];
+      if (inst && !(inst.groups || []).length) inst = null;
       if (!inst) {
         try { var t = n1("readDeck", CUR_DECK); if (t) inst = JSON.parse(t); } catch (e3) { inst = null; }
       }
-      if (inst) {
+      if (inst && (inst.groups || []).length) {
         DECK_CACHE[CUR_DECK] = inst;
         MEMBERS = [CUR_DECK];
         OUT_OF_PLAN = true;

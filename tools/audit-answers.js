@@ -21,7 +21,7 @@ const path = require("path");
 
 const ROOT = path.resolve(__dirname, "..");
 const DECKS = path.join(ROOT, "decks");
-const ALL = ["cs-base", "cv-graphics", "ue5-pcg", "ml-math", "ml-intro"];
+const ALL = ["demo", "ml-math", "ml-intro"];
 
 const VIEW_WORDS = ["取舍", "实战", "边界", "权衡"];
 const FLOW_Q = /^(怎么|如何|怎样)(?!.*(为什么|区别|原理|本质))/;

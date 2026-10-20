@@ -12,8 +12,7 @@
     "splitFrom": "ml-intro",
     "short": "数学基础",
     "deps": [
-      "ml-intro",
-      "ue5-pcg"
+      "ml-intro"
     ]
   },
   "groups": [
@@ -56,10 +55,7 @@
           "id": "m1.4",
           "text": "解释期望、方差、协方差与相关系数在特征分析中的含义。",
           "lvl": "P1",
-          "hint": "说清四者各回答什么问题",
-          "seeAlso": [
-            "ue5-pcg#q.m2.prob"
-          ]
+          "hint": "说清四者各回答什么问题"
         },
         {
           "id": "m1.5",
@@ -368,8 +364,7 @@
         "q.m1.grad"
       ],
       "peer": [
-        "ml-intro#q.m3.logit",
-        "ue5-pcg#q.m2.prob"
+        "ml-intro#q.m3.logit"
       ],
       "backNext": [
         "q.m1.vector"
@@ -410,8 +405,7 @@
         "q.m1.moments"
       ],
       "peer": [
-        "ml-intro#q.m6.optim",
-        "ue5-pcg#q.m2.noise"
+        "ml-intro#q.m6.optim"
       ],
       "backNext": [
         "q.m1.prob"
@@ -446,8 +440,7 @@
         "特征分析"
       ],
       "covers": [
-        "m1.4",
-        "ue5-pcg#m2.4"
+        "m1.4"
       ],
       "next": [
         "q.m1.mle"
@@ -811,9 +804,6 @@
       ],
       "next": [
         "q.m3.mle"
-      ],
-      "peer": [
-        "ue5-pcg#q.m2.prob"
       ],
       "ans": [
         {

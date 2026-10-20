@@ -4,16 +4,26 @@
 
 App 版本号在 `app/build.gradle.kts`（`versionCode` / `versionName`），设置页底部显示 `versionName`；协议版本另有一套（见 `docs/protocol-core.md` §5.1）。
 
-## [未发布]
+## [0.9.2] - 2026-10-21
+
+内置内容精简为「只带普适示例」，并修掉上一次用的包被移除后启动空白的问题。
+
+### 变更
+
+- **仓库只保留普适的示例内容**：内置包精简为 `ml-math`（机器学习数学基础）与 `ml-intro`（机器学习入门）加一个最小样例包 `demo`；学习计划只剩内置的 `ml` 计划，默认打开它。原先随仓库分发的其它主题包与其计划已移除。
+- 工具默认值同步到精简后的包：`tools/conformance.js` 与 `tools/test-search.js` 默认测 `decks/ml-intro.json`；`tools/test-search.js` 的固定用例换成「交叉熵 / jcs / jiaochashang / mse / 梯度 / 多词」。
+- `decks/demo.json` 的两条问答按体裁重写（概念型与对比型各一套结构），`tools/audit-answers.js` 全仓清零。
+- 删除一次性迁移脚本 `tools/archive/`（早已被 `decks/*.json` 直接编辑取代）。
+- `tools/validate-deck.js`：不带文件参数时打印用法并以退出码 2 结束（原来会去读 `dist/deck.json`）；`--verbose` 展开 `W_CYCLE` / `W_LAYER_DOWN` 这两类 notes。
+
+### 修复
+
+- **上次使用的学习包已被移除时启动空白**：引擎把「读不到内容的包 id」当成已安装的当前包，导致标题显示 `undefined`、0 个模块。现在读不到内容就当作没装，回落到当前计划的默认包，并把偏好写回。
 
 ### 新增
 
 - **`skills/titai-deck-author/`**：给 AI agent 用的知识包创作技能。加载后 agent 会按协议 v1.7 写 `deck.json` / `plan.json`，并用技能自带的校验器自检到全绿；含最小可用模板、字段速查、内容规则（体裁与结构模板、及格线写法、追问链）、全部错误码与修法。
 - 技能内的 `validate-deck.js` 与 `tools/` 下那份是同一份实现，CI 用 `cmp` 比对，两侧内容必须一致。
-
-### 变更
-
-- `tools/validate-deck.js`：不带文件参数时打印用法并以退出码 2 结束（原来会去读 `dist/deck.json`）；`--verbose` 展开 `W_CYCLE` / `W_LAYER_DOWN` 这两类 notes。
 
 ## [0.9.1] - 2026-10-21
 
@@ -48,8 +58,8 @@ App 版本号在 `app/build.gradle.kts`（`versionCode` / `versionName`），设
 ### 变更
 
 - 仓库整理：一次性迁移脚本归档到 `tools/archive/`（附 `README.md` 说明用途）；`dist/` 改为构建产物不入库；删掉已被后续工具取代的批次补丁与临时转储。
-- `app/src/main/assets/deck.js` 缩小为空的注入位（原先内嵌了一份 144 KB 的旧 PCG 包，已与 `decks/ue5-pcg.json` 重复且过时）；App 运行时内容一律来自 `assets/decks/*.json`。
-- `tools/conformance.js` 默认测试对象从 `dist/deck.json` 改为 `decks/ue5-pcg.json`。
+- `app/src/main/assets/deck.js` 缩小为空的注入位（原先内嵌了一份 144 KB 的旧包，已与 `decks/` 下的同名文件重复且过时）；App 运行时内容一律来自 `assets/decks/*.json`。
+- `tools/conformance.js` 默认测试对象从 `dist/deck.json` 改为仓库内的知识包文件。
 
 ### 修复
 
@@ -93,7 +103,7 @@ App 版本号在 `app/build.gradle.kts`（`versionCode` / `versionName`），设
 
 ### 变更
 
-- 五个学习包的 262 条问答按体裁重排收尾（ue5-pcg 36 条、cv-graphics 7 条、cs-base 2 条、ml-math 2 条），`tools/audit-answers.js` 审计清零。
+- 全部内置问答按体裁重排收尾（对比 / 操作 / 概念各有合适结构），`tools/audit-answers.js` 审计清零。
 
 ## [0.8.3] - 2026-10-21
 
@@ -140,7 +150,7 @@ App 版本号在 `app/build.gradle.kts`（`versionCode` / `versionName`），设
 
 - **学习计划**：`plans/*.plan.json` 把多个包串成学习路径，计划内软切包、列表按包分区、问答按包筛选。
 - **掌握度同步**：同一条问答覆盖的知识点跨包共享掌握度。
-- PCG 大包拆成 `cs-base` / `cv-graphics` / `ue5-pcg`。
+- 大包按主题拆成多个知识包，机器学习部分单独拆出 `ml-math`。
 
 ## [0.6.0] - 2026-10-21（协议 v1.2）
 

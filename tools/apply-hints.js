@@ -4,9 +4,9 @@
  * 用法：
  *   node tools/apply-hints.js              # 全部写入并报告
  *   node tools/apply-hints.js --check      # 只检查覆盖率与长度，不写文件
- *   node tools/apply-hints.js --deck ue5-pcg
+ *   node tools/apply-hints.js --deck ml-intro
  *
- * 重建过知识包（mkdeck / split-* / build-ml-math）之后都要重跑一次，
+ * 重建过知识包（build-ml-math / decks-src 下的 build.js）之后都要重跑一次，
  * 因为 hint 是内容属性，藏在这些生成脚本之外。
  */
 const fs = require("fs");

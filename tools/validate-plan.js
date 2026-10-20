@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* 校验学习计划文件（协议 v1.3 §9）。
    用法：
-     node tools/validate-plan.js plans/ue5-ml.plan.json
+     node tools/validate-plan.js plans/ml.plan.json
      node tools/validate-plan.js --with-decks plans/*.plan.json   （同时核对成员包是否都在 decks/ 里）
 */
 "use strict";

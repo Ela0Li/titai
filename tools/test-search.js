@@ -5,9 +5,9 @@
  * 把引擎塞进无头 Edge，模拟真实敲键盘（改 input.value + dispatch input），
  * 检查「中文 / 拼音首字母 / 英文 / 多关键词」四类查询的召回与排序。
  *
- *   node tools/test-search.js                     # 跑默认用例（decks/ue5-pcg.json）
- *   node tools/test-search.js --dump "zs" "fbm"   # 只打印前几条命中，用来挑期望值
- *   node tools/test-search.js --deck decks/cs-base.json
+ *   node tools/test-search.js                     # 跑默认用例（decks/ml-intro.json）
+ *   node tools/test-search.js --dump "zs" "梯度"   # 只打印前几条命中，用来挑期望值
+ *   node tools/test-search.js --deck decks/ml-math.json
  *
  * 退出码：0 全过；1 有失败。
  */
@@ -24,13 +24,12 @@ const EDGE =
 
 /* 默认用例：query → 期望首条 id（top）或 topN 内出现的片段（want） */
 const CASES = [
-  { q: "噪声", want: "噪声", top: "m2.5", note: "中文原文" },
-  { q: "zs", want: "噪声", top: "m2.5", note: "拼音首字母" },
-  { q: "zaosheng", want: "噪声", note: "拼音全拼" },
-  { q: "cook", want: "Cook", top: "m3.6", note: "英文子串" },
-  { q: "fbm", want: "fBm", top: "m2.6", note: "大小写不敏感" },
-  { q: "噪声 频率", want: "噪声", note: "多关键词 AND" },
-  { q: "生成半径", want: "生成半径", note: "长中文短语" }
+  { q: "交叉熵", want: "交叉熵", top: "m3.3", note: "中文原文" },
+  { q: "jcs", want: "交叉熵", top: "m3.3", note: "拼音首字母" },
+  { q: "jiaochashang", want: "交叉熵", top: "m3.3", note: "拼音全拼" },
+  { q: "mse", want: "MSE", top: "m3.1", note: "英文子串 / 大小写不敏感" },
+  { q: "梯度", want: "梯度", top: "m6.6", note: "短词命中多条，按相关度排序" },
+  { q: "交叉熵 分类", want: "交叉熵", top: "m3.3", note: "多关键词 AND" }
 ];
 
 const PROBE = (queries) => `
@@ -68,7 +67,7 @@ window.addEventListener("load", function () {
 `;
 
 function parseArgs(argv) {
-  const a = { deck: path.join(ROOT, "decks", "ue5-pcg.json"), dump: null, cases: null };
+  const a = { deck: path.join(ROOT, "decks", "ml-intro.json"), dump: null, cases: null };
   const rest = [];
   for (let i = 2; i < argv.length; i++) {
     if (argv[i] === "--deck") a.deck = path.resolve(argv[++i]);
@@ -159,9 +158,10 @@ function main() {
   });
   const qaRows = res.qa[cases[0].q] || [];
   const mk = res.markCounts || {}, qmk = res.qaMarkCounts || {};
-  console.log("\n问答页「" + cases[0].q + "」命中 " + qaRows.length + " 条" + (qaRows[0] ? "，首条 " + qaRows[0].t : ""));
-  console.log("高亮 <mark>：「噪声」知识点 " + (mk["噪声"] || 0) + " 处 · 问答 " + (qmk["噪声"] || 0) + " 处");
-  if (!mk["噪声"] || !qmk["噪声"]) bad++;
+  const markQ = cases[0].q;
+  console.log("\n问答页「" + markQ + "」命中 " + qaRows.length + " 条" + (qaRows[0] ? "，首条 " + qaRows[0].t : ""));
+  console.log("高亮 <mark>：「" + markQ + "」知识点 " + (mk[markQ] || 0) + " 处 · 问答 " + (qmk[markQ] || 0) + " 处");
+  if (!mk[markQ] || !qmk[markQ]) bad++;
   process.exit(bad ? 1 : 0);
 }
 

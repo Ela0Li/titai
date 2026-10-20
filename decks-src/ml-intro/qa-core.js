@@ -137,7 +137,7 @@ module.exports = [
     tags: ["概率", "条件分布"],
     covers: ["m2.3"],
     next: ["q.m2.grad"],
-    peer: ["q.m4.logit", "ue5-pcg#q.m2.prob"],
+    peer: ["q.m4.logit"],
     ans: A(
       "联合是 `P(x,y)`，条件是 `P(y|x)`，边缘是 `P(x)`；分类器学的通常是条件分布 `P(y|x)`。",
       "贝叶斯公式把 `P(y|x)` 写成 `P(x|y)P(y)/P(x)`；生成式模型估计联合分布，判别式模型直接估计条件分布。",
@@ -154,7 +154,7 @@ module.exports = [
     tags: ["梯度", "优化"],
     covers: ["m2.2"],
     next: ["q.m2.moments"],
-    peer: ["q.m7.optim", "ue5-pcg#q.m2.noise"],
+    peer: ["q.m7.optim"],
     ans: A(
       "梯度是多元函数对各参数偏导组成的向量，指向函数上升最快的方向；沿负梯度走，局部上函数值下降最快。",
       "一阶泰勒展开说明小步长内 $f(x-\\eta g) \\approx f(x)-\\eta ||g||^2$；学习率 $\\eta$ 控制步长，太大会跨过谷底，太小则收敛慢。写成迭代形式时，$\\nabla f$ 是全部偏导拼成的向量：$$x_{t+1} = x_t - \\eta \\nabla f(x_t)$$",
@@ -169,7 +169,7 @@ module.exports = [
     layer: 2,
     q: "期望、方差、协方差分别告诉你特征的什么信息？",
     tags: ["统计量", "特征分析"],
-    covers: ["m2.4", "ue5-pcg#m2.4"],
+    covers: ["m2.4"],
     next: ["q.m2.mle"],
     peer: ["q.m3.scale"],
     ans: A(
