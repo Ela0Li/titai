@@ -162,7 +162,8 @@ function validate(deck) {
     const n = Math.min(list.length, 4);
     depth[n] = (depth[n] || 0) + 1;
   });
-  uncovered.forEach((cid) => P("E_UNCOVERED", cid, "没有任何问答覆盖该自查点"));
+  // 覆盖不是协议要求：没有问答覆盖的自查点照样能被引擎渲染（详情里显示“还没有对应问答”）
+  uncovered.forEach((cid) => W("W_UNCOVERED", cid, "没有任何问答覆盖（协议允许，仅提示）"));
 
   /* ---------- 追问链质量 ---------- */
   const edgeCount = { next: 0, peer: 0 };

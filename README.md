@@ -24,7 +24,8 @@ studydeck/
 ├─ schema/               JSON Schema：deck.schema.json / state.schema.json
 ├─ tools/
 │  ├─ mkdeck.js          数据源 → dist/deck.json + assets/deck.js（含覆盖率自检）
-│  ├─ validate-deck.js   协议校验器（引用闭合、全覆盖、答案结构、链路质量）
+│  ├─ validate-deck.js   协议校验器（引用闭合、答案结构、链路质量；覆盖仅警告）
+│  ├─ conformance.js     一致性测试：真实引擎 + 无头浏览器渲染一份 deck
 │  └─ sync.js            局域网同步服务 + 电脑端浏览页面
 ├─ dist/deck.json        学习包真相，可 diff、可备份
 └─ sync/                 同步服务的数据（deck.json / state.json / code.txt）
@@ -118,8 +119,13 @@ node tools\sync.js          # 默认 8787
 3. 重新打包安装
 
 `mkdeck.js` 会检查：每个自查点是否至少被一条问答覆盖、`next`/`peer` 引用是否存在、QA id 是否重复——不通过就报错退出，避免把残缺内容打进 App。
+（覆盖率是**本项目的验收线**，不是协议要求：协议里它只是 SHOULD，校验器只报 `W_UNCOVERED` 警告。）
 
-`validate-deck.js` 再把协议 v1 的全部不变量过一遍（id 派生规则、答案四段结构与顺序、覆盖深度直方图、`next` 层级是否递进），输出 `problems / warnings / notes` 三级结果，可直接接 CI。
+`validate-deck.js` 再把协议 v1 的不变量过一遍（id 派生规则、引用闭合、答案四段结构与顺序、`next` 层级是否递进、覆盖深度直方图），输出 `problems / warnings / notes` 三级结果，可直接接 CI。
+
+`conformance.js` 做最后一道：把 deck 塞进真实引擎资源、用无头浏览器渲染，确认没有 JS 异常、模块/自查点/问答数量与声明一致、`terms` 文案生效、详情面板能打开。
+
+界面名词解耦：`deck.terms = { group, check, qa }` 可覆盖显示文案，缺省是「模块 / 知识点 / 问答」；本包在 `mkdeck.js` 里写成「自查点」，换包时想叫「知识点／考点」都行，不影响 id、进度与同步。
 
 进度按学习包 id 区分：换包后旧进度不会串味（同一个包里 id 复用则视为同一题）。
 

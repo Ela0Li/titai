@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/Ela0Li/titai/schema/deck.schema.json",
   "title": "题台学习包 deck.json",
-  "description": "题台 · 学习包协议 v1 的内容层。语义不变量（引用闭合、全覆盖、无自引用）由 tools/validate-deck.js 检查，JSON Schema 只覆盖结构。",
+  "description": "题台 · 学习包协议 v1 的内容层。语义不变量（引用闭合、无自引用、答案分段）由 tools/validate-deck.js 检查，JSON Schema 只覆盖结构。覆盖完整性属于推荐实践，不是协议要求。",
   "type": "object",
   "required": ["schema", "id", "title", "groups", "qas"],
   "additionalProperties": true,
@@ -20,6 +20,16 @@
     "title": { "type": "string", "minLength": 1, "maxLength": 120 },
     "subtitle": { "type": "string", "maxLength": 200 },
     "accent": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+    "terms": {
+      "type": "object",
+      "description": "界面上怎么称呼这几类东西；缺省为 模块/知识点/问答",
+      "additionalProperties": false,
+      "properties": {
+        "group": { "type": "string", "minLength": 1, "maxLength": 8 },
+        "check": { "type": "string", "minLength": 1, "maxLength": 8 },
+        "qa": { "type": "string", "minLength": 1, "maxLength": 8 }
+      }
+    },
     "updatedAt": { "type": "string", "format": "date-time" },
     "groups": {
       "type": "array",

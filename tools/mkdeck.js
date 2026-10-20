@@ -68,6 +68,8 @@ function build() {
     title: meta.title,
     subtitle: meta.subtitle,
     accent: meta.accent,
+    // 界面上怎么称呼这些东西；本包保留“自查点”的说法（协议默认是“知识点”）
+    terms: meta.terms || { group: "模块", check: "自查点", qa: "问答" },
     updatedAt: new Date().toISOString(),
     groups,
     qas,

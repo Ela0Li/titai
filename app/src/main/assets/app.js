@@ -14,13 +14,17 @@
     return "dev";
   })();
 
+  /* 界面上怎么称呼这些东西，由学习包自己定（terms 可选） */
+  var TERMS = Object.assign({ group: "模块", check: "知识点", qa: "问答" }, D.terms || {});
+  function term(k) { return TERMS[k] || k; }
+
   /* ---------------- 索引 ---------------- */
   var QA = {}, CHECK = {}, GROUP_OF = {}, COVERS = {}, QAS_OF_CHECK = {};
-  var QA_LIST = D.qas.slice();
+  var QA_LIST = (D.qas || []).slice();
 
-  D.groups.forEach(function (g, gi) {
+  (D.groups || []).forEach(function (g, gi) {
     g.gi = gi;
-    g.checks.forEach(function (c) {
+    (g.checks || []).forEach(function (c) {
       CHECK[c.id] = { id: c.id, text: c.text, lvl: c.lvl, g: g.id, group: g };
       GROUP_OF[c.id] = g;
     });
@@ -168,7 +172,7 @@
 
   function renderList() {
     var html = [];
-    html.push('<input class="search" id="listSearch" placeholder="搜索自查点…" value="' + esc(listQuery) + '">');
+    html.push('<input class="search" id="listSearch" placeholder="搜索' + esc(term("check")) + '…" value="' + esc(listQuery) + '">');
     html.push('<div class="chips" id="listChips">' +
       chip("all", "全部") + chip("0", "未学") + chip("1", "模糊") +
       chip("2", "会") + chip("3", "熟练") + chip("fav", "收藏") + "</div>");
@@ -202,7 +206,7 @@
       html.push("</div></section>");
     });
 
-    if (!shown) html.push('<div class="empty">没有符合条件的自查点</div>');
+    if (!shown) html.push('<div class="empty">没有符合条件的' + esc(term("check")) + '</div>');
     html.push('<div class="hint" style="margin-top:14px">点圆点记掌握度：○ 未学 · ◐ 模糊 · ● 会 · ●● 熟练；点文字看对应问答。</div>');
     $("#view").innerHTML = html.join("");
   }
@@ -265,8 +269,8 @@
     var cs = Object.keys(state.fav).filter(function (k) { return isFav(k) && CHECK[k]; });
     var qs = Object.keys(state.fav).filter(function (k) { return isFav(k) && QA[k]; });
     var html = [];
-    html.push('<div class="sub-h"><b>自查点收藏</b><span>' + cs.length + " 个</span></div>");
-    if (!cs.length) html.push('<div class="empty" style="padding:18px">还没有收藏的自查点</div>');
+    html.push('<div class="sub-h"><b>' + esc(term("check")) + '收藏</b><span>' + cs.length + " 个</span></div>");
+    if (!cs.length) html.push('<div class="empty" style="padding:18px">还没有收藏的' + esc(term("check")) + '</div>');
     else {
       cs.forEach(function (id) {
         var c = CHECK[id];
@@ -383,7 +387,7 @@
     var s = stats();
     var html = [];
     html.push('<div class="stat-grid">' +
-      stat(s.total, "自查点") + stat(s.byLevel[2] + s.byLevel[3], "已掌握") +
+      stat(s.total, term("check")) + stat(s.byLevel[2] + s.byLevel[3], "已掌握") +
       stat(Object.keys(state.quiz).length, "刷过题") + "</div>");
 
     html.push('<div class="sub-h"><b>外观</b></div>');
@@ -405,7 +409,7 @@
     html.push('<div class="divider"></div>');
     html.push('<div class="sub-h"><b>数据</b></div>');
     html.push('<div class="note">学习包：' + esc(D.title) + "（" + esc(D.id) + "）<br>" +
-      "模块 " + D.groups.length + " · 自查点 " + s.total + " · 问答 " + QA_LIST.length + "<br>" +
+      term("group") + " " + (D.groups || []).length + " · " + term("check") + " " + s.total + " · " + term("qa") + " " + QA_LIST.length + "<br>" +
       "进度文件：" + (window.Native ? "应用私有目录 state.json" : "浏览器 localStorage") + "</div>");
     html.push('<div class="btn-row"><button class="btn danger" id="btnReset">清空本机进度</button></div>');
     html.push('<div class="note" style="margin-top:16px">题台 ' + APP_VERSION + ' · 通用学习包引擎，内容与程序分离。</div>');
@@ -490,8 +494,8 @@
     html.push('<div class="meta-row"><span class="tag">' + esc(id) + '</span><span class="lvl ' + esc(c.lvl) + '">' + esc(c.lvl) + "</span></div>");
     html.push('<div class="q-title">' + rich(c.text) + "</div>");
     html.push('<div class="foot-row"><span class="foot-k">所属</span><span class="note">' + esc(c.group.title) + "</span></div>");
-    html.push('<div class="sub-h"><b>对应问答</b><span>' + qs.length + " 条</span></div>");
-    if (!qs.length) html.push('<div class="note">这条自查点还没有对应问答。</div>');
+    html.push('<div class="sub-h"><b>对应' + esc(term("qa")) + '</b><span>' + qs.length + " 条</span></div>");
+    if (!qs.length) html.push('<div class="note">这条' + esc(term("check")) + '还没有对应' + esc(term("qa")) + '。</div>');
     qs.forEach(function (qid) {
       var q = QA[qid];
       html.push('<div class="qa-row" data-jump="' + qid + '"><div class="lr"><span class="lbadge L' + q.layer + '">L' + q.layer + "</span></div>" +
@@ -503,7 +507,7 @@
         ["", "模糊", "会", "熟练"][k] + "</button>";
     }).join("") + "</div>");
     html.push('<div class="btn-row"><button class="btn" data-act="fav-check" data-id="' + id + '">' +
-      (isFav(id) ? "★ 已收藏" : "☆ 收藏此点") + "</button></div>");
+      (isFav(id) ? "★ 已收藏" : "☆ 收藏此" + esc(term("check")) ) + "</button></div>");
     openSheet(html.join(""));
   }
 
@@ -742,7 +746,9 @@
   /* ---------------- 启动 ---------------- */
   loadState();
   $("#deckTitle").textContent = D.title || "题台";
-  $("#deckSub").textContent = (D.groups.length || 0) + " 个模块 · " + QA_LIST.length + " 条问答";
+  $("#tabList").textContent = term("check");
+  $("#tabQa").textContent = term("qa");
+  $("#deckSub").textContent = (D.groups || []).length + " 个" + term("group") + " · " + QA_LIST.length + " 条" + term("qa");
   setTheme(state.settings.theme || "dark");
   setTab(state.settings.tab || "list");
   applyDeepLink();

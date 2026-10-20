@@ -5,7 +5,12 @@ window.DECK = {
  "title": "UE5 PCG 面试复习",
  "subtitle": "层层递进的问题网络 × 全量自查覆盖",
  "accent": "#2f81f7",
- "updatedAt": "2026-10-20T15:07:44.467Z",
+ "terms": {
+  "group": "模块",
+  "check": "自查点",
+  "qa": "问答"
+ },
+ "updatedAt": "2026-10-20T15:52:15.524Z",
  "groups": [
   {
    "id": "m1",

@@ -10,6 +10,27 @@
 
 约定：`MUST` = 违反即非法；`SHOULD` = 违反可运行但不推荐；`MAY` = 可选。
 
+### 0.1 这份协议能保证什么，不能保证什么
+
+**能保证**（由 JSON Schema + `tools/validate-deck.js` + 一致性测试共同兑现）：
+
+1. 结构正确：字段类型、枚举、长度、必填项。
+2. 引用闭合：任何 `covers` / `next` / `peer` / `m` 都不会指向不存在的 id，因此引擎不会因为“点了找不到”而白屏。
+3. id 规则：`check.id = group.id + 序号`，进度的键稳定，换包不串味。
+4. 答案结构：`结论` 打头、四段有序、无 HTML 注入。
+5. 引擎可渲染：通过校验的包在 `tools/conformance.js` 里能完整渲染出列表、问答、收藏、刷题四个视图，无 JS 异常。
+6. 进度可合并：`state.json` 满足幂等 / 可交换 / 不丢分。
+
+**不能保证**（内容质量，协议管不了）：
+
+- 问题问得好不好、答案对不对；
+- 篇幅是否适合手机屏（一屏能读多少字，只能靠人眼）；
+- `layer` 标注是否名副其实（是否有“逻辑跳跃”只能由读者判断）；
+- 覆盖是否完整 —— 这是**推荐实践**，不是协议要求（见 §1.7）。
+
+一句话：**协议保证“这个包能被引擎安全地打开并展示”，不保证“这个包是好内容”。**
+第三方作者只要跑通 `validate-deck.js` + `conformance.js`，产物就一定能被本项目加载；至于内容好不好，那是评审的事，不是协议的事。
+
 ---
 
 ## 0. 快速示例
@@ -70,6 +91,7 @@
 | `title` | string | MUST | 显示在顶栏与电脑端页面。 |
 | `subtitle` | string | MAY | 顶栏第二行，缺省由引擎按“N 个模块 · M 条问答”生成。 |
 | `accent` | string | MAY | 主色，`#rrggbb`。深/浅色主题下由引擎自行调整明度。 |
+| `terms` | object | MAY | 界面上怎么称呼这三类东西：`{group, check, qa}`，缺省 `模块 / 知识点 / 问答`。见 §1.8。 |
 | `updatedAt` | string | MAY | ISO-8601 时间，供人看，引擎不参与逻辑。 |
 | `groups` | Group[] | MUST | 模块（自查清单的分组），至少 1 个。 |
 | `qas` | Qa[] | MUST | 问答，至少 1 条。 |
@@ -141,17 +163,43 @@
 - 其余三节 MAY 省略，但一旦出现，MUST 按 `结论 → 机制 → 取舍 → 实战` 的顺序；
 - 每节长度 SHOULD 控制在 40–160 字；`p` 中 MUST NOT 出现 HTML 标签（会被转义显示）。
 
-### 1.7 覆盖与引用不变量
+### 1.7 引用不变量与覆盖（推荐）
 
-构建器（`tools/mkdeck.js`）与校验器（`tools/validate-deck.js`）共同保证：
+校验器（`tools/validate-deck.js`）保证以下 **MUST** 项：
 
-1. **全覆盖**：每个 check 至少被 1 条 qa 的 `covers` 命中。
-2. **引用闭合**：`next` / `peer` / `covers` / `m` 指向的 id 全部存在。
-3. **无自引用**：`next`、`peer` 不含自身；数组内无重复元素。
-4. **无环约束**：`next` 图 MUST NOT 含自环；允许 A→B→A 的双向追问，但 `A.next` 含 B 时 `B.next` SHOULD NOT 再含 A（用 `peer` 表达互看）。
-5. **id 唯一**：group、check、qa 三套 id 各自唯一；check id 由 group id 派生，天然不冲突。
+1. **引用闭合**：`next` / `peer` / `covers` / `m` 指向的 id 全部存在。
+2. **无自引用**：`next`、`peer` 不含自身；数组内无重复元素。
+3. **无环约束**：`next` 图 MUST NOT 含自环；允许 A→B→A 的双向追问，但 `A.next` 含 B 时 `B.next` SHOULD NOT 再含 A（用 `peer` 表达互看）。
+4. **id 唯一**：group、check、qa 三套 id 各自唯一；check id 由 group id 派生，天然不冲突。
+5. **答案分段**：见 §1.6。
 
-> 覆盖率是协议的一部分：它保证“自查清单”不是装饰，任何一条自查点都能被问到答案。
+以下则属于 **SHOULD（推荐，非协议要求）**：
+
+- **覆盖**：每个 check 最好至少被 1 条 qa 的 `covers` 命中。
+  这不是协议强制项——没有问答覆盖的 check 依然能正常渲染，点开详情会显示“还没有对应问答”。
+  校验器只报 `W_UNCOVERED` 警告，不影响 `ok`。
+  是否追求 100% 覆盖是**内容作者的选择**：本项目（UE5 PCG 包）把 100% 当成自己的验收线，由 `tools/mkdeck.js` 在构建时强制；
+  换一个学习包，作者完全可以先写清单、后补问答，慢慢补到全覆盖。
+
+> 之所以不把它写成 MUST：清单和问答是两种不同的写作节奏。先列“我该会什么”，再逐个写出答案，是很正常的工作方式；把覆盖当门槛会逼作者把没想清楚的点草草配上答案。
+
+### 1.8 terms：界面名词
+
+引擎内部一律用 `group` / `check` / `qa` 三个键，但界面上显示什么由学习包决定：
+
+```json
+"terms": { "group": "章节", "check": "知识点", "qa": "问答" }
+```
+
+| 键 | 缺省 | 出现在哪里 |
+|---|---|---|
+| `group` | `模块` | 顶栏副标题、设置页统计 |
+| `check` | `知识点` | 底部 tab、搜索框占位、“没有符合条件的…”、收藏夹标题、详情里的“收藏此…” |
+| `qa` | `问答` | 底部 tab、对应问答区标题 |
+
+- 缺省值是**通用词**（模块 / 知识点 / 问答），适合任何主题。
+- 需要“考题味”的包可以覆盖成 `{ "check": "自查点" }`，本项目就这么做（`tools/mkdeck.js` 默认写入 `自查点`）。
+- 只影响**显示文案**，不影响 id、进度键、同步协议——换词不会让已有进度失效。
 
 ---
 
@@ -298,15 +346,46 @@ notes（213，协议允许的软提示，加 --verbose 展开）
 [E_COVER_REF] q.m10.graph — covers 指向不存在的自查点：m10.99
 [E_SELF_REF]  q.m2.vector — next 含自身
 [E_ANS_HEAD]  q.m2.vector.ans[0].h — 第一段必须是“结论”
-[E_UNCOVERED] m9.11 — 没有任何问答覆盖该自查点
 [E_CHECK_PREFIX] m3.7 — check id 必须以 “m3.” 开头，实际 m4.7
 ```
+
+> 注意 `W_UNCOVERED`（自查点没有问答覆盖）现在是 **warning**，不算 problems，见 §1.7。
 
 推荐在 CI 与 `mkdeck.js` 之后各跑一次：
 
 ```bash
 node tools/mkdeck.js && node tools/validate-deck.js dist/deck.json
 ```
+
+### 4.1 一致性测试：证明“能被引擎打开”
+
+校验器只读 JSON，证明不了“引擎渲染不崩”。`tools/conformance.js` 把 deck 塞进真实引擎资源，用无头浏览器跑一遍：
+
+```bash
+node tools/conformance.js                              # 测 dist/deck.json
+node tools/conformance.js test/decks/minimal.deck.json # 测最小合法包
+node tools/conformance.js a.json b.json                # 一次测多份
+```
+
+它检查：
+
+1. 引擎加载后 **无 JS 异常**（`window.onerror` 全捕获）；
+2. 模块数、自查点渲染数与 deck 声明一致——**不丢项**；
+3. 列表搜索框、底部 tab 的文案确实用上了 `terms`（缺省 `知识点` / 自定义 `自查点` 都能验）；
+4. 问答页渲染出全部 qa 行；
+5. 点开一条问答，详情面板能打开（`.sheet.on`）。
+
+输出示例：
+
+```
+✓ test\decks\minimal.deck.json — 模块 1 · 自查点 2 · 问答 1 · tab「知识点/问答」· 无 JS 异常
+✓ dist\deck.json — 模块 18 · 自查点 194 · 问答 178 · tab「自查点/问答」· 无 JS 异常
+✓ 全部通过（2 份）
+```
+
+`test/decks/minimal.deck.json` 是**最小合法包**：只写必填字段，没有 `signal` / `keypoints` / `traps` / `tags` / `next` / `peer`，还有一条自查点没有任何问答覆盖。它能通过，才说明第三方作者不必照着本项目的写法填满所有可选字段。
+
+浏览器路径可用 `EDGE` 环境变量覆盖，默认 `C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe`。
 
 ---
 
@@ -326,11 +405,12 @@ node tools/mkdeck.js && node tools/validate-deck.js dist/deck.json
 
 1. 复制 `pcg-doc/data/` 的结构：`modules.js`（groups）+ `qa-*.js`（qas），或在任意语言里直接产出 `deck.json`。
 2. 遵循 §1 的 id 规则与不变量；桥梁题用 `covers` 跨模块，用 `peer` 表达横向关联。
-3. 生成并校验：
+3. 生成并校验（可选再加一致性测试）：
 
    ```bash
    node tools/mkdeck.js                              # 生成 dist/deck.json 与 assets/deck.js
    node tools/validate-deck.js dist/deck.json        # 必须 ok:true
+   node tools/conformance.js dist/deck.json          # 建议：证明引擎能渲染
    ```
 
 4. 打包安装：`./gradlew assembleRelease` → 覆盖安装，进度由 `state.json` 独立保存，不受内容更新影响。
@@ -342,6 +422,7 @@ node tools/mkdeck.js && node tools/validate-deck.js dist/deck.json
 ```
 deck
 ├─ schema:int  id:str  title:str  subtitle?:str  accent?:str  updatedAt?:str
+├─ terms?:  {group?:str, check?:str, qa?:str}         # 界面名词，缺省 模块/知识点/问答
 ├─ groups: [ { id, title, short?, priority, stage:1..4, signal?, keypoints?[], traps?, checks:[ {id, text, lvl} ] } ]
 └─ qas:    [ { id, m, lvl, layer:1..4, q, tags?[], covers[], next?[], peer?[], ans:[ {h, p} ], backNext†, backPeer† } ]
 
