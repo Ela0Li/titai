@@ -190,6 +190,17 @@ function validate(deck) {
       else if (c.text.length > 300) W("W_CHECK_LONG", cat + ".text", "自查点超过 300 字，建议拆细");
       else checkMath(c.text, cat + ".text", P, W);
       if (!LVL.has(c.lvl)) P("E_CHECK_LVL", cat + ".lvl", "lvl 必须是 P0/P1/P2");
+      /* v1.7：可选的「及格线」提示，讲清说到哪几条算过，不写答案 */
+      if (c.hint != null) {
+        if (typeof c.hint !== "string") P("E_CHECK_HINT", cat + ".hint", "hint 必须是字符串");
+        else {
+          const ht = c.hint.trim();
+          if (ht.length < 6) P("E_CHECK_HINT", cat + ".hint", "hint 过短（至少 6 字）");
+          else if (ht.length > 60) P("E_CHECK_HINT", cat + ".hint", "hint 超过 60 字（" + ht.length + "），只写及格线");
+          else if (/[\r\n]/.test(c.hint)) P("E_CHECK_HINT", cat + ".hint", "hint 不能换行");
+          else checkMath(c.hint, cat + ".hint", P, W);
+        }
+      }
       if (c.seeAlso != null) {
         if (!Array.isArray(c.seeAlso)) P("E_REF_LIMIT", cat + ".seeAlso", "seeAlso 必须是数组");
         else {

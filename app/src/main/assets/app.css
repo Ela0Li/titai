@@ -259,6 +259,16 @@ mtext { font-size: .96em; }
 .sheet-head .x { margin-left: auto; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; color: var(--fg2); }
 .sheet-body { padding: 14px; }
 .q-title { font-size: 17px; font-weight: 650; line-height: 1.45; margin: 2px 0 8px; }
+/* 知识点的「及格线」提示（协议 v1.7 可选字段 hint） */
+.check-hint {
+  font-size: 12.5px; line-height: 1.6; color: var(--fg2);
+  border-left: 2px solid var(--line2); border-left-color: color-mix(in srgb, var(--accent) 45%, var(--line2));
+  padding: 2px 0 2px 10px; margin: 2px 0 12px;
+}
+.check-hint span {
+  display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .4px;
+  color: var(--accent2); margin-right: 6px; vertical-align: 1px;
+}
 .meta-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
 .ans-block { margin-bottom: 12px; }
 .ans-h { font-size: 11px; font-weight: 700; letter-spacing: .4px; color: var(--accent2); margin-bottom: 3px; }

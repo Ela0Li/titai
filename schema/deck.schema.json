@@ -93,6 +93,12 @@
         "id": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_-]*\\.[0-9]+$" },
         "text": { "type": "string", "minLength": 4, "maxLength": 300 },
         "lvl": { "$ref": "#/$defs/lvl" },
+        "hint": {
+          "type": "string",
+          "minLength": 6,
+          "maxLength": 60,
+          "description": "及格线：说到哪几条算过。只写判据，不复述答案；不换行。"
+        },
         "seeAlso": {
           "type": "array",
           "maxItems": 2,

@@ -24,7 +24,11 @@ studydeck/
 │  └─ res/               图标与主题
 ├─ decks/                想「从电脑导入」的知识包放这里（sync.js 负责下发）
 ├─ plans/                学习计划（ml.plan.json、cs-cg-ue5.plan.json）
-├─ docs/deck-protocol.md 协议 v1.5（内容层 / 进度层 / 同步层 / 公式 / 跨包引用 / 学习计划 / 掌握度同步）
+├─ docs/                 协议 v1.7，拆成三册（章节号沿用总编号）
+│  ├─ protocol-core.md   总纲：保证边界 §0 / 进度层 §2 / 同步层 §3 / 校验器 §4 / 版本 §5 / 掌握度同步 §10 / 附录 A 字段速查
+│  ├─ deck-protocol.md   知识包：示例 §0 / 内容层 §1 / 制作 §6 / 数学公式 §7 / 跨包引用 §8
+│  ├─ plan-protocol.md   学习计划 §9
+│  └─ deck-protocol.src.md  合并前的原文（tools/split-protocol.js 的输入，改协议改这份再拆）
 ├─ schema/               JSON Schema：deck / state / plan
 ├─ tools/
 │  ├─ mkdeck.js          数据源 → dist/deck.json + assets/decks/<id>.json（含覆盖率自检）
@@ -40,7 +44,7 @@ studydeck/
 
 App 内的进度按包分文件：`files/states/<deck-id>.json`；导入包放在 `files/decks/<deck-id>.json`；主题与同步地址这类跟包无关的偏好放在 `files/prefs.json`，换包不丢。
 
-知识包、进度、同步三层的完整契约见 **[docs/deck-protocol.md](docs/deck-protocol.md)**。
+知识包契约见 **[docs/deck-protocol.md](docs/deck-protocol.md)**；进度 / 同步 / 校验 / 版本在 **[docs/protocol-core.md](docs/protocol-core.md)**；计划文件在 **[docs/plan-protocol.md](docs/plan-protocol.md)**。三册共用同一个版本号，章节号不重排，所以「§9」永远是学习计划。
 
 ### 学习计划（v1.3，v1.4 增强）
 
@@ -119,6 +123,21 @@ adb -s a27457ef shell am start -n com.studydeck.app/.MainActivity
 `ans` 是有序块数组，每块必须有 `p`（段落），可选 `h`（自拟小标题）、`lvl`（1..3 级，不能跳级）、`list`（要点列表）。协议**不再要求**「结论 → 机制 → 取舍 → 实战」四段式，也不要求以结论开头：面试型学习包这么写仍然推荐，知识型/操作型可以自己分节，甚至整篇不写标题。
 
 天花板是 3 级：`lvl` 超过 3 或跳级（1 → 3）会被校验器拒绝（`E_ANS_LVL`）。老包无需改动，`{h:"结论", p:"…"}` 仍然是合法的一级标题块。
+
+### 知识点的「及格线」（v1.7 起）
+
+知识点（check）**保持一句话**，不加分段——它是掌握度的最小单位，列表要能扫读。真正缺的是「说到什么程度算过」，所以给 check 加了一个可选字段 `hint`（6–60 字、不换行）：
+
+```json
+{ "id": "m1.5", "text": "模板实例化、Lambda 捕获、auto 与类型推导的常见误用",
+  "lvl": "P1", "hint": "各举一个误用例子即可，不必背特性清单" }
+```
+
+详情页会在标题下面显示成一行「及格线 xxx」；没有 `hint` 就整行不出现，老包零改动。
+
+`hint` 写的是**判据**（“说清三点算过”“举一个反例即可”），不是答案要点——答案在 `covers` 指过去的问答里。**写三条以上要点就说明这条该拆成两条知识点**，60 字上限就是为这个留的。
+
+全部 282 条知识点的提示存在 `tools/hints/<deck>.json`，用 `node tools/apply-hints.js` 灌进 `decks/*.json` 与 assets；**重建过知识包之后要重跑一次**，`--check` 只体检不写。
 
 ---
 
@@ -256,7 +275,7 @@ node tools\sync.js          # 默认 8787
 
 ---
 
-## 答安结构与内容工具（v0.8.3 起）
+## 答案结构与内容工具（v0.8.3 起）
 
 协议只规定「答案是一个块数组」，每块有 `h`（自拟小标题，≤24 字）、`lvl`（1..3，可省）、`p`（正文）、`list`（要点，可选）。写成什么结构由内容体裁决定，本仓库的约定是：
 
@@ -270,6 +289,8 @@ node tools\sync.js          # 默认 8787
 
 - `node tools/audit-answers.js [--deck id] [--list] [--dump]` —— 按可复现的规则扫「结构不合适」的答案：E1 空洞块（正文 < 40 字，带 `list` 的块按 `p`+条目合计算）、E2 单块过长、E3 操作型问句却只有取舍/实战、E4「结论」块里写步骤、E5 该拆 list 的长段落、E6 多块无标题、E7 有嵌套语义却全用 1 级标题。
 - `node tools/restructure-answers.js [--check]` —— 应用 `tools/answers-patches.json` 里的补丁表。补丁表幂等：`decks/*.json` 被生成脚本（`build-ml-math.js`、`split-deck.js` …）重建后，重跑一次即可把重排过的答案恢复。改答案时先用 `snapshot-patches.js` 把新内容记进补丁表，避免下次重建丢失。
+- `node tools/apply-hints.js [--check] [--deck id]` —— 把 `tools/hints/<deck>.json` 里的知识点「及格线」灌进知识包（幂等，重建后重跑）。
+- `node tools/split-protocol.js` —— 从 `docs/deck-protocol.src.md` 重新拆出协议三册（总纲 / 知识包 / 计划）。**改协议改 src，再跑这个**，别直接改三册产物。
 
 ---
 

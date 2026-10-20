@@ -49,7 +49,7 @@
     (D.groups || []).forEach(function (g, gi) {
       g.gi = gi;
       (g.checks || []).forEach(function (c) {
-        CHECK[c.id] = { id: c.id, text: c.text, lvl: c.lvl, g: g.id, group: g, seeAlso: c.seeAlso || [] };
+        CHECK[c.id] = { id: c.id, text: c.text, lvl: c.lvl, hint: c.hint || "", g: g.id, group: g, seeAlso: c.seeAlso || [] };
         GROUP_OF[c.id] = g;
       });
     });
@@ -1536,6 +1536,7 @@
     var html = [];
     html.push('<div class="meta-row"><span class="tag">' + esc(id) + '</span><span class="lvl ' + esc(c.lvl) + '">' + esc(c.lvl) + "</span></div>");
     html.push('<div class="q-title">' + rich(c.text) + "</div>");
+    if (c.hint) html.push('<div class="check-hint"><span>及格线</span>' + rich(c.hint) + "</div>");
     html.push('<div class="foot-row"><span class="foot-k">所属</span><span class="note">' + esc(c.group.title) + "</span></div>");
     html.push('<div class="sub-h"><b>对应' + esc(term("qa")) + '</b><span>' + qs.length + " 条</span></div>");
     if (!qs.length) html.push('<div class="note">这条' + esc(term("check")) + '还没有对应' + esc(term("qa")) + '。</div>');
