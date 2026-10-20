@@ -611,6 +611,14 @@
 
   function renderDeckSection() {
     var list = deckList();
+    /* 计划内的包按计划顺序排，其余排在后面 */
+    list.sort(function (a, b) {
+      var ia = MEMBERS.indexOf(a.id), ib = MEMBERS.indexOf(b.id);
+      if (ia < 0) ia = 99 + (a.builtin ? 0 : 1);
+      if (ib < 0) ib = 99 + (b.builtin ? 0 : 1);
+      if (ia !== ib) return ia - ib;
+      return String(a.id) < String(b.id) ? -1 : 1;
+    });
     var html = ['<div class="sub-h"><b>学习计划</b><span>' + esc((PLAN && PLAN.title) || "未命名计划") + "</span></div>"];
     html.push('<div class="note" style="margin:0 0 10px">计划里的知识包在顶部可一键切换、不重载页面；进度仍各存各的。</div>');
     html.push('<div class="sub-h"><b>知识包</b><span>' + list.length + " 个</span></div>");
