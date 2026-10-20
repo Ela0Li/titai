@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="color-scheme" content="dark light">
+<title>题台</title>
+<script>
+  /* 首屏前定主题，避免闪白/闪黑 */
+  (function () {
+    try {
+      var raw = window.Native ? window.Native.loadState() : localStorage.getItem("studydesk.state.v1");
+      var t = raw ? (JSON.parse(raw).settings || {}).theme : null;
+      if (!t) t = localStorage.getItem("studydesk.theme.v1");
+      if (t) document.documentElement.dataset.theme = t;
+    } catch (e) {}
+  })();
+</script>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">
+      <i></i><i></i><i></i>
+    </span>
+    <span class="brand-text">
+      <b id="deckTitle">题台</b>
+      <small id="deckSub">加载中…</small>
+    </span>
+  </div>
+  <div class="top-right">
+    <div class="ring" id="ring" title="总掌握度">
+      <svg viewBox="0 0 36 36" width="34" height="34">
+        <circle cx="18" cy="18" r="15.5" class="ring-bg"></circle>
+        <circle cx="18" cy="18" r="15.5" class="ring-fg" id="ringFg"></circle>
+      </svg>
+      <span id="ringTxt">0%</span>
+    </div>
+    <button class="tbtn" id="themeBtn" aria-label="切换主题">☾</button>
+  </div>
+</header>
+
+<main id="view" class="view"></main>
+
+<nav class="tabbar" id="tabbar">
+  <button data-tab="list"  class="on"><i>▤</i><span>自查</span></button>
+  <button data-tab="qa"><i>▦</i><span>问答</span></button>
+  <button data-tab="fav"><i>★</i><span>收藏</span></button>
+  <button data-tab="drill"><i>◈</i><span>刷题</span></button>
+  <button data-tab="more"><i>⚙</i><span>设置</span></button>
+</nav>
+
+<div class="sheet-mask" id="mask"></div>
+<section class="sheet" id="sheet" aria-hidden="true"></section>
+<div class="toast" id="toast"></div>
+
+<script src="deck.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

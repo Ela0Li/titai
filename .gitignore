@@ -1,0 +1,30 @@
+# 构建产物
+build/
+.gradle/
+*.apk
+*.aab
+*.ap_
+*.dex
+captures/
+.cxx/
+
+# 本地环境
+local.properties
+.idea/
+*.iml
+.DS_Store
+
+# 签名材料：绝对不要提交
+signing/keystore.properties
+signing/*.keystore
+signing/*.jks
+*.keystore
+*.jks
+
+# 同步服务的运行时数据（配对码与进度都是私人的）
+sync/*
+!sync/.gitkeep
+
+# 截图与临时文件
+shot/
+*.log
