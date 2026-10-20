@@ -24,6 +24,34 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- 分享/打开一个学习包 JSON（微信、QQ、文件管理器「用题台打开」） -->
+            <intent-filter android:label="导入学习包">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" android:mimeType="application/json" />
+                <data android:scheme="file" android:mimeType="application/json" />
+                <data android:scheme="content" android:mimeType="text/plain" />
+                <data android:scheme="file" android:mimeType="text/plain" />
+            </intent-filter>
+
+            <!-- .tdeck 单一文件容器（暂时也是 JSON，靠后缀区分） -->
+            <intent-filter android:label="导入学习包（.tdeck）">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" android:host="*" android:pathPattern=".*\\.tdeck" />
+                <data android:scheme="file" android:host="*" android:pathPattern=".*\\.tdeck" />
+            </intent-filter>
+
+            <!-- 分享到题台 -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/json" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
         </activity>
     </application>
 

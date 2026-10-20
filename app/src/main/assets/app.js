@@ -438,8 +438,9 @@
         (!d.builtin && !on ? '<button class="btn mini danger" data-del-deck="' + esc(d.id) + '">删</button>' : "") +
         "</div>");
     });
-    html.push('<div class="btn-row"><button class="btn" id="btnDecks">从电脑获取学习包</button></div>');
-    html.push('<div class="note" id="deckNote">每个学习包有自己的进度；切换不会丢数据。</div>');
+    html.push('<div class="btn-row"><button class="btn" id="btnDecks">从电脑获取学习包</button>' +
+      '<button class="btn" id="btnImportFile">从文件导入</button></div>');
+    html.push('<div class="note" id="deckNote">每个学习包有自己的进度；切换不会丢数据。也可以把 .json 分享给「题台」直接打开。</div>');
     return html.join("");
   }
 
@@ -501,6 +502,129 @@
     if (!saved) { toast("不是合法的学习包"); if (note) note.textContent = "下载失败：文件不是合法学习包"; return; }
     toast("已导入 " + saved);
     switchDeck(saved);
+  }
+
+  /* ---- 从文件导入：先在本地体检，坏包不入库 ---- */
+  var IMPORT_MAX = 2 * 1024 * 1024;
+  var DECK_ID_RE = /^[A-Za-z0-9_\-\.]{1,64}$/;
+  var QA_ID_RE = /^q\.[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$/;
+  var HTML_TAG_RE = /<\/?(b|i|em|strong|br|p|div|span|code|pre|ul|ol|li|a|script|style|img)\b[^>]*>/i;
+
+  /** 轻量版的 validate-deck：只看会导致引擎出错或渲染异常的硬规则 */
+  function inspectDeck(text) {
+    var p = [];
+    function bad(code, msg) { p.push(code + "：" + msg); }
+    if (!text) return { problems: ["文件是空的"] };
+    if (text.length > IMPORT_MAX) return { problems: ["文件超过 2 MB，太大了"] };
+
+    var d;
+    try { d = JSON.parse(text); } catch (e) {
+      return { problems: ["不是合法 JSON（" + String(e && e.message || e) + "）"] };
+    }
+    if (!d || typeof d !== "object") return { problems: ["顶层不是对象"] };
+
+    if (d.schema !== 1) bad("E_SCHEMA", "schema 必须是 1");
+    if (!d.id || !DECK_ID_RE.test(d.id)) bad("E_ID", "id 只能用字母/数字/下划线/短横/点，1–64 字");
+    if (!d.title || typeof d.title !== "string") bad("E_TITLE", "缺少 title");
+
+    var groups = Array.isArray(d.groups) ? d.groups : [];
+    if (!groups.length) bad("E_GROUPS", "至少要有一个 groups");
+    var groupIds = {}, checkIds = {};
+    groups.forEach(function (g, gi) {
+      var tag = "groups[" + gi + "]";
+      if (!g || !g.id) { bad("E_GROUP_ID", tag + " 缺 id"); return; }
+      if (groupIds[g.id]) bad("E_GROUP_DUP", "模块 id 重复：" + g.id);
+      groupIds[g.id] = 1;
+      if (!g.title) bad("E_GROUP_TITLE", tag + " 缺 title");
+      var cs = Array.isArray(g.checks) ? g.checks : [];
+      if (!cs.length) bad("E_CHECKS", tag + " 至少要有一条 " + "check");
+      cs.forEach(function (c, ci) {
+        var want = g.id + "." + (ci + 1);
+        if (!c || !c.id) { bad("E_CHECK_ID", tag + ".checks[" + ci + "] 缺 id"); return; }
+        if (c.id !== want) bad("E_CHECK_PREFIX", c.id + " 应为 " + want);
+        if (checkIds[c.id]) bad("E_CHECK_DUP", "知识点 id 重复：" + c.id);
+        checkIds[c.id] = 1;
+        if (!c.text) bad("E_CHECK_TEXT", c.id + " 缺 text");
+        if (["P0", "P1", "P2"].indexOf(c.lvl) < 0) bad("E_CHECK_LVL", c.id + " 的 lvl 只能是 P0/P1/P2");
+      });
+    });
+
+    var qas = Array.isArray(d.qas) ? d.qas : [];
+    var qaIds = {};
+    qas.forEach(function (q) { if (q && q.id) qaIds[q.id] = 1; });
+    var seen = {};
+    qas.forEach(function (q, qi) {
+      var tag = "qas[" + qi + "]";
+      if (!q || !q.id) { bad("E_QA_ID", tag + " 缺 id"); return; }
+      if (!QA_ID_RE.test(q.id)) bad("E_QA_ID_RE", q.id + " 的 id 应形如 q.模块.名字");
+      if (seen[q.id]) bad("E_QA_DUP", "问答 id 重复：" + q.id);
+      seen[q.id] = 1;
+      if (!groupIds[q.m]) bad("E_QA_M", q.id + " 的 m 指向不存在的模块 " + q.m);
+      if (["P0", "P1", "P2"].indexOf(q.lvl) < 0) bad("E_QA_LVL", q.id + " 的 lvl 只能是 P0/P1/P2");
+      if ([1, 2, 3, 4].indexOf(q.layer) < 0) bad("E_QA_LAYER", q.id + " 的 layer 只能是 1–4");
+      if (!q.q) bad("E_QA_Q", q.id + " 缺问题文本");
+
+      var cov = Array.isArray(q.covers) ? q.covers : [];
+      if (!cov.length) bad("E_QA_COVERS", q.id + " 的 covers 是空的");
+      cov.forEach(function (c) {
+        if (c === q.id) bad("E_SELF_REF", q.id + " 不能覆盖自己");
+        else if (!checkIds[c]) bad("E_COVER_REF", q.id + " 覆盖了不存在的自查点 " + c);
+      });
+
+      ["next", "peer"].forEach(function (k) {
+        (Array.isArray(q[k]) ? q[k] : []).forEach(function (r) {
+          if (r === q.id) bad("E_SELF_REF", q.id + " 的 " + k + " 指向自己");
+          else if (!qaIds[r]) bad("E_QA_REF", q.id + " 的 " + k + " 指向不存在的问答 " + r);
+        });
+      });
+
+      var ans = Array.isArray(q.ans) ? q.ans : [];
+      if (!ans.length) bad("E_ANS", q.id + " 没有 ans");
+      else if (!ans[0] || ans[0].h !== "结论") bad("E_ANS_HEAD", q.id + " 的第一段必须是「结论」");
+      ans.forEach(function (a, ai) {
+        if (!a || !a.p) bad("E_ANS_P", q.id + " 第 " + (ai + 1) + " 段是空的");
+        else if (HTML_TAG_RE.test(a.p)) bad("E_ANS_HTML", q.id + " 第 " + (ai + 1) + " 段里有 HTML 标签");
+      });
+    });
+
+    return { problems: p, deck: d, checks: Object.keys(checkIds).length, qas: qas.length };
+  }
+
+  function showImportProblems(list) {
+    var html = ['<div class="note" style="color:var(--fg2)">这个文件没能入库：' + list.length + " 个问题。</div>"];
+    html.push('<ul class="import-err">');
+    list.slice(0, 8).forEach(function (m) { html.push("<li>" + esc(m) + "</li>"); });
+    html.push("</ul>");
+    if (list.length > 8) html.push('<div class="note">……还有 ' + (list.length - 8) + " 个问题。</div>");
+    html.push('<div class="note">对照 docs/deck-protocol.md 的 §1，或先跑 <code>node tools/validate-deck.js</code>。</div>');
+    html.push('<div class="btn-row" style="margin-top:14px"><button class="btn" data-act="close-sheet">知道了</button></div>');
+    openSheet(html.join(""));
+  }
+
+  /** 由原生调用：读缓存里的文件 → 体检 → 入库 → 切过去 */
+  function importStaged() {
+    if (!window.Native || !window.Native.readStagedImport) { toast("网页模式不支持文件导入"); return; }
+    var text = "";
+    try { text = String(window.Native.readStagedImport() || ""); } catch (e) { text = ""; }
+    if (!text) { toast("没读到文件内容"); return; }
+    var r = inspectDeck(text);
+    if (r.problems && r.problems.length) {
+      try { window.Native.dropStagedImport(); } catch (e) {}
+      showImportProblems(r.problems);
+      return;
+    }
+    var saved = "";
+    try { saved = String(window.Native.saveDeck(text) || ""); } catch (e) { saved = ""; }
+    try { window.Native.dropStagedImport(); } catch (e) {}
+    if (!saved) { showImportProblems(["写入失败：id 不合法或存储空间不足"]); return; }
+    toast("已导入 " + saved + "（" + r.checks + " 个知识点）");
+    switchDeck(saved);
+  }
+  window.__importStaged = importStaged;
+
+  function pickDeckFile() {
+    if (!window.Native || !window.Native.pickDeckFile) { toast("网页模式不支持文件导入"); return; }
+    try { window.Native.pickDeckFile(); } catch (e) { toast("打开文件选择器失败"); }
   }
 
   function renderMore() {
@@ -850,6 +974,7 @@
     else if (ev.target.id === "btnPull") syncCall("/api/pull", null);
     else if (ev.target.id === "btnPush") syncCall("/api/push", null);
     else if (ev.target.id === "btnDecks") fetchDeckIndex();
+    else if (ev.target.id === "btnImportFile") pickDeckFile();
     else if (ev.target.id === "btnReset") {
       state.checks = {}; state.fav = {}; state.quiz = {}; state.rev++;
       save(true);
@@ -891,6 +1016,7 @@
     if (p.tab) setTab(p.tab);
     if (p.download) { setTab("more"); downloadDeck(p.download); return; }
     if (p.decks) { setTab("more"); setTimeout(fetchDeckIndex, 200); return; }
+    if (p.pick) { setTab("more"); setTimeout(pickDeckFile, 300); return; }
     if (p.open && QA[p.open]) { setTab("qa"); openQa(p.open); }
     else if (p.check && CHECK[p.check]) { setTab("list"); openCheck(p.check); }
     if (p.sync) {

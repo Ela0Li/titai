@@ -416,9 +416,27 @@ node tools/conformance.js a.json b.json                # 一次测多份
    node tools/conformance.js dist/deck.json          # 建议：证明引擎能渲染
    ```
 
-4. 分发方式二选一：
+4. 分发方式三选一：
    - **内置**：`./gradlew assembleRelease` 重新打包 → 覆盖安装（内容写进 APK，卸了重装还在）。
-   - **导入**：把 deck JSON 放进仓库根的 `decks/` 目录，手机端「设置 → 学习包 → 从电脑获取学习包」下载即可，不用重装 APK。
+   - **下发**：把 deck JSON 放进仓库根的 `decks/` 目录，手机端「设置 → 学习包 → 从电脑获取学习包」下载即可，不用重装 APK。
+   - **直接导入**：把 JSON 发到手机，用「其他应用打开」选「题台」，或在「设置 → 学习包 → 从文件导入」里选文件。手机端会先做一遍结构体检（§6.2），不合格不入库。
+
+---
+
+## 6.2 手机端导入的体检范围
+
+引擎不自带完整的校验器，但导入时会跑一遍**会导致崩溃或渲染错乱**的硬规则，等价于 §1 里带 MUST 的部分：
+
+| 检查 | 对应错误码 |
+|---|---|
+| 是合法 JSON、`schema === 1`、`id` 匹配 `[A-Za-z0-9_-.]{1,64}`、有 `title` | `E_SCHEMA` `E_ID` `E_TITLE` |
+| 模块有 `id`/`title`、id 不重复、至少一条自查点 | `E_GROUP_ID` `E_GROUP_TITLE` `E_CHECKS` `E_GROUP_DUP` |
+| 自查点 id 派生规则 `group.id + "." + 序号`、`lvl` ∈ P0/P1/P2、`text` 非空 | `E_CHECK_PREFIX` `E_CHECK_LVL` `E_CHECK_TEXT` |
+| 问答 id 形如 `q.模块.名字`、`m` 指向存在的模块、`layer` ∈ 1–4、`lvl` 合法 | `E_QA_ID_RE` `E_QA_M` `E_QA_LAYER` `E_QA_LVL` |
+| `covers` 非空且指向存在的自查点、`next`/`peer` 指向存在的问答、不能自引用 | `E_COVER_REF` `E_QA_REF` `E_SELF_REF` |
+| 答案四段：第一段必须是「结论」，段落非空、不含 HTML 标签 | `E_ANS_HEAD` `E_ANS_P` `E_ANS_HTML` |
+
+覆盖率**不在**导入体检里——它只是 SHOULD，手机上不拦。
 
 ---
 

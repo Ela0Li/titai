@@ -30,11 +30,95 @@ import java.nio.charset.StandardCharsets;
  */
 public class Bridge {
 
+    /** 导入文件大小上限：2 MB，防一个畸形大包卡住 WebView */
+    static final long MAX_IMPORT_BYTES = 2L * 1024 * 1024;
+
     private final Context ctx;
+    private final Host host;
+
+    Bridge(Context ctx, Host host) {
+        this.ctx = ctx;
+        this.host = host;
+        migrateLegacyState();
+    }
 
     Bridge(Context ctx) {
-        this.ctx = ctx;
-        migrateLegacyState();
+        this(ctx, null);
+    }
+
+    // ---------- 外部导入（文件选择器 / 分享 / adb） ----------
+
+    /** 交给 Activity 去弹系统文件选择器 */
+    public interface Host {
+        void requestPickFile();
+    }
+
+    /** 暂存目录里的导入文件，JS 校验通过后才落进 decks/ */
+    File stagedImportFile() {
+        return new File(ctx.getCacheDir(), "import.deck.json");
+    }
+
+    @JavascriptInterface
+    public void pickDeckFile() {
+        if (host != null) host.requestPickFile();
+    }
+
+    /** 读出暂存内容（UTF-8 文本）；没有就返回空串 */
+    @JavascriptInterface
+    public String readStagedImport() {
+        File f = stagedImportFile();
+        if (!f.exists()) return "";
+        return readText(f) == null ? "" : readText(f);
+    }
+
+    @JavascriptInterface
+    public void dropStagedImport() {
+        File f = stagedImportFile();
+        if (f.exists()) f.delete();
+    }
+
+    /** 供调试/自动化：直接读一个路径并作为导入源（仅 adb 深链使用） */
+    @JavascriptInterface
+    public boolean readFileIntoStaging(String path) {
+        try {
+            File src = new File(path);
+            if (!src.exists() || !src.isFile() || src.length() > MAX_IMPORT_BYTES) {
+                android.util.Log.w("StudyDeck", "import: bad source " + path
+                        + " exists=" + src.exists() + " file=" + src.isFile() + " len=" + src.length());
+                return false;
+            }
+            try (InputStream in = new FileInputStream(src)) {
+                boolean ok = copyToStaging(in);
+                android.util.Log.i("StudyDeck", "import: staged=" + ok + " from " + path);
+                return ok;
+            }
+        } catch (Exception e) {
+            android.util.Log.w("StudyDeck", "import: read failed " + e);
+            return false;
+        }
+    }
+
+    boolean copyToStaging(InputStream in) {
+        File dst = stagedImportFile();
+        try (OutputStream out = new FileOutputStream(dst)) {
+            byte[] buf = new byte[8192];
+            long total = 0;
+            int n;
+            while ((n = in.read(buf)) > 0) {
+                total += n;
+                if (total > MAX_IMPORT_BYTES) {
+                    out.close();
+                    dst.delete();
+                    return false;
+                }
+                out.write(buf, 0, n);
+            }
+            out.flush();
+            return true;
+        } catch (Exception e) {
+            dst.delete();
+            return false;
+        }
     }
 
     // ---------- 内置版本号 ----------
