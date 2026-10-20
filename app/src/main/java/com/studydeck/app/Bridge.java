@@ -438,23 +438,30 @@ public class Bridge {
     @JavascriptInterface
     public String currentPlan() {
         String id = prefs().getString("plan", "");
-        if (id == null || id.isEmpty()) {
-            String first = "";
-            try {
-                String[] names = ctx.getAssets().list("plans");
-                if (names != null && names.length > 0) {
-                    java.util.Arrays.sort(names);
-                    for (String n : names) {
-                        if (!n.endsWith(".json")) continue;
-                        first = planIdOf(readAssetText("plans/" + n));
-                        if (!first.isEmpty()) break;
+        if (id != null && !id.isEmpty()) return id;
+        /* 没有显式选择时：内置计划里 order 最小的优先，其次按文件名排序 */
+        String best = "";
+        int bestOrder = Integer.MAX_VALUE;
+        try {
+            String[] names = ctx.getAssets().list("plans");
+            if (names != null) {
+                java.util.Arrays.sort(names);
+                for (String n : names) {
+                    if (!n.endsWith(".json")) continue;
+                    String text = readAssetText("plans/" + n);
+                    JSONObject o = new JSONObject(text);
+                    int ord = o.optInt("order", 100);
+                    String pid = o.optString("id", "");
+                    if (pid.isEmpty()) continue;
+                    if (ord < bestOrder) {
+                        bestOrder = ord;
+                        best = pid;
                     }
                 }
-            } catch (Exception ignored) {
             }
-            return first;
+        } catch (Exception ignored) {
         }
-        return id;
+        return best;
     }
 
     @JavascriptInterface

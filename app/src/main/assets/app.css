@@ -379,6 +379,13 @@ mtext { font-size: .96em; }
 .decksec .ds-name { font-weight: 700; color: var(--fg); }
 .decksec .ds-meta { margin-left: auto; font-size: 12px; color: var(--fg3); }
 .decksec:not(.on) .ds-name { color: var(--fg2); }
+.decksec .ds-now { font-size: 11px; padding: 1px 6px; border-radius: 6px; color: #fff;
+  background: var(--accent); }
+.decksec.open { border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; }
+.deckbox { margin: 0 0 14px; padding: 0 2px; }
+.deck-pick { gap: 10px; cursor: pointer; }
+.deck-pick input.pm { width: 20px; height: 20px; accent-color: var(--accent); flex: 0 0 auto; }
+.deck-pick .deck-t, .deck-pick .deck-m { display: block; }
 
 .dtag { display: inline-block; margin-right: 6px; padding: 1px 7px; border-radius: 6px;
   background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); font-size: 11px; }

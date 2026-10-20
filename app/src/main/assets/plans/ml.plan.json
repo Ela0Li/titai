@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "id": "ml",
+ "title": "机器学习入门",
+ "subtitle": "数学基础 → 机器学习主线：先把线性代数、概率、优化、信息论打好，再进模型与工程",
+ "members": [
+  "ml-math",
+  "ml-intro"
+ ],
+ "primary": "ml-intro",
+ "order": 1
+}

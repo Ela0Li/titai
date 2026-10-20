@@ -24,7 +24,10 @@
         "description": "成员知识包的 deck.id；数组顺序即学习顺序"
       }
     },
-    "primary": {
+    "order": {
+      "type": "integer",
+      "description": "内置计划的默认顺序；数字小的先被当作默认计划"
+    },    "primary": {
       "type": "string",
       "pattern": "^[a-z0-9][a-z0-9-]{1,40}$",
       "description": "默认打开的知识包，必须属于 members"

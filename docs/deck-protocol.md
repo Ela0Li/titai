@@ -412,6 +412,7 @@ node tools/conformance.js a.json b.json                # 一次测多份
 | v1.1（v0.5.0） | 多学习包共存（§6.1）；手机端导入体检（§6.2）；**数学公式 `$…$` / `$$…$$`（§7）**；掌握度圆点改为“按等级统一上色” | 1（不变） |
 | v1.2（v0.6.0） | **跨包引用（§8）**：`deckId#localId`、`check.seeAlso`、`deps`；`id` 升级为全局唯一命名空间；跳转 = 切包 + 返回栈；跨包默认只读（设置可开）；跨包 `covers` 双向计数；反向引用表随包更新刷新 | 1（不变） |
 | v1.3（v0.7.0） | **学习计划（§9）**：`plan.json` 与成员顺序；计划内软切包、列表按知识包分区、模块编号按包独立、问答按包筛选；**掌握度同步（§10）**：跨包 `covers` 双向写入；`terms` 统一为“模块 / 知识点 / 问答” | 1（不变） |
+| v1.4（v0.8.0） | 知识包分区**可同时展开多个**；计划可**新建/编辑/删除/导入**，新增 `order`（§9.1）；PCG 大包拆成 `cs-base` / `cv-graphics` / `ue5-pcg`，机器学习拆出 `ml-math`；模块标题与名词全量统一为「模块X · …」；内置计划换成一个机器学习计划（`order` 决定默认） | 1（不变） |
 
 公式是**纯文本语法**，不是新字段，所以 `schema` 保持 1：老引擎会把 `$\frac{a}{b}$` 当普通文字显示，内容不丢、不崩。
 
@@ -656,11 +657,12 @@ node tools/check-links.js dist/deck.json decks/ml-intro.json
 ```json
 {
   "schema": 1,
-  "id": "ue5-ml",
-  "title": "UE5 PCG 与机器学习",
-  "subtitle": "一个计划装四个知识包：基础 → 视觉 → PCG → 机器学习",
-  "members": ["cs-base", "cv-graphics", "ue5-pcg", "ml-intro"],
-  "primary": "ue5-pcg"
+  "id": "ml",
+  "title": "机器学习入门",
+  "subtitle": "数学基础 → 机器学习主线",
+  "members": ["ml-math", "ml-intro"],
+  "primary": "ml-intro",
+  "order": 1
 }
 ```
 
@@ -672,30 +674,35 @@ node tools/check-links.js dist/deck.json decks/ml-intro.json
 | `subtitle` | | 副标题 |
 | `members` | ✔ | 有序成员：`deck.id` 数组；**顺序即学习顺序**，也决定列表里知识包分区的先后 |
 | `primary` | | 默认打开哪个成员；缺省取 `members[0]` |
+| `order` | | 只对内置计划有意义：本机没记过“当前计划”时，`order` 最小的计划作默认（缺省按 100 算，同值再按文件名） |
 
 ### 9.2 不变量
 
 - `members` MUST 非空、无重复；
 - `primary` 若存在 MUST 属于 `members`；
-- 引擎 MUST 忽略不存在于本机的成员（不报错），并在设置页标注“未安装”。
+- 引擎 MUST 忽略不存在于本机的成员（不报错），并在设置页标注“未安装”；
+- 当前知识包 MUST 属于当前计划；换计划后如果旧包不在新计划里，引擎 MUST 落到新计划的 `primary`（v1.4 起）。
 
 ### 9.3 引擎行为
 
 1. **顶部**显示计划标题，下面一行 `知识包 chip 条`；
 2. 同一计划内切包 MUST **不重载页面**，正文就地换索引与进度；
-3. 列表主体按**知识包分区**（可展开/收起），只有当前包展开模块；**模块编号按包各自从 1 起**，不跨包连号；
+3. 列表主体按**知识包分区**，每个分区**独立展开/收起**（v1.4 起可同时展开多个），分区头部显示“N 模块 · M 知识点 · 百分比”；**模块编号按包各自从 1 起**，不跨包连号；
 4. 问答页提供**按知识包筛选**，默认勾选计划内全部知识包；
-5. 进度、收藏、刷题记录仍然**按包**存（§2），计划层不合并计数。
+5. 进度、收藏、刷题记录仍然**按包**存（§2），计划层不合并计数；
+6. 计划本身可以**新建 / 改名 / 增删成员 / 切换 / 删除 / 导入导出**（v1.4 起，设置 → 学习计划）；删除计划只删计划文件，知识包与进度不动。
 
 ### 9.4 命名（`terms`）
 
-计划本身不带 `terms`；界面名词取**当前包**的 `terms`。所以同一个 App 里可以有“模块/知识点”和“章节/自查点”两套说法同时存在。
+计划本身不带 `terms`；界面名词取**当前包**的 `terms`。
+
+v1.4 起所有内置包统一为 `{"group":"模块","check":"知识点","qa":"问答"}`，并统一模块标题写法为「模块X · 主题」（不再出现“第 N 章”）。第三方包仍可自带 `terms`，但同一份内容里 MUST 只用一套说法。
 
 ### 9.5 校验
 
 ```bash
-node tools/validate-plan.js plans/ue5-ml.plan.json
-node tools/validate-plan.js plans/*.plan.json --decks decks     # 连成员是否可解析一起查
+node tools/validate-plan.js plans/*.plan.json
+node tools/validate-plan.js plans/*.plan.json --with-decks   # 连成员是否可解析一起查
 ```
 
 `schema/plan.schema.json` 是机器可读版本。

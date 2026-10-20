@@ -83,7 +83,6 @@
     plans.forEach(function (p) { if (!PLAN && p.id === pid) PLAN = p; });
     if (!PLAN) PLAN = plans[0] || null;
     MEMBERS = PLAN && PLAN.members && PLAN.members.length ? PLAN.members.slice() : [CUR_DECK];
-    if (MEMBERS.indexOf(CUR_DECK) < 0 && CUR_DECK) MEMBERS.unshift(CUR_DECK);
 
     try { DECK_META = JSON.parse(n0("listDecks") || "[]") || []; } catch (e) { DECK_META = []; }
 
@@ -103,6 +102,17 @@
       } catch (e) {}
     });
     if (!DECK_CACHE[CUR_DECK]) DECK_CACHE[CUR_DECK] = D;
+
+    /* 当前包不属于这个计划时（比如刚换了计划），落到计划的默认包 */
+    if (MEMBERS.indexOf(CUR_DECK) < 0) {
+      var want = (PLAN && PLAN.primary && MEMBERS.indexOf(PLAN.primary) >= 0) ? PLAN.primary : MEMBERS[0];
+      if (want && DECK_CACHE[want]) {
+        D = DECK_CACHE[want];
+        CUR_DECK = want;
+        hydrate(D);
+        try { n1("setCurrentDeck", want); } catch (e2) {}
+      }
+    }
   })();
 
   function deckInfo(id) {
@@ -215,6 +225,71 @@
     state.checks[checkId] = { m: m, t: Date.now() };
     propagateMastery(checkId, m);
     save();
+  }
+
+  /* ---- 多个知识包可同时展开：非当前包用独立缓存，改动能直接写回各自的 state ---- */
+  var DSTATE = {};
+  function deckState(did) {
+    if (did === CUR_DECK) return state;
+    if (DSTATE[did]) return DSTATE[did];
+    var st = { checks: {}, fav: {}, quiz: {}, rev: 0, touched: 0 };
+    try {
+      var raw = (window.Native && window.Native.readState) ? window.Native.readState(did) : null;
+      var s = raw ? JSON.parse(raw) : null;
+      if (s && s.checks) {
+        st.checks = s.checks || {};
+        st.fav = s.fav || {};
+        st.quiz = s.quiz || {};
+        st.rev = s.rev || 0;
+        st.touched = s.touched || 0;
+      }
+    } catch (e) {}
+    DSTATE[did] = st;
+    return st;
+  }
+  function dropDeckState(did) { delete DSTATE[did]; }
+  function mOfIn(did, cid) {
+    var r = deckState(did).checks[cid];
+    return r && typeof r.m === "number" ? r.m : 0;
+  }
+  function isFavIn(did, cid) {
+    var f = deckState(did).fav || {};
+    return !!(f[cid] && f[cid].on);
+  }
+  function persistDeck(did) {
+    var st = deckState(did);
+    st.rev = (st.rev || 0) + 1;
+    st.touched = Date.now();
+    try {
+      if (window.Native && window.Native.writeState) window.Native.writeState(did, JSON.stringify(st));
+    } catch (e) { toast("保存失败"); }
+  }
+  function setMIn(did, cid, m) {
+    if (did === CUR_DECK) { setM(cid, m); return; }
+    deckState(did).checks[cid] = { m: m, t: Date.now() };
+    persistDeck(did);
+  }
+  function toggleFavIn(did, cid) {
+    if (did === CUR_DECK) { toggleFav(cid); return; }
+    var fav = deckState(did).fav;
+    var on = !!(fav[cid] && fav[cid].on);
+    fav[cid] = { on: !on, t: Date.now() };
+    persistDeck(did);
+  }
+
+  /* 哪些知识包在列表里是展开的（设备级偏好，可同时开多个） */
+  function openMap() {
+    if (!prefs.deckOpen || typeof prefs.deckOpen !== "object") prefs.deckOpen = {};
+    return prefs.deckOpen;
+  }
+  function isDeckOpen(did) {
+    var o = openMap();
+    return o[did] === undefined ? did === CUR_DECK : !!o[did];
+  }
+  function toggleDeckOpen(did) {
+    var o = openMap();
+    o[did] = !isDeckOpen(did);
+    setPref("deckOpen", o);
   }
 
   /* ---- 掌握度同步：同一条问答覆盖的自查点共享掌握度（协议 v1.3 §10） ---- */
@@ -339,11 +414,32 @@
   var listFilter = "all";
   var listQuery = "";
 
-  function passesMastery(checkId) {
-    var m = mOf(checkId);
+  function passesMasteryIn(did, checkId) {
     if (listFilter === "all") return true;
-    if (listFilter === "fav") return isFav(checkId);
-    return m === parseInt(listFilter, 10);
+    if (listFilter === "fav") return isFavIn(did, checkId);
+    return mOfIn(did, checkId) === parseInt(listFilter, 10);
+  }
+
+  function listDecksOrder() {
+    var out = [], seen = {};
+    MEMBERS.forEach(function (id) { if (readDeckData(id) && !seen[id]) { seen[id] = 1; out.push(id); } });
+    deckMeta().forEach(function (m) { if (!seen[m.id] && readDeckData(m.id)) { seen[m.id] = 1; out.push(m.id); } });
+    return out;
+  }
+
+  function checkRow(c, did) {
+    did = did || CUR_DECK;
+    var m = mOfIn(did, c.id);
+    var fav = isFavIn(did, c.id);
+    var dots = [1, 2, 3].map(function (k) {
+      return '<button class="dot' + (m >= k ? " on" : "") + '" data-m="' + k + '" aria-label="掌握度' + k + '"></button>';
+    }).join("");
+    return '<div class="check" data-check="' + esc(c.id) + '" data-d="' + esc(did) + '">' +
+      '<div class="check-c" data-act="open-check"><em>' + esc(c.id) + "</em>" + rich(c.text) + "</div>" +
+      '<span class="lvl ' + esc(c.lvl) + '">' + esc(c.lvl) + "</span>" +
+      '<div class="dots" data-dots="' + esc(c.id) + '" data-lv="' + m + '">' + dots + "</div>" +
+      '<button class="star' + (fav ? " on" : "") + '" data-star="' + esc(c.id) + '">' + (fav ? "★" : "☆") + "</button>" +
+      "</div>";
   }
 
   function matches(text) {
@@ -359,45 +455,59 @@
       chip("2", "会") + chip("3", "熟练") + chip("fav", "收藏") + "</div>");
 
     var shown = 0;
-    var decks = MEMBERS.filter(function (id) { return !!DECK_CACHE[id]; });
-    if (!decks.length) decks = [CUR_DECK];
+    var decks = listDecksOrder();
     decks.forEach(function (did) {
-      var dd = DECK_CACHE[did] || D;
+      var dd = readDeckData(did);
+      if (!dd || !dd.groups) return;
+      var dt = dd.terms || {};
+      var gTerm = dt.group || term("group");
+      var cTerm = dt.check || term("check");
       var active = did === CUR_DECK;
       var dChecks = (dd.groups || []).reduce(function (n, gg) { return n + (gg.checks || []).length; }, 0);
-      var openGroups = (did === CUR_DECK ? (window.__openDecks || {}) : {})[did];
-      html.push('<div class="decksec' + (active ? " on" : "") + '" data-decksec="' + esc(did) + '">' +
-        '<span class="ds-chev">' + (active ? "▾" : "▸") + "</span>" +
+      var dDone = 0;
+      (dd.groups || []).forEach(function (gg) {
+        (gg.checks || []).forEach(function (c) { if (mOfIn(did, c.id) >= 2) dDone++; });
+      });
+      var dPct = dChecks ? Math.round((dDone / dChecks) * 100) : 0;
+      var open = isDeckOpen(did);
+      html.push('<div class="decksec' + (active ? " on" : "") + (open ? " open" : "") +
+        '" data-decksec="' + esc(did) + '">' +
+        '<span class="ds-chev">' + (open ? "▾" : "▸") + "</span>" +
         '<span class="ds-name">' + esc(deckShort(did)) + "</span>" +
-        '<span class="ds-meta">' + (dd.groups || []).length + " 模块 · " + dChecks + " " + esc(term("check")) + "</span></div>");
-      if (!active) return;
+        (active ? '<span class="ds-now">当前</span>' : "") +
+        '<span class="ds-meta">' + (dd.groups || []).length + " " + esc(gTerm) + " · " + dChecks + " " +
+        esc(cTerm) + " · " + dPct + "%</span></div>");
+      if (!open) return;
+      var box = '<div class="deckbox" data-dbox="' + esc(did) + '">';
       (dd.groups || []).forEach(function (g) {
-      var checks = g.checks.filter(function (c) { return passesMastery(c.id) && (matches(c.text) || matches(g.title)); });
-      if (!checks.length) return;
-      shown += checks.length;
-      var done = checks.filter(function (c) { return mOf(c.id) >= 2; }).length;
-      var pct = Math.round((done / checks.length) * 100);
-      html.push('<section class="mod" data-g="' + g.id + '">');
-      html.push('<div class="mod-head" data-act="toggle">' +
-        '<span class="mod-id">' + esc(g.id.toUpperCase()) + "</span>" +
-        '<span class="mod-t"><b>' + esc(g.title) + "</b><small>S" + g.stage + " · " + esc(g.priority) +
-        " · " + checks.length + " 项</small></span>" +
-        '<span class="mod-pct">' + pct + "%</span></div>");
-      html.push('<div class="bar"><i style="width:' + pct + '%"></i></div>');
-      html.push('<div class="mod-body">');
-      if (g.keypoints && g.keypoints.length) {
-        html.push('<div class="kp"><b>要点</b><ul>' +
-          g.keypoints.map(function (x) { return "<li>" + rich(x) + "</li>"; }).join("") + "</ul></div>");
-      }
-      if (g.traps && g.traps.length) {
-        html.push('<div class="kp trap"><b>易错</b><ul>' +
-          g.traps.map(function (x) { return "<li>" + rich(x) + "</li>"; }).join("") + "</ul></div>");
-      }
-      checks.forEach(function (c) {
-        html.push(checkRow(c));
+        var checks = (g.checks || []).filter(function (c) {
+          return passesMasteryIn(did, c.id) && (matches(c.text) || matches(g.title));
+        });
+        if (!checks.length) return;
+        shown += checks.length;
+        var done = checks.filter(function (c) { return mOfIn(did, c.id) >= 2; }).length;
+        var pct = Math.round((done / checks.length) * 100);
+        box += '<section class="mod" data-g="' + esc(g.id) + '" data-d="' + esc(did) + '">' +
+          '<div class="mod-head" data-act="toggle">' +
+          '<span class="mod-id">' + esc(String(g.id).toUpperCase()) + "</span>" +
+          '<span class="mod-t"><b>' + esc(g.title) + "</b><small>S" + g.stage + " · " + esc(g.priority) +
+          " · " + checks.length + " 项</small></span>" +
+          '<span class="mod-pct">' + pct + "%</span></div>" +
+          '<div class="bar"><i style="width:' + pct + '%"></i></div>' +
+          '<div class="mod-body">';
+        if (g.keypoints && g.keypoints.length) {
+          box += '<div class="kp"><b>要点</b><ul>' +
+            g.keypoints.map(function (x) { return "<li>" + rich(x) + "</li>"; }).join("") + "</ul></div>";
+        }
+        if (g.traps && g.traps.length) {
+          box += '<div class="kp trap"><b>易错</b><ul>' +
+            g.traps.map(function (x) { return "<li>" + rich(x) + "</li>"; }).join("") + "</ul></div>";
+        }
+        checks.forEach(function (c) { box += checkRow(c, did); });
+        box += "</div></section>";
       });
-      html.push("</div></section>");
-      });
+      box += "</div>";
+      html.push(box);
     });
 
     if (!shown) html.push('<div class="empty">没有符合条件的' + esc(term("check")) + '</div>');
@@ -413,19 +523,6 @@
 
   function chip(v, label) {
     return '<button class="chip' + (listFilter === v ? " on" : "") + '" data-chip="' + v + '">' + label + "</button>";
-  }
-
-  function checkRow(c) {
-    var m = mOf(c.id);
-    var dots = [1, 2, 3].map(function (k) {
-      return '<button class="dot' + (m >= k ? " on" : "") + '" data-m="' + k + '" aria-label="掌握度' + k + '"></button>';
-    }).join("");
-    return '<div class="check" data-check="' + c.id + '">' +
-      '<div class="check-c" data-act="open-check"><em>' + esc(c.id) + "</em>" + rich(c.text) + "</div>" +
-      '<span class="lvl ' + esc(c.lvl) + '">' + esc(c.lvl) + "</span>" +
-      '<div class="dots" data-dots="' + c.id + '" data-lv="' + m + '">' + dots + "</div>" +
-      '<button class="star' + (isFav(c.id) ? " on" : "") + '" data-star="' + c.id + '">' + (isFav(c.id) ? "★" : "☆") + "</button>" +
-      "</div>";
   }
 
   /* ---------------- 视图：问答 ---------------- */
@@ -621,6 +718,8 @@
     });
     var html = ['<div class="sub-h"><b>学习计划</b><span>' + esc((PLAN && PLAN.title) || "未命名计划") + "</span></div>"];
     html.push('<div class="note" style="margin:0 0 10px">计划里的知识包在顶部可一键切换、不重载页面；进度仍各存各的。</div>');
+    html.push('<div class="btn-row"><button class="btn" data-act="plan-list">切换 / 管理计划</button>' +
+      '<button class="btn" data-act="plan-new">新建计划</button></div>');
     html.push('<div class="sub-h"><b>知识包</b><span>' + list.length + " 个</span></div>");
     list.forEach(function (d) {
       var on = d.id === CUR_DECK;
@@ -656,6 +755,108 @@
       }
       toast("网页调试模式不支持换包");
     } catch (e) { toast("切换失败"); }
+  }
+
+  /* ---------------- 学习计划：列表 / 新建 / 编辑 / 切换 / 删除 ---------------- */
+  var PLANS = [];
+  function reloadPlans() {
+    try { PLANS = JSON.parse(n0("listPlans") || "[]") || []; } catch (e) { PLANS = []; }
+    return PLANS;
+  }
+  function planById(id) {
+    var hit = null;
+    reloadPlans().forEach(function (p) { if (p.id === id) hit = p; });
+    return hit;
+  }
+  function planNewId() { return "plan-" + Date.now().toString(36); }
+
+  function openPlanList() {
+    reloadPlans();
+    var html = ['<div class="sub-h"><b>学习计划</b><span class="note">' + PLANS.length + " 个</span></div>"];
+    html.push('<div class="note">一个计划就是一串知识包；顶部按计划顺序排列，计划内切包不重载页面。</div>');
+    PLANS.forEach(function (p) {
+      var cur = PLAN && p.id === PLAN.id;
+      html.push('<div class="deck-row' + (cur ? " on" : "") + '">' +
+        '<div class="deck-main"><div class="deck-t">' + esc(p.title || p.id) +
+        (cur ? ' <span class="deck-cur">使用中</span>' : "") + "</div>" +
+        '<div class="deck-m">' + esc(p.id) + " · " + ((p.members || []).length) + " 个知识包</div></div>" +
+        (cur ? "" : '<button class="btn mini" data-act="plan-use" data-id="' + esc(p.id) + '">使用</button>') +
+        '<button class="btn mini" data-act="plan-edit" data-id="' + esc(p.id) + '">编辑</button>' +
+        (!cur && !p.builtin && PLANS.length > 1 ? '<button class="btn mini danger" data-act="plan-del" data-id="' + esc(p.id) + '">删</button>' : "") +
+        "</div>");
+    });
+    html.push('<div class="btn-row"><button class="btn" data-act="plan-new">新建计划</button>' +
+      '<button class="btn" data-act="plan-import">导入计划文件</button></div>');
+    html.push('<div class="note">计划文件是普通 JSON（协议 §9），可以发给别人或放到电脑上。</div>');
+    openSheet(html.join(""));
+  }
+
+  function openPlanEdit(pid) {
+    var p = pid ? planById(pid) : null;
+    if (!p) p = { id: planNewId(), title: "新计划", members: [CUR_DECK] };
+    var decks = deckList();
+    var html = ['<div class="sub-h"><b>' + (pid ? "编辑计划" : "新建计划") + "</b></div>"];
+    html.push('<div class="sub-h" style="margin-top:10px"><b>名称</b></div>');
+    html.push('<input class="search" id="planName" value="' + esc(p.title || "") + '" placeholder="计划名称">');
+    html.push('<div class="sub-h" style="margin-top:14px"><b>知识包</b><span class="note">勾选的顺序就是顶部顺序</span></div>');
+    decks.forEach(function (d) {
+      var on = (p.members || []).indexOf(d.id) >= 0;
+      html.push('<label class="deck-row deck-pick"><input type="checkbox" class="pm" data-pm="' + esc(d.id) + '"' +
+        (on ? " checked" : "") + ">" +
+        '<span class="deck-main"><span class="deck-t">' + esc(d.title || d.id) + "</span>" +
+        '<span class="deck-m">' + esc(d.id) + " · " + (d.checks || 0) + " " + esc(term("check")) + "</span></span></label>");
+    });
+    html.push('<div class="btn-row"><button class="btn" data-act="plan-save" data-id="' + esc(p.id) + '">保存</button>' +
+      '<button class="btn" data-act="close-sheet">取消</button></div>');
+    openSheet(html.join(""));
+  }
+
+  function savePlanFromSheet(pid) {
+    var name = ($("#planName") && $("#planName").value || "").trim();
+    var picked = [];
+    Array.prototype.forEach.call(document.querySelectorAll("input.pm"), function (cb) {
+      if (cb.checked) picked.push(cb.dataset.pm);
+    });
+    if (!name) { toast("给计划起个名字"); return; }
+    if (!picked.length) { toast("至少选一个知识包"); return; }
+    var old = planById(pid);
+    var plan = { id: pid, title: name, members: picked };
+    if (old && old.primary && picked.indexOf(old.primary) >= 0) plan.primary = old.primary;
+    if (!plan.primary) plan.primary = picked[0];
+    var ok = "";
+    try { ok = String(window.Native && window.Native.savePlan ? window.Native.savePlan(JSON.stringify(plan)) : ""); } catch (e) { ok = ""; }
+    if (!ok) { toast("保存失败"); return; }
+    reloadPlans();
+    /* 改的是当前计划：直接重载，让顶部 chip 与成员缓存跟着变 */
+    if (PLAN && PLAN.id === pid) {
+      PLAN = plan; MEMBERS = plan.members.slice();
+      try { save(true); } catch (e) {}
+      location.replace("index.html");
+      return;
+    }
+    toast("已保存计划「" + name + "」");
+    openPlanList();
+  }
+
+  function usePlan(pid) {
+    try {
+      if (window.Native && window.Native.setCurrentPlan) window.Native.setCurrentPlan(pid);
+    } catch (e) {}
+    setPref("plan", pid);
+    try { save(true); } catch (e) {}
+    location.replace("index.html");
+  }
+
+  function deletePlan(pid) {
+    var p = planById(pid);
+    if (p && p.builtin) { toast("内置计划不能删，可以编辑它"); return; }
+    askConfirm("删除计划「" + ((p && p.title) || pid) + "」？知识包和进度都不动。",
+      "删除计划", function () {
+        try { if (window.Native && window.Native.deletePlan) window.Native.deletePlan(pid); } catch (e) {}
+        reloadPlans();
+        toast("已删除计划");
+        openPlanList();
+      });
   }
 
   /* 新导入的包自动加入当前计划（计划内才能一键切） */
@@ -890,6 +1091,26 @@
     var text = "";
     try { text = String(window.Native.readStagedImport() || ""); } catch (e) { text = ""; }
     if (!text) { toast("没读到文件内容"); return; }
+    /* 计划文件（协议 §9）与知识包文件长得不一样：有 members、没 groups */
+    var asPlan = null;
+    try { asPlan = JSON.parse(text); } catch (e) { asPlan = null; }
+    if (asPlan && Array.isArray(asPlan.members) && !asPlan.groups) {
+      try { window.Native.dropStagedImport(); } catch (e) {}
+      var known = {};
+      deckList().forEach(function (d) { known[d.id] = 1; });
+      var missing = asPlan.members.filter(function (m) { return !known[m]; });
+      if (missing.length) {
+        showImportProblems(["计划引用了没装的知识包：" + missing.join("、"), "先导入这些知识包，再导入计划"]);
+        return;
+      }
+      var saved2 = "";
+      try { saved2 = String(window.Native.savePlan(text) || ""); } catch (e) { saved2 = ""; }
+      if (!saved2) { showImportProblems(["写入失败：计划 id 不合法或已存在"]); return; }
+      reloadPlans();
+      toast("已导入计划 " + saved2);
+      openPlanList();
+      return;
+    }
     var r = inspectDeck(text);
     if (r.problems && r.problems.length) {
       try { window.Native.dropStagedImport(); } catch (e) {}
@@ -965,6 +1186,17 @@
   /* ---------------- 详情面板 ---------------- */
   var sheetOpen = false;
   var SHEET_ID = "";
+
+  /* 自绘确认框：系统 confirm 会带「网址为 file:/// …」前缀，很难看 */
+  var pendingConfirm = null;
+  function askConfirm(text, okText, fn) {
+    pendingConfirm = fn || null;
+    openSheet('<div class="sub-h"><b>确认</b></div>' +
+      '<p class="note" style="margin:10px 0 0;line-height:1.6">' + esc(text) + "</p>" +
+      '<div class="btn-row"><button class="btn danger" data-act="confirm-ok">' +
+      esc(okText || "确定") + "</button>" +
+      '<button class="btn" data-act="close-sheet">取消</button></div>');
+  }
 
   function openSheet(html) {
     var s = $("#sheet");
@@ -1339,7 +1571,11 @@
 
     /* 计划内软切换（不重载） */
     if (t.dataset.planDeck) { softSwitch(t.dataset.planDeck); return; }
-    if (t.dataset.decksec) { softSwitch(t.dataset.decksec); return; }
+    if (t.dataset.decksec) {
+      toggleDeckOpen(t.dataset.decksec);
+      renderList();
+      return;
+    }
     if (t.dataset.qdeck) {
       var dq = t.dataset.qdeck;
       if (dq === "all") {
@@ -1387,13 +1623,15 @@
     }
     if (t.dataset.delDeck) {
       var delId = t.dataset.delDeck;
-      if (!confirm("删除学习包「" + delId + "」？它的进度也会一起删掉。")) return;
-      try {
-        if (window.Native && window.Native.deleteDeck) window.Native.deleteDeck(delId);
-        if (window.Native && window.Native.clearState) window.Native.clearState(delId);
-      } catch (e) {}
-      toast("已删除 " + delId);
-      renderMore();
+      askConfirm("删除知识包「" + (deckTitle(delId) || delId) + "」？它的进度也会一起删掉。",
+        "删除知识包", function () {
+          try {
+            if (window.Native && window.Native.deleteDeck) window.Native.deleteDeck(delId);
+            if (window.Native && window.Native.clearState) window.Native.clearState(delId);
+          } catch (e) {}
+          toast("已删除 " + delId);
+          renderMore();
+        });
       return;
     }
     if (t.dataset.download) { downloadDeck(t.dataset.download); return; }
@@ -1402,7 +1640,10 @@
     if (t.dataset.qchip) { qaFilter = t.dataset.qchip; renderQa(); return; }
 
     if (t.dataset.star) {
-      var on = toggleFav(t.dataset.star);
+      var rowS = t.closest(".check");
+      var dckS = (rowS && rowS.dataset.d) || CUR_DECK;
+      toggleFavIn(dckS, t.dataset.star);
+      var on = isFavIn(dckS, t.dataset.star);
       t.classList.toggle("on", on);
       t.textContent = on ? "★" : "☆";
       toast(on ? "已收藏" : "已取消收藏");
@@ -1411,13 +1652,17 @@
 
     if (t.dataset.m && t.closest("[data-dots]")) {
       if (lockedDeck()) return;
-      var cid = t.closest("[data-dots]").dataset.dots;
-      var cur = mOf(cid);
-      var m = parseInt(t.dataset.m, 10);
-      setM(cid, cur === m ? 0 : m);
-      paintRing();
+      var dotsEl = t.closest("[data-dots]");
       var row = t.closest(".check");
-      var fresh = checkRow(CHECK[cid]);
+      var dck = (row && row.dataset.d) || CUR_DECK;
+      var cid = dotsEl.dataset.dots;
+      var cur = mOfIn(dck, cid);
+      var m = parseInt(t.dataset.m, 10);
+      setMIn(dck, cid, cur === m ? 0 : m);
+      paintRing();
+      var item = (dck === CUR_DECK ? CHECK[cid] : deckCheckItem(readDeckData(dck), cid)) ||
+        { id: cid, text: "", lvl: "" };
+      var fresh = checkRow(item, dck);
       var tmp = document.createElement("div");
       tmp.innerHTML = fresh;
       row.replaceWith(tmp.firstChild);
@@ -1450,8 +1695,31 @@
 
     var act = t.dataset.act;
     if (act === "toggle") { t.closest(".mod").classList.toggle("open"); return; }
-    if (act === "open-check") { openCheck(t.closest(".check").dataset.check); return; }
-    if (act === "close-sheet") { closeSheet(); return; }
+    if (act === "plan-list") { openPlanList(); return; }
+    if (act === "plan-new") { openPlanEdit(""); return; }
+    if (act === "plan-edit") { openPlanEdit(t.dataset.id); return; }
+    if (act === "plan-use") { usePlan(t.dataset.id); return; }
+    if (act === "plan-del") { deletePlan(t.dataset.id); return; }
+    if (act === "plan-save") { savePlanFromSheet(t.dataset.id); return; }
+    if (act === "plan-import") { pickDeckFile(); toast("选一个 .plan.json"); return; }
+    if (act === "open-check") {
+      var rowC = t.closest(".check");
+      var cDid = (rowC && rowC.dataset.d) || CUR_DECK;
+      if (cDid !== CUR_DECK) {
+        if (softSwitch(cDid)) openCheck(rowC.dataset.check);
+      } else {
+        openCheck(rowC.dataset.check);
+      }
+      return;
+    }
+    if (act === "close-sheet") { pendingConfirm = null; closeSheet(); return; }
+    if (act === "confirm-ok") {
+      var fn = pendingConfirm;
+      pendingConfirm = null;
+      closeSheet();
+      if (fn) fn();
+      return;
+    }
     if (act === "end-cross") {
       prefs.pendingBack = null;
       prefs.pendingOpen = null;
