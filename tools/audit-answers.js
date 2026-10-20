@@ -52,11 +52,16 @@ function analyze(q) {
   const hasFlow = ans.some((a) => Array.isArray(a.list) && a.list.length) ||
     heads.some((a) => /怎么|步骤|顺序|流程|排查|处理|选/.test(a.h));
 
+  /* 快问类问答本来就是「一句话回答」，块短是设计意图不是空洞；
+     门槛降到 25 字，只拦住真正的空块 */
+  const quickFire = /^快问|快问：/.test(q.q || "");
+  const minBlock = quickFire ? 25 : 40;
+
   ans.forEach((a, i) => {
     const p = a.p || "";
     /* 带 list 的块只看 p 会误判：正文是引导句，真正的内容在条目里 */
     const bodyLen = p.length + (Array.isArray(a.list) ? a.list.join("").length : 0);
-    if (bodyLen < 40) flags.push({ code: "E1", at: i, why: "第 " + (i + 1) + " 块只有 " + bodyLen + " 字", h: a.h || "" });
+    if (bodyLen < minBlock) flags.push({ code: "E1", at: i, why: "第 " + (i + 1) + " 块只有 " + bodyLen + " 字", h: a.h || "" });
     if (a.h && VIEW_WORDS.includes(a.h) && FLOW_Q.test(q.q) && !hasFlow) {
       flags.push({ code: "E3", at: i, why: "问句是操作型，却用「" + a.h + "」标题", h: a.h });
     }
