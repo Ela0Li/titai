@@ -4,6 +4,26 @@
 
   var D = window.DECK || { groups: [], qas: [] };
   var STATE_KEY = "studydesk.state.v1";
+
+  /* 多学习包：内置包在 assets/decks/*.json，导入包在 files/decks/。
+     启动时先问原生当前用哪份，读不到就退回 deck.js 里内置的那份。 */
+  var CUR_DECK = (D && D.id) || "builtin";
+  (function hydrateDeck() {
+    if (!window.Native || !window.Native.readDeck) return;
+    try {
+      var id = String(window.Native.currentDeck() || "");
+      if (!id) return;
+      var txt = String(window.Native.readDeck(id) || "");
+      if (!txt) { CUR_DECK = id; return; }
+      var d = JSON.parse(txt);
+      if (d && d.groups && d.groups.length) {
+        D = d;
+        CUR_DECK = d.id || id;
+      }
+    } catch (e) {
+      /* 坏包：继续用内置的，别让 App 打不开 */
+    }
+  })();
   var APP_VERSION = (function () {
     try {
       if (window.Native && window.Native.versionName) {
@@ -54,7 +74,13 @@
   function loadState() {
     var raw = "";
     try {
-      raw = window.Native ? String(window.Native.loadState() || "") : (localStorage.getItem(STATE_KEY) || "");
+      if (window.Native) {
+        raw = String(
+          (window.Native.readState ? window.Native.readState(CUR_DECK) : window.Native.loadState()) || ""
+        );
+      } else {
+        raw = localStorage.getItem(STATE_KEY + ":" + CUR_DECK) || "";
+      }
     } catch (e) { raw = ""; }
     if (!raw) return;
     try {
@@ -79,8 +105,12 @@
       saveTimer = null;
       var json = JSON.stringify(state);
       try {
-        if (window.Native) window.Native.saveState(json);
-        else localStorage.setItem(STATE_KEY, json);
+        if (window.Native) {
+          if (window.Native.writeState) window.Native.writeState(CUR_DECK, json);
+          else window.Native.saveState(json);
+        } else {
+          localStorage.setItem(STATE_KEY + ":" + CUR_DECK, json);
+        }
       } catch (e) { toast("保存失败"); }
     };
     if (now) run(); else saveTimer = setTimeout(run, 350);
@@ -383,6 +413,96 @@
   /* ---------------- 视图：设置 ---------------- */
   var syncBusy = false;
 
+  /* ---- 学习包：多个包共存，各有各的进度 ---- */
+  function deckList() {
+    if (!window.Native || !window.Native.listDecks) {
+      return [{ id: CUR_DECK, title: D.title || "内置学习包", checks: (D.groups || []).reduce(function (n, g) { return n + (g.checks || []).length; }, 0), qas: (D.qas || []).length, builtin: true }];
+    }
+    try {
+      var arr = JSON.parse(String(window.Native.listDecks() || "[]"));
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) { return []; }
+  }
+
+  function renderDeckSection() {
+    var list = deckList();
+    var html = ['<div class="sub-h"><b>学习包</b><span>' + list.length + " 个</span></div>"];
+    list.forEach(function (d) {
+      var on = d.id === CUR_DECK;
+      html.push('<div class="deck-row' + (on ? " on" : "") + '">' +
+        '<div class="deck-main"><div class="deck-t">' + esc(d.title || d.id) +
+        (on ? ' <span class="deck-cur">使用中</span>' : "") + "</div>" +
+        '<div class="deck-m">' + esc(d.id) + " · " + (d.checks || 0) + " " + esc(term("check")) +
+        " · " + (d.qas || 0) + " " + esc(term("qa")) + (d.builtin ? " · 内置" : " · 已导入") + "</div></div>" +
+        (on ? "" : '<button class="btn mini" data-deck="' + esc(d.id) + '">切换</button>') +
+        (!d.builtin && !on ? '<button class="btn mini danger" data-del-deck="' + esc(d.id) + '">删</button>' : "") +
+        "</div>");
+    });
+    html.push('<div class="btn-row"><button class="btn" id="btnDecks">从电脑获取学习包</button></div>');
+    html.push('<div class="note" id="deckNote">每个学习包有自己的进度；切换不会丢数据。</div>');
+    return html.join("");
+  }
+
+  function switchDeck(id) {
+    if (!id || id === CUR_DECK) return;
+    try {
+      if (window.Native && window.Native.setCurrentDeck) {
+        window.Native.setCurrentDeck(id);
+        save(true);
+        location.replace("index.html");
+        return;
+      }
+      toast("网页调试模式不支持换包");
+    } catch (e) { toast("切换失败"); }
+  }
+
+  function deckEndpoint(path) {
+    var host = (state.sync.host || "").trim().replace(/^https?:\/\//, "").replace(/\/$/, "");
+    if (!host) return "";
+    var code = (($("#syncCode") || {}).value || state.sync.code || "").trim();
+    return "http://" + host + path + (path.indexOf("?") >= 0 ? "&" : "?") + "code=" + encodeURIComponent(code);
+  }
+
+  function fetchDeckIndex() {
+    var url = deckEndpoint("/api/decks");
+    if (!url) { toast("先填电脑地址"); return; }
+    if (!window.Native) { toast("网页调试模式：请把 deck.json 直接放进 data/"); return; }
+    var note = $("#deckNote");
+    if (note) note.textContent = "正在问电脑要学习包列表…";
+    var raw = window.Native.http("GET", url, "", 5000);
+    var res, data;
+    try { res = JSON.parse(raw); } catch (e) { toast("返回不是 JSON"); return; }
+    if (!res.status) { toast("连不上：" + (res.error || "").slice(0, 40)); if (note) note.textContent = "连不上，检查同一 WiFi 与地址。"; return; }
+    try { data = JSON.parse(res.body); } catch (e) { toast("响应解析失败"); return; }
+    if (!data || data.ok === false) { if (note) note.textContent = (data && data.msg) || "配对码不对"; return; }
+    var decks = data.decks || [];
+    if (!decks.length) { if (note) note.textContent = "电脑上还没有可下载的学习包。"; return; }
+    var html = ['<div class="sub-h" style="margin-top:10px"><b>电脑上的学习包</b><span>' + decks.length + " 个</span></div>"];
+    decks.forEach(function (d) {
+      html.push('<div class="deck-row"><div class="deck-main"><div class="deck-t">' + esc(d.title || d.id) + "</div>" +
+        '<div class="deck-m">' + esc(d.id) + " · " + (d.checks || 0) + " " + esc(term("check")) + " · " + (d.qas || 0) + " " + esc(term("qa")) + "</div></div>" +
+        '<button class="btn mini" data-download="' + esc(d.id) + '">下载</button></div>');
+    });
+    if (note) note.innerHTML = html.join("");
+  }
+
+  function downloadDeck(id) {
+    var url = deckEndpoint("/api/deck?id=" + encodeURIComponent(id));
+    if (!url) { toast("先填电脑地址"); return; }
+    var note = $("#deckNote");
+    if (note) note.textContent = "正在下载 " + id + " …";
+    var raw = window.Native.http("GET", url, "", 15000);
+    var res;
+    try { res = JSON.parse(raw); } catch (e) { toast("返回不是 JSON"); return; }
+    if (!res.status) { toast("连不上"); return; }
+    if (res.status !== 200) { toast("HTTP " + res.status); return; }
+    var saved = "";
+    try { saved = String(window.Native.saveDeck(res.body) || ""); } catch (e) { saved = ""; }
+    if (!saved) { toast("不是合法的学习包"); if (note) note.textContent = "下载失败：文件不是合法学习包"; return; }
+    toast("已导入 " + saved);
+    switchDeck(saved);
+  }
+
   function renderMore() {
     var s = stats();
     var html = [];
@@ -395,6 +515,10 @@
       '<button data-theme="dark" class="' + (themeNow() === "dark" ? "on" : "") + '">深色</button>' +
       '<button data-theme="light" class="' + (themeNow() === "light" ? "on" : "") + '">浅色</button></div>');
 
+    html.push('<div class="divider"></div>');
+    html.push(renderDeckSection());
+
+    html.push('<div class="divider"></div>');
     html.push('<div class="sub-h"><b>局域网同步</b><span>电脑端运行 tools/sync.js</span></div>');
     html.push('<div class="field"><label>电脑地址（IP:端口）</label>' +
       '<input class="search" id="syncHost" placeholder="192.168.1.5:8787" value="' + esc(state.sync.host) + '"></div>');
@@ -610,11 +734,26 @@
   }
 
   document.addEventListener("click", function (ev) {
-    var t = ev.target.closest("[data-tab],[data-act],[data-chip],[data-qchip],[data-qa],[data-jump],[data-star],[data-m],[data-check],[data-dmode],[data-rate],[data-cm],.seg [data-theme]");
+    var t = ev.target.closest("[data-tab],[data-act],[data-chip],[data-qchip],[data-qa],[data-jump],[data-star],[data-m],[data-check],[data-dmode],[data-rate],[data-cm],[data-deck],[data-del-deck],[data-download],.seg [data-theme]");
     if (!t) { console.log("[click] miss " + ev.target.tagName); return; }
     console.log("[click] " + (t.dataset.tab ? "tab=" + t.dataset.tab : JSON.stringify(t.dataset).slice(0, 80)));
 
     if (t.dataset.tab) { setTab(t.dataset.tab); return; }
+
+    /* 学习包切换 / 删除 / 下载 */
+    if (t.dataset.deck) { switchDeck(t.dataset.deck); return; }
+    if (t.dataset.delDeck) {
+      var delId = t.dataset.delDeck;
+      if (!confirm("删除学习包「" + delId + "」？它的进度也会一起删掉。")) return;
+      try {
+        if (window.Native && window.Native.deleteDeck) window.Native.deleteDeck(delId);
+        if (window.Native && window.Native.clearState) window.Native.clearState(delId);
+      } catch (e) {}
+      toast("已删除 " + delId);
+      renderMore();
+      return;
+    }
+    if (t.dataset.download) { downloadDeck(t.dataset.download); return; }
 
     if (t.dataset.chip) { listFilter = t.dataset.chip; renderList(); return; }
     if (t.dataset.qchip) { qaFilter = t.dataset.qchip; renderQa(); return; }
@@ -705,6 +844,7 @@
     if (ev.target.id === "btnPing") syncCall("/api/ping", null);
     else if (ev.target.id === "btnPull") syncCall("/api/pull", null);
     else if (ev.target.id === "btnPush") syncCall("/api/push", null);
+    else if (ev.target.id === "btnDecks") fetchDeckIndex();
     else if (ev.target.id === "btnReset") {
       state.checks = {}; state.fav = {}; state.quiz = {}; state.rev++;
       save(true);
@@ -729,13 +869,25 @@
       var i = kv.indexOf("=");
       if (i > 0) p[decodeURIComponent(kv.slice(0, i))] = decodeURIComponent(kv.slice(i + 1));
     });
-    if (p.tab) setTab(p.tab);
-    if (p.open && QA[p.open]) { setTab("qa"); openQa(p.open); }
-    else if (p.check && CHECK[p.check]) { setTab("list"); openCheck(p.check); }
-    /* 同步深链：?host=192.168.0.106:8787&code=9878&sync=ping|pull|push */
+    /* 换包深链：?deck=demo —— 切到该包并重新加载 */
+    if (p.deck && p.deck !== CUR_DECK) {
+      try {
+        if (window.Native && window.Native.setCurrentDeck) {
+          window.Native.setCurrentDeck(p.deck);
+          location.replace("index.html");
+          return;
+        }
+      } catch (e) {}
+    }
+    /* 同步/下载的前提：先把地址与配对码落下来，后面几步才能用 */
     if (p.host) state.sync.host = p.host;
     if (p.code) state.sync.code = p.code;
     if (p.host || p.code) save();
+    if (p.tab) setTab(p.tab);
+    if (p.download) { setTab("more"); downloadDeck(p.download); return; }
+    if (p.decks) { setTab("more"); setTimeout(fetchDeckIndex, 200); return; }
+    if (p.open && QA[p.open]) { setTab("qa"); openQa(p.open); }
+    else if (p.check && CHECK[p.check]) { setTab("list"); openCheck(p.check); }
     if (p.sync) {
       setTab("more");
       var path = p.sync === "pull" ? "/api/pull" : (p.sync === "push" ? "/api/push" : "/api/ping");

@@ -269,6 +269,22 @@ code {
 .note { font-size: 12px; color: var(--fg3); line-height: 1.6; }
 .divider { height: 1px; background: var(--line); margin: 16px 0; }
 
+/* 学习包列表 */
+.deck-row {
+  display: flex; align-items: center; gap: 10px;
+  border: 1px solid var(--line); border-radius: 10px;
+  background: var(--card); padding: 10px 11px; margin: 7px 0;
+}
+.deck-row.on { border-color: var(--accent); background: var(--card2); }
+.deck-main { flex: 1; min-width: 0; }
+.deck-t { font-size: 13.5px; color: var(--fg); font-weight: 600; }
+.deck-m { font-size: 11px; color: var(--fg3); margin-top: 3px; }
+.deck-cur {
+  font-size: 10.5px; color: var(--accent); border: 1px solid var(--accent);
+  border-radius: 999px; padding: 1px 7px; margin-left: 6px; vertical-align: 1px;
+}
+.deck-row .btn.mini { flex: 0 0 auto; }
+
 /* 鍒烽 */
 .drill-card {
   border: 1px solid var(--line); border-radius: 14px; background: var(--card);

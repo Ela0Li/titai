@@ -14,22 +14,26 @@ studydeck/
 │  ├─ assets/            ← 前端（HTML/CSS/JS），WebView 直接加载
 │  │  ├─ index.html
 │  │  ├─ app.css         深色/浅色两套主题（只用 rgba，兼容旧 WebView）
-│  │  ├─ app.js          引擎：清单/问答/收藏/刷题/设置
-│  │  └─ deck.js         由 tools/mkdeck.js 生成，window.DECK = {...}
+│  │  ├─ app.js          引擎：清单/问答/收藏/刷题/设置/多学习包
+│  │  ├─ deck.js         由 tools/mkdeck.js 生成，window.DECK = {...}（兜底用）
+│  │  └─ decks/*.json    内置学习包，一份一个文件（引擎按 id 读取）
 │  ├─ java/com/studydeck/app/
 │  │  ├─ MainActivity.java   WebView 壳 + 返回键接管 + 深链
-│  │  └─ Bridge.java         saveState / loadState / setChrome / http / versionName
+│  │  └─ Bridge.java         多包读写/切换 + 进度文件 + setChrome / http / versionName
 │  └─ res/               图标与主题
+├─ decks/                想「从电脑导入」的学习包放这里（sync.js 负责下发）
 ├─ docs/deck-protocol.md 学习包协议 v1（内容层 / 进度层 / 同步层 + 校验规则）
 ├─ schema/               JSON Schema：deck.schema.json / state.schema.json
 ├─ tools/
-│  ├─ mkdeck.js          数据源 → dist/deck.json + assets/deck.js（含覆盖率自检）
+│  ├─ mkdeck.js          数据源 → dist/deck.json + assets/decks/<id>.json（含覆盖率自检）
 │  ├─ validate-deck.js   协议校验器（引用闭合、答案结构、链路质量；覆盖仅警告）
 │  ├─ conformance.js     一致性测试：真实引擎 + 无头浏览器渲染一份 deck
-│  └─ sync.js            局域网同步服务 + 电脑端浏览页面
+│  └─ sync.js            局域网同步服务 + 电脑端浏览页面 + 学习包下发
 ├─ dist/deck.json        学习包真相，可 diff、可备份
 └─ sync/                 同步服务的数据（deck.json / state.json / code.txt）
 ```
+
+App 内的进度按包分文件：`files/states/<deck-id>.json`；导入包放在 `files/decks/<deck-id>.json`。
 
 学习包、进度、同步三层的完整契约见 **[docs/deck-protocol.md](docs/deck-protocol.md)**。
 
@@ -109,14 +113,24 @@ node tools\sync.js          # 默认 8787
 
 ## 换一个学习目标
 
-引擎不认识「PCG」这三个字，它只认学习包。新增一个包：
+引擎不认识「PCG」这三个字，它只认学习包。现在支持**多个学习包共存**，两条路：
 
-1. 新建目录，例如 `decks/my-subject/`，放入
+**A. 内置一个新包（内容随 APK 走）**
+
+1. 新建目录，例如 `decks-src/my-subject/`，放入
    - `modules.js`：`module.exports = [{ id, title, short, priority, stage, signal, keypoints[], traps[], checks[{ t, lvl }] }]`
    - `qa-1.js`、`qa-2.js`…：`module.exports = [{ id, m, lvl, layer, q, tags[], covers[], next[], peer[], ans[{h,p}] }]`
    - 可选 `meta.json`：`{ "id": "my-subject", "title": "…", "subtitle": "…", "accent": "#2f81f7" }`
-2. `node tools/mkdeck.js decks/my-subject`
+2. `node tools/mkdeck.js decks-src/my-subject`
 3. 重新打包安装
+
+**B. 外部导入（不重装 APK，推荐）**
+
+1. 把写好的 `deck.json` 丢进仓库根的 `decks/` 目录（任意文件名）
+2. 电脑上跑 `node tools/sync.js`
+3. 手机上「设置 → 学习包 → 从电脑获取学习包」→ 点「下载」→ 自动导入并切过去
+
+两种方式产出的包可以并存：同一 `id` 时导入包覆盖内置包，方便改内容而不动 APK。
 
 `mkdeck.js` 会检查：每个自查点是否至少被一条问答覆盖、`next`/`peer` 引用是否存在、QA id 是否重复——不通过就报错退出，避免把残缺内容打进 App。
 （覆盖率是**本项目的验收线**，不是协议要求：协议里它只是 SHOULD，校验器只报 `W_UNCOVERED` 警告。）
@@ -127,13 +141,31 @@ node tools\sync.js          # 默认 8787
 
 界面名词解耦：`deck.terms = { group, check, qa }` 可覆盖显示文案，缺省是「模块 / 知识点 / 问答」；本包在 `mkdeck.js` 里写成「自查点」，换包时想叫「知识点／考点」都行，不影响 id、进度与同步。
 
-进度按学习包 id 区分：换包后旧进度不会串味（同一个包里 id 复用则视为同一题）。
+进度按学习包 id 区分：每个包一份 `files/states/<id>.json`，换包后旧进度不会串味（同一个包里 id 复用则视为同一题）。升级到多包版本后，老的 `state.json` 会一次性迁移到内置包名下。
+
+---
+
+## 学习包管理
+
+「设置 → 学习包」列出所有可用包，当前包标「使用中」，其余有「切换」；导入包多一个「删」（连同它的进度一起删）。下面的「从电脑获取学习包」向 `tools/sync.js` 要列表并逐个下载。
+
+- 内置包：随 APK 走，删不掉，卸载重装还在。
+- 导入包：存在应用私有目录 `decks/<id>.json`，可随时删。
+- 同名 `id`：导入包覆盖内置包（改内容不用重装 APK）。
+
+调试用深链（`adb shell am start`）：
+
+```bash
+-e deck demo                 # 切到某个学习包
+-e download demo             # 从电脑下载并切过去（需先 -e host / -e code）
+-e decks 1                   # 打开「电脑上的学习包」列表
+```
 
 ---
 
 ## 已知取舍
 
-- 单学习包：App 一次只装一个学习包，换包需要重打包。多包切换要做「包管理 + 下载」，这一版刻意不做。
+- 多包已经支持，但**同步进度仍是单份**：`/api/push` 按当前包的 `state` 走，电脑端 `sync/state.json` 不区分包。多包同时用同步会互相覆盖，这一版刻意不做多包分桶。
 - 更新：侧载 APK 覆盖安装即更新，版本号在「设置」页底部。
 - 无账号、无云端：同步只在同一局域网内、点对点，不经过任何服务器。
 - WebView 用的是系统内核（模拟器上 Chromium 110），CSS 里避开了 `color-mix()` 这类新语法。

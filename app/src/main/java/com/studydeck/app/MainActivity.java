@@ -79,7 +79,7 @@ public class MainActivity extends Activity {
         String base = "file:///android_asset/index.html";
         if (it == null) return base;
         StringBuilder q = new StringBuilder();
-        String[] keys = { "tab", "open", "check", "host", "code", "sync" };
+        String[] keys = { "tab", "open", "check", "host", "code", "sync", "deck", "download", "decks" };
         for (String k : keys) {
             String v = it.getStringExtra(k);
             if (v != null && v.length() > 0) {

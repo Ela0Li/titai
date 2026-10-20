@@ -21,10 +21,37 @@ const DIST_DECK = path.join(ROOT, "dist", "deck.json");
 const DECK = path.join(SYNC_DIR, "deck.json");
 const STATE = path.join(SYNC_DIR, "state.json");
 const CODE_FILE = path.join(SYNC_DIR, "code.txt");
+/** 想给手机装的学习包都放这里：decks/<任意文件名>.json */
+const DECKS_DIR = path.join(ROOT, "decks");
 
 fs.mkdirSync(SYNC_DIR, { recursive: true });
+fs.mkdirSync(DECKS_DIR, { recursive: true });
 if (!fs.existsSync(DECK) && fs.existsSync(DIST_DECK)) {
   fs.copyFileSync(DIST_DECK, DECK);
+}
+
+/** 扫描所有可分发的学习包：当前包（sync/deck.json）+ decks/ 目录 */
+function scanDecks() {
+  const out = new Map();
+  const add = (file) => {
+    const d = loadJSON(file, null);
+    if (!d || !d.id || !Array.isArray(d.groups)) return;
+    let checks = 0;
+    d.groups.forEach((g) => { checks += (g.checks || []).length; });
+    out.set(d.id, {
+      file,
+      id: d.id,
+      title: d.title || d.id,
+      checks,
+      qas: (d.qas || []).length,
+      bytes: fs.statSync(file).size,
+    });
+  };
+  if (fs.existsSync(DECK)) add(DECK);
+  for (const f of fs.readdirSync(DECKS_DIR)) {
+    if (f.endsWith(".json")) add(path.join(DECKS_DIR, f));
+  }
+  return [...out.values()];
 }
 
 function readCode() {
@@ -177,6 +204,7 @@ const CODE = readCode();
 http
   .createServer(async (req, res) => {
     const url = req.url.split("?")[0];
+    const qs = new URLSearchParams(req.url.split("?")[1] || "");
 
     if (req.method === "GET" && url.startsWith("/a/")) {
       const rel = decodeURIComponent(url.slice(3)) || "index.html";
@@ -217,8 +245,31 @@ http
       });
     }
 
-    if (url === "/api/pull" && req.method === "POST") {
-      const body = await readBody(req);
+    /* 列出电脑上可下发的学习包 */
+    if (url === "/api/decks" && req.method === "GET") {
+      if (qs.get("code") !== CODE) return json(res, 200, { ok: false, msg: "配对码不对" });
+      const decks = scanDecks().map((d) => ({
+        id: d.id, title: d.title, checks: d.checks, qas: d.qas, bytes: d.bytes,
+      }));
+      return json(res, 200, { ok: true, decks });
+    }
+
+    /* 下发某个学习包的原始 JSON */
+    if (url === "/api/deck" && req.method === "GET") {
+      if (qs.get("code") !== CODE) return json(res, 200, { ok: false, msg: "配对码不对" });
+      const id = qs.get("id") || "";
+      const hit = scanDecks().find((d) => d.id === id);
+      if (!hit) return json(res, 404, { ok: false, msg: "没有这个学习包" });
+      const body = fs.readFileSync(hit.file);
+      res.writeHead(200, {
+        "Content-Type": "application/json; charset=utf-8",
+        "Content-Length": body.length,
+        "Cache-Control": "no-cache",
+      });
+      return res.end(body);
+    }
+
+    if (url === "/api/pull" && req.method === "POST") {      const body = await readBody(req);
       let p = {};
       try { p = JSON.parse(body || "{}"); } catch (e) {}
       if (String(p.code || "") !== CODE) return json(res, 200, { ok: false, msg: "配对码不对" });

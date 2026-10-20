@@ -10,7 +10,7 @@ window.DECK = {
   "check": "自查点",
   "qa": "问答"
  },
- "updatedAt": "2026-10-20T15:52:15.524Z",
+ "updatedAt": "2026-10-20T16:02:06.394Z",
  "groups": [
   {
    "id": "m1",

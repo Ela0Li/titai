@@ -120,6 +120,11 @@ function build() {
     "/* 由 tools/mkdeck.js 生成，请勿手改 */\nwindow.DECK = " + json + ";\n",
     "utf8"
   );
+  // 多包共存：每份 deck 以独立 JSON 放在 assets/decks/<id>.json，
+  // 引擎启动时通过 Native.listDecks()/readDeck(id) 选择要用的那份
+  const deckAssets = path.join(assets, "decks");
+  fs.mkdirSync(deckAssets, { recursive: true });
+  fs.writeFileSync(path.join(deckAssets, deck.id + ".json"), json + "\n", "utf8");
 
   const stats = {
     groups: groups.length,
