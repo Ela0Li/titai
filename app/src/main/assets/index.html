@@ -9,9 +9,16 @@
   /* 首屏前定主题，避免闪白/闪黑 */
   (function () {
     try {
-      var raw = window.Native ? window.Native.loadState() : localStorage.getItem("studydesk.state.v1");
-      var t = raw ? (JSON.parse(raw).settings || {}).theme : null;
-      if (!t) t = localStorage.getItem("studydesk.theme.v1");
+      var t = null;
+      if (window.Native && window.Native.readPrefs) {
+        var p = window.Native.readPrefs();
+        if (p) t = (JSON.parse(p) || {}).theme;
+      }
+      if (!t && window.Native && window.Native.loadState) {
+        var raw = window.Native.loadState();
+        t = raw ? (JSON.parse(raw).settings || {}).theme : null;
+      }
+      if (!t) t = localStorage.getItem("studydesk:theme") || localStorage.getItem("studydesk.theme.v1");
       if (t) document.documentElement.dataset.theme = t;
     } catch (e) {}
   })();

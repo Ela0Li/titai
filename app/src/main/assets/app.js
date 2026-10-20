@@ -71,9 +71,28 @@
     touched: 0
   };
 
-  function loadState() {
+  /* 设备级偏好：外观与同步地址跟"学哪个包"无关，跟着包存会在换包时丢掉 */
+  var prefs = {};
+  function loadPrefs() {
     var raw = "";
     try {
+      if (window.Native && window.Native.readPrefs) raw = String(window.Native.readPrefs() || "");
+      else raw = localStorage.getItem("studydesk.prefs.v1") || "";
+    } catch (e) { raw = ""; }
+    if (!raw) return {};
+    try { return JSON.parse(raw) || {}; } catch (e) { return {}; }
+  }
+  function savePrefs() {
+    var json = JSON.stringify(prefs);
+    try {
+      if (window.Native && window.Native.writePrefs) { window.Native.writePrefs(json); return; }
+      localStorage.setItem("studydesk.prefs.v1", json);
+    } catch (e) {}
+  }
+  function setPref(k, v) { prefs[k] = v; savePrefs(); }
+
+  function loadState() {
+    var raw = "";    try {
       if (window.Native) {
         raw = String(
           (window.Native.readState ? window.Native.readState(CUR_DECK) : window.Native.loadState()) || ""
@@ -93,6 +112,15 @@
         state.sync = Object.assign(state.sync, s.sync || {});
         state.rev = s.rev || 0;
         state.touched = s.touched || 0;
+        /* 老版本把 theme/sync 存在包内：首次读到就搬到设备级，之后以设备级为准 */
+        var migrated = false;
+        if (!prefs.theme && state.settings.theme) { prefs.theme = state.settings.theme; migrated = true; }
+        if (!prefs.host && state.sync.host) { prefs.host = state.sync.host; migrated = true; }
+        if (!prefs.code && state.sync.code) { prefs.code = state.sync.code; migrated = true; }
+        if (migrated) savePrefs();
+        if (prefs.theme) state.settings.theme = prefs.theme;
+        if (prefs.host) state.sync.host = prefs.host;
+        if (prefs.code) state.sync.code = prefs.code;
       }
     } catch (e) { toast("进度读取失败，已忽略"); }
   }
@@ -237,7 +265,7 @@
     });
 
     if (!shown) html.push('<div class="empty">没有符合条件的' + esc(term("check")) + '</div>');
-    html.push('<div class="hint" style="margin-top:14px">点圆点记掌握度：○ 未学 · ◐ 模糊 · ● 会 · ●● 熟练；点文字看对应问答。</div>');
+    html.push('<div class="hint" style="margin-top:14px">点圆点记掌握度：亮 1 个＝模糊 · 亮 2 个＝会 · 亮 3 个＝熟练 · 全不亮＝未学（再点同一个点可清除）；点文字看对应问答。</div>');
     $("#view").innerHTML = html.join("");
   }
 
@@ -766,6 +794,7 @@
   function setTheme(t) {
     document.documentElement.dataset.theme = t;
     state.settings.theme = t;
+    setPref("theme", t);
     save();
     $("#themeBtn").textContent = t === "light" ? "☀" : "☾";
     try { if (window.Native && window.Native.setChrome) window.Native.setChrome(t); } catch (e) {}
@@ -792,6 +821,8 @@
     if (!host) { toast("先填电脑地址"); return; }
     state.sync.host = host;
     state.sync.code = ($("#syncCode") || {}).value || state.sync.code;
+    setPref("host", state.sync.host);
+    setPref("code", state.sync.code);
     var code = (state.sync.code || "").trim();
     if (!code) { toast("先填配对码"); return; }
     var url = "http://" + host + path;
@@ -958,8 +989,8 @@
     var t = ev.target;
     if (t.id === "listSearch") { listQuery = t.value.trim().toLowerCase(); var pos = t.selectionStart; renderList(); var f = $("#listSearch"); if (f) { f.focus(); f.setSelectionRange(pos, pos); } }
     else if (t.id === "qaSearch") { qaQuery = t.value.trim().toLowerCase(); var p2 = t.selectionStart; renderQa(); var g = $("#qaSearch"); if (g) { g.focus(); g.setSelectionRange(p2, p2); } }
-    else if (t.id === "syncHost") { state.sync.host = t.value; save(); }
-    else if (t.id === "syncCode") { state.sync.code = t.value; save(); }
+    else if (t.id === "syncHost") { state.sync.host = t.value; setPref("host", t.value); save(); }
+    else if (t.id === "syncCode") { state.sync.code = t.value; setPref("code", t.value); save(); }
   });
 
   $("#mask").addEventListener("click", closeSheet);
@@ -1010,8 +1041,8 @@
       } catch (e) {}
     }
     /* 同步/下载的前提：先把地址与配对码落下来，后面几步才能用 */
-    if (p.host) state.sync.host = p.host;
-    if (p.code) state.sync.code = p.code;
+    if (p.host) { state.sync.host = p.host; setPref("host", p.host); }
+    if (p.code) { state.sync.code = p.code; setPref("code", p.code); }
     if (p.host || p.code) save();
     if (p.tab) setTab(p.tab);
     if (p.download) { setTab("more"); downloadDeck(p.download); return; }
@@ -1027,6 +1058,7 @@
   }
 
   /* ---------------- 启动 ---------------- */
+  prefs = loadPrefs();
   loadState();
   $("#deckTitle").textContent = D.title || "题台";
   $("#tabList").textContent = term("check");

@@ -46,6 +46,35 @@ public class Bridge {
         this(ctx, null);
     }
 
+    // ---------- 设备级偏好（外观、同步地址） ----------
+    // 这些跟"学哪个包"无关，放包里会导致换包后主题、配对码全丢
+
+    private File prefsFile() {
+        return new File(ctx.getFilesDir(), "prefs.json");
+    }
+
+    @JavascriptInterface
+    public String readPrefs() {
+        File f = prefsFile();
+        if (!f.exists()) return "";
+        String s = readText(f);
+        return s == null ? "" : s;
+    }
+
+    @JavascriptInterface
+    public boolean writePrefs(String json) {
+        if (json == null) return false;
+        File tmp = new File(ctx.getFilesDir(), "prefs.json.tmp");
+        File dst = prefsFile();
+        try (FileOutputStream out = new FileOutputStream(tmp)) {
+            out.write(json.getBytes(StandardCharsets.UTF_8));
+            out.getFD().sync();
+        } catch (Exception e) {
+            return false;
+        }
+        return tmp.renameTo(dst) || dst.exists();
+    }
+
     // ---------- 外部导入（文件选择器 / 分享 / adb） ----------
 
     /** 交给 Activity 去弹系统文件选择器 */

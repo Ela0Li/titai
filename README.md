@@ -33,7 +33,7 @@ studydeck/
 └─ sync/                 同步服务的数据（deck.json / state.json / code.txt）
 ```
 
-App 内的进度按包分文件：`files/states/<deck-id>.json`；导入包放在 `files/decks/<deck-id>.json`。
+App 内的进度按包分文件：`files/states/<deck-id>.json`；导入包放在 `files/decks/<deck-id>.json`；主题与同步地址这类跟包无关的偏好放在 `files/prefs.json`，换包不丢。
 
 学习包、进度、同步三层的完整契约见 **[docs/deck-protocol.md](docs/deck-protocol.md)**。
 
