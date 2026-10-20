@@ -100,6 +100,14 @@ code {
 /* ---------- 瑙嗗浘 ---------- */
 .view { padding: 12px 14px 18px; }
 .hint { color: var(--fg3); font-size: 12px; margin: 2px 0 10px; }
+.lgd { white-space: nowrap; letter-spacing: 0; font-size: 12px; vertical-align: -1px; margin-right: 2px; }
+.dim { opacity: .72; }
+.hint.lgdline { font-size: 11.5px; }
+.lgds { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 8px; margin-top: 7px; }
+.lgds span { white-space: nowrap; color: var(--fg2); }
+.lgds .lgt { color: var(--fg3); font-size: 12px; }
+.lgt span.ld + span.ld { margin-left: 3px; }
+.lgt span.ld:last-of-type { margin-right: 5px; }
 .sub-h {
   display: flex; align-items: center; justify-content: space-between;
   margin: 16px 0 8px; font-size: 13px; color: var(--fg2);
@@ -165,6 +173,20 @@ code {
 .dot.on.m1::after { background: var(--gold); }
 .dot.on.m2::after { background: var(--accent); }
 .dot.on.m3::after { background: var(--green); }
+
+/* 图例里的小圆点：与上面的掌握度点同一套画法，只是缩小 */
+.lgt { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+.lgt .ld {
+  width: 11px; height: 11px; border-radius: 50%;
+  border: 1px solid var(--line2); background: transparent; position: relative;
+}
+.lgt .ld::after {
+  content: ""; position: absolute; inset: 2px; border-radius: 50%;
+  background: var(--line2); opacity: .3;
+}
+.lgt .ld.m1::after { background: var(--gold); opacity: .95; }
+.lgt .ld.m2::after { background: var(--accent); opacity: .95; }
+.lgt .ld.m3::after { background: var(--green); opacity: .95; }
 .star { flex: 0 0 auto; width: 26px; height: 26px; display: grid; place-items: center; color: var(--fg3); font-size: 14px; }
 .star.on { color: var(--gold); }
 

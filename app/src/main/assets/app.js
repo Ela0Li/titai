@@ -265,7 +265,13 @@
     });
 
     if (!shown) html.push('<div class="empty">没有符合条件的' + esc(term("check")) + '</div>');
-    html.push('<div class="hint" style="margin-top:14px">点圆点记掌握度：亮 1 个＝模糊 · 亮 2 个＝会 · 亮 3 个＝熟练 · 全不亮＝未学（再点同一个点可清除）；点文字看对应问答。</div>');
+    html.push('<div class="hint lgdline" style="margin-top:14px">点圆点记掌握度（再点同一个点可清除；点文字看对应问答）'
+      + '<div class="lgds">'
+      + '<span class="lgt"><span class="ld"></span><span class="ld"></span><span class="ld"></span>未学</span>'
+      + '<span class="lgt"><span class="ld m1"></span><span class="ld"></span><span class="ld"></span>模糊</span>'
+      + '<span class="lgt"><span class="ld m1"></span><span class="ld m2"></span><span class="ld"></span>会</span>'
+      + '<span class="lgt"><span class="ld m1"></span><span class="ld m2"></span><span class="ld m3"></span>熟练</span>'
+      + '</div></div>');
     $("#view").innerHTML = html.join("");
   }
 
