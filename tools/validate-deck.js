@@ -229,24 +229,54 @@ function validate(deck) {
 
     if (!Array.isArray(q.ans) || !q.ans.length) P("E_QA_ANS", at + ".ans", "ans 必须非空");
     else {
-      if (q.ans[0].h !== "结论") P("E_ANS_HEAD", at + ".ans[0].h", "第一段必须是“结论”");
-      let last = -1;
+      let prevLvl = 0;
+      let heads = 0;
       q.ans.forEach((a, ai) => {
         const aat = at + ".ans[" + ai + "]";
         if (!a || typeof a !== "object") return P("E_ANS", aat, "答案段必须是对象");
-        const idx = HEADS.indexOf(a.h);
-        if (idx < 0) P("E_ANS_HEAD", aat + ".h", "小标题必须是 " + HEADS.join("/") + "，实际 " + a.h);
-        else {
-          if (idx < last) P("E_ANS_ORDER", aat + ".h", "答案分段顺序必须是 结论→机制→取舍→实战");
-          last = idx;
+
+        /* 标题：可选、自拟文案；lvl 控制层级（1..3，默认 1） */
+        let lvl = 0;
+        if (a.h != null) {
+          if (typeof a.h !== "string" || !a.h.trim()) P("E_ANS_HEAD", aat + ".h", "h 要么不写，要么是非空字符串");
+          else {
+            heads++;
+            if (a.h.length > 24) W("W_ANS_HEAD_LONG", aat + ".h", "小标题超过 24 字，建议缩短");
+            lvl = a.lvl == null ? 1 : a.lvl;
+            if (!Number.isInteger(lvl) || lvl < 1 || lvl > 3) {
+              P("E_ANS_LVL", aat + ".lvl", "lvl 必须是 1..3 的整数，实际 " + a.lvl);
+              lvl = 1;
+            } else if (lvl > prevLvl + 1) {
+              P("E_ANS_LVL", aat + ".lvl", "层级不能跳级：上一级是 " + prevLvl + "，这里是 " + lvl);
+            }
+            prevLvl = lvl;
+          }
+        } else if (a.lvl != null) {
+          P("E_ANS_LVL", aat + ".lvl", "没有 h 就不要写 lvl");
         }
+
         if (typeof a.p !== "string" || a.p.trim().length < 8) P("E_ANS_P", aat + ".p", "段落过短");
         else if (a.p.length > 1200) W("W_ANS_LONG", aat + ".p", "段落超过 1200 字，建议拆分");
-        if (/<\/?(b|i|em|strong|br|p|div|span|code|pre|ul|ol|li|a|script|style|img|math|mrow|mi|mo|mn)\b[^>]*>/i
-          .test(stripMath(a.p || "")))
+        if (typeof a.p === "string" && /<\/?(b|i|em|strong|br|p|div|span|code|pre|ul|ol|li|a|script|style|img|math|mrow|mi|mo|mn)\b[^>]*>/i
+          .test(stripMath(a.p)))
           P("E_ANS_HTML", aat + ".p", "段落里不要写 HTML 标签（会被转义）；公式请用 $…$");
         checkMath(a.p, aat + ".p", P, W);
+
+        /* 可选要点列表：不给 HTML，直接给字符串数组 */
+        if (a.list != null) {
+          if (!Array.isArray(a.list) || !a.list.length) P("E_ANS_LIST", aat + ".list", "list 要么不写，要么是非空字符串数组");
+          else {
+            if (a.list.length > 10) W("W_ANS_LIST_LONG", aat + ".list", "要点超过 10 条，建议拆段");
+            a.list.forEach((li, ii) => {
+              const lat = aat + ".list[" + ii + "]";
+              if (typeof li !== "string" || li.trim().length < 2) return P("E_ANS_LIST", lat, "要点必须是非空字符串");
+              if (li.length > 200) W("W_ANS_LIST_LONG", lat, "单条要点超过 200 字");
+              checkMath(li, lat, P, W);
+            });
+          }
+        }
       });
+      if (!heads && q.ans.length > 3) W("W_ANS_NOHEAD", at + ".ans", "4 段以上却没有小标题；长答案建议分节并加标题");
     }
   });
 

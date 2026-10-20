@@ -24,7 +24,7 @@ studydeck/
 │  └─ res/               图标与主题
 ├─ decks/                想「从电脑导入」的知识包放这里（sync.js 负责下发）
 ├─ plans/                学习计划（ml.plan.json、cs-cg-ue5.plan.json）
-├─ docs/deck-protocol.md 协议 v1.4（内容层 / 进度层 / 同步层 / 公式 / 跨包引用 / 学习计划 / 掌握度同步）
+├─ docs/deck-protocol.md 协议 v1.5（内容层 / 进度层 / 同步层 / 公式 / 跨包引用 / 学习计划 / 掌握度同步）
 ├─ schema/               JSON Schema：deck / state / plan
 ├─ tools/
 │  ├─ mkdeck.js          数据源 → dist/deck.json + assets/decks/<id>.json（含覆盖率自检）
@@ -103,6 +103,12 @@ adb -s a27457ef shell am start -n com.studydeck.app/.MainActivity
 3. 字号/密度与真机不同（1080×1920 vs 1200×2670），布局只能看个大概，像素级问题仍需真机。
 
 模拟器操作提示：它是 root 的、`adb root` 可用，但 `/system` 分区只读，别指望往里塞字体（要 `-writable-system` 重启模拟器才行）。
+
+### 答案结构（v1.5 起自由）
+
+`ans` 是有序块数组，每块必须有 `p`（段落），可选 `h`（自拟小标题）、`lvl`（1..3 级，不能跳级）、`list`（要点列表）。协议**不再要求**「结论 → 机制 → 取舍 → 实战」四段式，也不要求以结论开头：面试型学习包这么写仍然推荐，知识型/操作型可以自己分节，甚至整篇不写标题。
+
+天花板是 3 级：`lvl` 超过 3 或跳级（1 → 3）会被校验器拒绝（`E_ANS_LVL`）。老包无需改动，`{h:"结论", p:"…"}` 仍然是合法的一级标题块。
 
 ---
 
@@ -187,7 +193,7 @@ node tools\sync.js          # 默认 8787
 
 1. 新建目录，例如 `decks-src/my-subject/`，放入
    - `modules.js`：`module.exports = [{ id, title, short, priority, stage, signal, keypoints[], traps[], checks[{ t, lvl }] }]`
-   - `qa-1.js`、`qa-2.js`…：`module.exports = [{ id, m, lvl, layer, q, tags[], covers[], next[], peer[], ans[{h,p}] }]`
+   - `qa-1.js`、`qa-2.js`…：`module.exports = [{ id, m, lvl, layer, q, tags[], covers[], next[], peer[], ans[{p, h?, lvl?, list?}] }]`
    - 可选 `meta.json`：`{ "id": "my-subject", "title": "…", "subtitle": "…", "accent": "#2f81f7" }`
 2. `node tools/mkdeck.js decks-src/my-subject`
 3. 重新打包安装
@@ -207,7 +213,7 @@ node tools\sync.js          # 默认 8787
 `mkdeck.js` 会检查：每个自查点是否至少被一条问答覆盖、`next`/`peer` 引用是否存在、QA id 是否重复——不通过就报错退出，避免把残缺内容打进 App。
 （覆盖率是**本项目的验收线**，不是协议要求：协议里它只是 SHOULD，校验器只报 `W_UNCOVERED` 警告。）
 
-`validate-deck.js` 再把协议 v1 的不变量过一遍（id 派生规则、引用闭合、答案四段结构与顺序、`next` 层级是否递进、覆盖深度直方图），输出 `problems / warnings / notes` 三级结果，可直接接 CI。
+`validate-deck.js` 再把协议 v1 的不变量过一遍（id 派生规则、引用闭合、答案块结构与 1..3 级标题、`next` 层级是否递进、覆盖深度直方图），输出 `problems / warnings / notes` 三级结果，可直接接 CI。
 
 `conformance.js` 做最后一道：把 deck 塞进真实引擎资源、用无头浏览器渲染，确认没有 JS 异常、模块/自查点/问答数量与声明一致、`terms` 文案生效、详情面板能打开。
 

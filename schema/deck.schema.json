@@ -140,7 +140,7 @@
         "ans": {
           "type": "array",
           "minItems": 1,
-          "maxItems": 4,
+          "maxItems": 12,
           "items": { "$ref": "#/$defs/ansItem" }
         },
         "backNext": { "type": "array", "items": { "$ref": "#/$defs/id" } },
@@ -149,11 +149,18 @@
     },
     "ansItem": {
       "type": "object",
-      "required": ["h", "p"],
+      "required": ["p"],
       "additionalProperties": true,
       "properties": {
-        "h": { "type": "string", "enum": ["结论", "机制", "取舍", "实战"] },
-        "p": { "type": "string", "minLength": 8, "maxLength": 1200 }
+        "h": { "type": "string", "minLength": 1, "maxLength": 24, "description": "自拟小标题；不写就是普通段落" },
+        "lvl": { "type": "integer", "enum": [1, 2, 3], "description": "标题层级，缺省 1；不能跳级" },
+        "p": { "type": "string", "minLength": 8, "maxLength": 1200 },
+        "list": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "items": { "type": "string", "minLength": 2, "maxLength": 200 }
+        }
       }
     }
   }

@@ -420,9 +420,17 @@
     return mOfIn(did, checkId) === parseInt(listFilter, 10);
   }
 
+  /* 知识点页只列当前计划内的知识包（设置页才显示全部） */
   function listDecksOrder() {
     var out = [], seen = {};
     MEMBERS.forEach(function (id) { if (readDeckData(id) && !seen[id]) { seen[id] = 1; out.push(id); } });
+    return out;
+  }
+
+  /* 设置页：计划内的排前面，其余包排在后面 */
+  function allDecksOrder() {
+    var out = listDecksOrder(), seen = {};
+    out.forEach(function (id) { seen[id] = 1; });
     deckMeta().forEach(function (m) { if (!seen[m.id] && readDeckData(m.id)) { seen[m.id] = 1; out.push(m.id); } });
     return out;
   }
@@ -637,6 +645,23 @@
     drillRevealed = false;
   }
 
+  /* 答案分段渲染（协议 v1.5）：标题可选、层级 1..3、可选要点列表 */
+  function ansBlockHtml(a) {
+    var lvl = a && a.h ? (a.lvl || 1) : 0;
+    var out = '<div class="ans-block' + (lvl ? "" : " plain") + '">';
+    if (lvl) out += '<div class="ans-h lv' + lvl + '">' + esc(a.h) + "</div>";
+    out += '<div class="ans-p">' + rich(a.p || "") + "</div>";
+    if (a && Array.isArray(a.list) && a.list.length) {
+      out += '<ul class="ans-ul">' + a.list.map(function (x) {
+        return "<li>" + rich(String(x)) + "</li>";
+      }).join("") + "</ul>";
+    }
+    return out + "</div>";
+  }
+  function ansHtml(q) {
+    return ((q && q.ans) || []).map(ansBlockHtml).join("");
+  }
+
   function renderDrill() {
     if (!drillCur) pickDrill();
     var html = [];
@@ -659,9 +684,7 @@
     html.push('<div class="drill-q">' + rich(q.q) + "</div>");
     if (drillRevealed) {
       html.push('<div class="drill-ans">');
-      (q.ans || []).forEach(function (a) {
-        html.push('<div class="ans-block"><div class="ans-h">' + esc(a.h) + '</div><div class="ans-p">' + rich(a.p) + "</div></div>");
-      });
+      html.push(ansHtml(q));
       html.push("</div>");
     }
     html.push("</div>");
@@ -1382,9 +1405,7 @@
     html.push('<div class="meta-row">' + (q.tags || []).map(function (t) {
       return '<span class="tag">' + esc(t) + "</span>";
     }).join("") + "</div>");
-    (q.ans || []).forEach(function (a) {
-      html.push('<div class="ans-block"><div class="ans-h">' + esc(a.h) + '</div><div class="ans-p">' + rich(a.p) + "</div></div>");
-    });
+    html.push(ansHtml(q));
     if (q.covers && q.covers.length) {
       html.push('<div class="foot-row"><span class="foot-k">覆盖点</span>' +
         q.covers.map(function (c) {
