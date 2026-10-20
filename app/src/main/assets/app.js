@@ -567,10 +567,13 @@
       toast("连接成功");
     } else if (path === "/api/pull") {
       var n = mergeState(data.state);
-      if (note) note.textContent = "拉取完成，合并了 " + n + " 条更新。";
       toast("拉取完成");
       paintRing();
       render();
+      var nn = $("#syncNote");
+      var mastered = 0;
+      for (var ck in state.checks) { if (state.checks[ck] && state.checks[ck].m >= 2) mastered++; }
+      if (nn) nn.textContent = "拉取完成，合并了 " + n + " 条更新（已掌握 " + mastered + "）。";
     } else {
       if (note) note.textContent = "推送完成，电脑端已保存。";
       toast("推送完成");
@@ -725,6 +728,15 @@
     if (p.tab) setTab(p.tab);
     if (p.open && QA[p.open]) { setTab("qa"); openQa(p.open); }
     else if (p.check && CHECK[p.check]) { setTab("list"); openCheck(p.check); }
+    /* 同步深链：?host=192.168.0.106:8787&code=9878&sync=ping|pull|push */
+    if (p.host) state.sync.host = p.host;
+    if (p.code) state.sync.code = p.code;
+    if (p.host || p.code) save();
+    if (p.sync) {
+      setTab("more");
+      var path = p.sync === "pull" ? "/api/pull" : (p.sync === "push" ? "/api/push" : "/api/ping");
+      setTimeout(function () { syncCall(path, null); }, 300);
+    }
   }
 
   /* ---------------- 启动 ---------------- */
