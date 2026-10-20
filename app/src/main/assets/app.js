@@ -66,7 +66,7 @@
   hydrate(D);
 
   /* ---------------- 学习计划（协议 v1.3） ---------------- */
-  var PLAN = null, MEMBERS = [], DECK_META = [], DECK_CACHE = {}, QA_ALL = [];
+  var PLAN = null, MEMBERS = [], PLAN_MEMBERS = [], DECK_META = [], DECK_CACHE = {}, QA_ALL = [], OUT_OF_PLAN = false;
 
   /* Java 桥方法不是普通 JS 函数，不能 apply，只能按名字定参调用 */
   function n0(name) {
@@ -83,6 +83,7 @@
     plans.forEach(function (p) { if (!PLAN && p.id === pid) PLAN = p; });
     if (!PLAN) PLAN = plans[0] || null;
     MEMBERS = PLAN && PLAN.members && PLAN.members.length ? PLAN.members.slice() : [CUR_DECK];
+    PLAN_MEMBERS = MEMBERS.slice();
 
     try { DECK_META = JSON.parse(n0("listDecks") || "[]") || []; } catch (e) { DECK_META = []; }
 
@@ -103,14 +104,28 @@
     });
     if (!DECK_CACHE[CUR_DECK]) DECK_CACHE[CUR_DECK] = D;
 
-    /* 当前包不属于这个计划时（比如刚换了计划），落到计划的默认包 */
+    /* 当前包不属于这个计划：装了就临时停在这个包（顶部给「回到计划」），没装才落到计划的默认包 */
     if (MEMBERS.indexOf(CUR_DECK) < 0) {
-      var want = (PLAN && PLAN.primary && MEMBERS.indexOf(PLAN.primary) >= 0) ? PLAN.primary : MEMBERS[0];
-      if (want && DECK_CACHE[want]) {
-        D = DECK_CACHE[want];
-        CUR_DECK = want;
-        hydrate(D);
-        try { n1("setCurrentDeck", want); } catch (e2) {}
+      var inst = DECK_CACHE[CUR_DECK];
+      if (!inst) {
+        try { var t = n1("readDeck", CUR_DECK); if (t) inst = JSON.parse(t); } catch (e3) { inst = null; }
+      }
+      if (inst) {
+        DECK_CACHE[CUR_DECK] = inst;
+        MEMBERS = [CUR_DECK];
+        OUT_OF_PLAN = true;
+        hydrate(inst);
+        (inst.qas || []).forEach(function (q) {
+          QA_ALL.push({ deck: CUR_DECK, id: q.id, q: q.q, layer: q.layer, m: q.m, tags: q.tags || [] });
+        });
+      } else {
+        var want = (PLAN && PLAN.primary && MEMBERS.indexOf(PLAN.primary) >= 0) ? PLAN.primary : MEMBERS[0];
+        if (want && DECK_CACHE[want]) {
+          D = DECK_CACHE[want];
+          CUR_DECK = want;
+          hydrate(D);
+          try { n1("setCurrentDeck", want); } catch (e2) {}
+        }
       }
     }
   })();
@@ -129,6 +144,9 @@
     return (d && d.meta && d.meta.short) || String(deckTitle(id)).split(" · ")[0];
   }
   function inPlan(id) { return MEMBERS.indexOf(id) >= 0; }
+  /* 判断「是否属于当前计划」：临时停在计划外的包时 MEMBERS 会被缩成一个包，
+     所以引用标签要按计划本身的成员表来判断，而不是按 MEMBERS */
+  function planHas(id) { return PLAN_MEMBERS.indexOf(id) >= 0; }
 
 
   /* ---------------- 状态 ---------------- */
@@ -746,7 +764,7 @@
     html.push('<div class="sub-h"><b>知识包</b><span>' + list.length + " 个</span></div>");
     list.forEach(function (d) {
       var on = d.id === CUR_DECK;
-      var member = inPlan(d.id);
+      var member = planHas(d.id);
       html.push('<div class="deck-row' + (on ? " on" : "") + '">' +
         '<div class="deck-main"><div class="deck-t">' + esc(d.title || d.id) +
         (on ? ' <span class="deck-cur">使用中</span>' : "") +
@@ -936,12 +954,22 @@
         });
       });
     });
-    $("#deckTitle").textContent = (PLAN && PLAN.title) || D.title || "题台";
-    $("#deckSub").textContent = decks.length > 1
-      ? decks.length + " 个知识包 · " + total + " " + term("check") + " · " + QA_ALL.length + " " + term("qa")
-      : (D.groups || []).length + " 个" + term("group") + " · " + QA_LIST.length + " 条" + term("qa");
+    $("#deckTitle").textContent = OUT_OF_PLAN
+      ? deckTitle(CUR_DECK)
+      : ((PLAN && PLAN.title) || D.title || "题台");
+    $("#deckSub").textContent = OUT_OF_PLAN
+      ? "不在当前计划内 · " + (D.groups || []).length + " 个" + term("group") + " · " + QA_LIST.length + " 条" + term("qa")
+      : (decks.length > 1
+        ? decks.length + " 个知识包 · " + total + " " + term("check") + " · " + QA_ALL.length + " " + term("qa")
+        : (D.groups || []).length + " 个" + term("group") + " · " + QA_LIST.length + " 条" + term("qa"));
 
     if (!bar) return;
+    if (OUT_OF_PLAN) {
+      bar.classList.add("on");
+      bar.innerHTML = '<button class="pchip back" data-plan-back="1">← 回到' + esc((PLAN && PLAN.title) || "计划") + "</button>" +
+        '<button class="pchip on" data-plan-deck="' + esc(CUR_DECK) + '">' + esc(deckShort(CUR_DECK)) + "</button>";
+      return;
+    }
     if (decks.length < 2) { bar.innerHTML = ""; bar.classList.remove("on"); return; }
     bar.classList.add("on");
     bar.innerHTML = decks.map(function (id) {
@@ -1317,13 +1345,15 @@
       text = esc(q.q);
       return '<button class="jump" data-jump="' + esc(r.id) + '">' + icon + " " + text + "</button>";
     }
-    var tag = '<span class="xdeck">' + esc(deckTitle(r.deck)) + "</span>";
+    var out = !planHas(r.deck);
+    var tag = '<span class="xdeck' + (out ? " out" : "") + '">' + esc(deckTitle(r.deck)) +
+      (out ? '<i>计划外</i>' : "") + "</span>";
     if (!r.ok) {
       text = r.why === "nodeck" ? "未安装的学习包 · " + esc(r.id) : "已失效 · " + esc(r.id);
       return '<button class="jump stale" disabled>' + icon + " " + tag + " " + text + "</button>";
     }
     text = r.isCheck ? esc((r.item.text || r.id).slice(0, 16)) : esc(r.item.q || r.id);
-    return '<button class="jump xlink" data-cross="' + esc(r.deck + "#" + r.id) + '">' + icon + " " + tag + " " + text + "</button>";
+    return '<button class="jump xlink' + (out ? " out" : "") + '" data-cross="' + esc(r.deck + "#" + r.id) + '">' + icon + " " + tag + " " + text + "</button>";
   }
 
   /* 反向引用：扫已装包，找指向本包条目（或被本包引用的条目）的跨包连接 */
@@ -1371,12 +1401,12 @@
     return true;
   }
 
-  /* 切包跳转：记住来路，切完重载页面再打开目标 */
+  /* 切包跳转：记住来路，切完重载页面再打开目标；目标不在计划内会临时离开计划 */
   function crossJump(ref, fromId) {
     var r = splitRef(ref);
     if (!r.deck || r.deck === CUR_DECK) { openQa(r.id); return; }
     var back = { deck: CUR_DECK, id: fromId || (SHEET_ID || "") };
-    setPref("pendingOpen", { deck: r.deck, id: r.id });
+    if (!planHas(r.deck)) toast("「" + deckTitle(r.deck) + "」不在当前计划内，跳到后可点顶部「回到计划」");    setPref("pendingOpen", { deck: r.deck, id: r.id });
     setPref("pendingBack", back);
     try {
       save(true);
@@ -1584,7 +1614,7 @@
   }
 
   document.addEventListener("click", function (ev) {
-    var t = ev.target.closest("[data-tab],[data-act],[data-chip],[data-qchip],[data-qdeck],[data-qa],[data-jump],[data-cross],[data-cross-back],[data-star],[data-m],[data-check],[data-dmode],[data-rate],[data-cm],[data-deck],[data-plan-deck],[data-decksec],[data-del-deck],[data-download],[data-cw],.seg [data-theme]");
+    var t = ev.target.closest("[data-tab],[data-act],[data-chip],[data-qchip],[data-qdeck],[data-qa],[data-jump],[data-cross],[data-cross-back],[data-plan-back],[data-star],[data-m],[data-check],[data-dmode],[data-rate],[data-cm],[data-deck],[data-plan-deck],[data-decksec],[data-del-deck],[data-download],[data-cw],.seg [data-theme]");
     if (!t) { console.log("[click] miss " + ev.target.tagName); return; }
     console.log("[click] " + (t.dataset.tab ? "tab=" + t.dataset.tab : JSON.stringify(t.dataset).slice(0, 80)));
 
@@ -1592,6 +1622,16 @@
 
     /* 计划内软切换（不重载） */
     if (t.dataset.planDeck) { softSwitch(t.dataset.planDeck); return; }
+    /* 从计划外的包回到计划 */
+    if (t.dataset.planBack) {
+      var primary = (PLAN && PLAN.primary) || (MEMBERS[0] || CUR_DECK);
+      try {
+        save(true);
+        if (window.Native && window.Native.setCurrentDeck) window.Native.setCurrentDeck(primary);
+        location.replace("index.html");
+      } catch (e) { toast("回到计划失败：" + e); }
+      return;
+    }
     if (t.dataset.decksec) {
       toggleDeckOpen(t.dataset.decksec);
       renderList();
