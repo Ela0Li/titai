@@ -67,6 +67,45 @@ App 内的进度按包分文件：`files/states/<deck-id>.json`；导入包放�
 
 ---
 
+## 开发与测试环境（v0.8.1 起）
+
+**日常构建、安装、跑起来、截图都在模拟器上做，真机只在最终验收时用一次。**
+
+| 环境 | 设备 | 系统 / WebView | 用途 |
+| --- | --- | --- | --- |
+| 模拟器 | `emulator-5554` | Android 12（API 32）/ WebView 110 | 日常开发、回归、截图 |
+| 真机 | `a27457ef`（小米 14） | Android 16（API 36）/ WebView 153 | 只在明确要求时做最终验收 |
+
+一条命令搞定（`tools/dev.js`）：
+
+```powershell
+node tools/dev.js deploy                  # 构建 + 装模拟器 + 打开 + 截图到 shot/
+node tools/dev.js deploy --tab qa          # 顺便跳到问答页
+node tools/dev.js deploy --deck ml-math    # 指定知识包
+node tools/dev.js deploy --open q.m1.grad  # 打开某条问答
+node tools/dev.js deploy --check m1.1      # 打开某个知识点
+node tools/dev.js shot --name home         # 只截图
+node tools/dev.js deploy --phone           # 装到真机（最终验收时才用）
+```
+
+真机验收请手动执行（等价于上面 `--phone`）：
+
+```powershell
+.\gradlew.bat --offline assembleRelease
+adb -s a27457ef install -r app\build\outputs\apk\release\app-release.apk
+adb -s a27457ef shell am start -n com.studydeck.app/.MainActivity
+```
+
+**模拟器已知差异**（不是 App 的 bug，别在模拟器上追）：
+
+1. **公式会显示成方框**：模拟器镜像没有带 OpenType MATH 表的数学字体，Chromium 110 的 MathML 就掉豆腐块；真机（WebView 153）正常。数学排版只能在真机上验。
+2. **`color-mix()` 不支持**（Chromium 111 才有）：跨包 chip 的虚线强调色、包名标签底色会退化成普通边框色。样式里已写好回退值（先声明纯色再声明 `color-mix`），功能不受影响。
+3. 字号/密度与真机不同（1080×1920 vs 1200×2670），布局只能看个大概，像素级问题仍需真机。
+
+模拟器操作提示：它是 root 的、`adb root` 可用，但 `/system` 分区只读，别指望往里塞字体（要 `-writable-system` 重启模拟器才行）。
+
+---
+
 ## 构建与安装
 
 ```powershell

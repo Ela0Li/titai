@@ -272,10 +272,10 @@ mtext { font-size: .96em; }
 }
 .jump:active { border-color: var(--accent); }
 /* 跨包引用（协议 v1.2） */
-.jump.xlink { border-style: dashed; border-color: color-mix(in srgb, var(--accent) 55%, var(--line2)); }
+.jump.xlink { border-style: dashed; border-color: var(--line2); border-color: color-mix(in srgb, var(--accent) 55%, var(--line2)); }
 .xdeck {
   display: inline-block; font-size: 10px; line-height: 1.4; padding: 0 5px; margin-right: 5px;
-  border-radius: 4px; background: color-mix(in srgb, var(--accent) 16%, transparent);
+  border-radius: 4px; background: var(--line2); background: color-mix(in srgb, var(--accent) 16%, transparent);
   color: var(--accent); vertical-align: 1px;
 }
 .jump.stale { opacity: .55; border-style: dotted; }
@@ -388,4 +388,4 @@ mtext { font-size: .96em; }
 .deck-pick .deck-t, .deck-pick .deck-m { display: block; }
 
 .dtag { display: inline-block; margin-right: 6px; padding: 1px 7px; border-radius: 6px;
-  background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); font-size: 11px; }
+  background: var(--line2); background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); font-size: 11px; }
