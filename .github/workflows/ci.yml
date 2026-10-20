@@ -1,0 +1,46 @@
+name: 内容校验
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 引擎脚本语法检查
+        run: |
+          node --check app/src/main/assets/app.js
+          node --check app/src/main/assets/math.js
+          node --check app/src/main/assets/deck.js
+
+      - name: 数学解析单测
+        run: node tools/test-math.js
+
+      - name: 学习包协议校验
+        run: |
+          for f in decks/*.json; do
+            echo "── $f"
+            node tools/validate-deck.js "$f"
+          done
+
+      - name: 学习计划校验
+        run: |
+          for f in plans/*.json; do
+            echo "── $f"
+            node tools/validate-plan.js "$f"
+          done
+
+      - name: 跨包引用检查
+        run: node tools/check-links.js decks/*.json
+
+      - name: 答案结构体检
+        run: node tools/audit-answers.js

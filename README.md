@@ -4,6 +4,8 @@
 
 现在内置五个知识包（计算机基础 / 计算机图形学 / UE5 PCG / 机器学习数学基础 / 机器学习入门）和两个学习计划，默认打开机器学习计划。
 
+当前版本 **0.9.0**（初版发布）。更新日志见 **[CHANGELOG.md](CHANGELOG.md)**，许可证 **[MIT](LICENSE)**。安装包在 [Releases](https://github.com/Ela0Li/titai/releases) 页面，侧载 APK 即可，不需要账号。
+
 ---
 
 ## 目录结构
@@ -13,16 +15,18 @@ studydeck/
 ├─ app/src/main/
 │  ├─ assets/            ← 前端（HTML/CSS/JS），WebView 直接加载
 │  │  ├─ index.html
-│  │  ├─ app.css         深色/浅色两套主题（只用 rgba，兼容旧 WebView）
+│  │  ├─ app.css         深色/浅色两套主题（带 color-mix 回退）
 │  │  ├─ app.js          引擎：计划/多知识包/清单/问答/收藏/刷题/设置/掌握度同步
-│  │  ├─ deck.js         由 tools/mkdeck.js 生成，window.DECK = {...}（兜底用）
+│  │  ├─ math.js         $…$ / $$…$$ → MathML（不依赖外部库）
+│  │  ├─ deck.js         空注入位（浏览器直开兜底 / conformance 注入点）
 │  │  ├─ decks/*.json    内置知识包，一份一个文件（引擎按 id 读取）
 │  │  └─ plans/*.json    内置学习计划（成员顺序 = 学习顺序）
 │  ├─ java/com/studydeck/app/
 │  │  ├─ MainActivity.java   WebView 壳 + 返回键接管 + 深链
 │  │  └─ Bridge.java         多包读写/切换 + 进度文件 + setChrome / http / versionName
 │  └─ res/               图标与主题
-├─ decks/                想「从电脑导入」的知识包放这里（sync.js 负责下发）
+├─ decks/                **学习包真相**（五个包，一份一个 JSON；改内容就改这里）
+├─ decks-src/ml-intro/   ml-intro 的生成源（modules.js + qa-*.js + build.js）
 ├─ plans/                学习计划（ml.plan.json、cs-cg-ue5.plan.json）
 ├─ docs/                 协议 v1.7，拆成三册（章节号沿用总编号）
 │  ├─ protocol-core.md   总纲：保证边界 §0 / 进度层 §2 / 同步层 §3 / 校验器 §4 / 版本 §5 / 掌握度同步 §10 / 附录 A 字段速查
@@ -30,16 +34,23 @@ studydeck/
 │  ├─ plan-protocol.md   学习计划 §9
 │  └─ deck-protocol.src.md  合并前的原文（tools/split-protocol.js 的输入，改协议改这份再拆）
 ├─ schema/               JSON Schema：deck / state / plan
+├─ test/decks/           最小样例包（校验器与 conformance 的自测）
 ├─ tools/
-│  ├─ mkdeck.js          数据源 → dist/deck.json + assets/decks/<id>.json（含覆盖率自检）
 │  ├─ validate-deck.js   协议校验器（引用闭合、答案结构、链路质量；覆盖仅警告）
 │  ├─ validate-plan.js   计划校验器（成员存在、顺序、primary）
 │  ├─ check-links.js     多包联合检查（跨包引用解析、环、缺包）
-│  ├─ split-pcg.js       把一个大包按模块区间拆成多个包（重编号 + 跨包引用改写）
+│  ├─ audit-answers.js   答案结构体检（按体裁判断结构是否合适）
 │  ├─ conformance.js     一致性测试：真实引擎 + 无头浏览器渲染一份 deck
-│  └─ sync.js            局域网同步服务 + 电脑端浏览页面 + 学习包下发
-├─ dist/deck.json        学习包真相，可 diff、可备份
-└─ sync/                 同步服务的数据（deck.json / state.json / code.txt）
+│  ├─ apply-hints.js     把 tools/hints/*.json 的「及格线」灌进知识包
+│  ├─ build-ml-math.js   生成 ml-math 包（幂等）
+│  ├─ split-protocol.js  从 src 拆出协议三册
+│  ├─ test-math.js       数学解析单测（顺便产出预览页）
+│  ├─ dev.js             构建 + 安装 + 打开 + 截图（开发用）
+│  ├─ sync.js            局域网同步服务 + 电脑端浏览页面 + 学习包下发
+│  ├─ hints/             282 条知识点的「及格线」文案
+│  └─ archive/           一次性迁移脚本（历史留档，日常不用）
+├─ .github/workflows/    CI：语法检查 + 协议/计划/引用/答案体检
+└─ sync/                 同步服务的运行时数据（配对码与进度，不入库）
 ```
 
 App 内的进度按包分文件：`files/states/<deck-id>.json`；导入包放在 `files/decks/<deck-id>.json`；主题与同步地址这类跟包无关的偏好放在 `files/prefs.json`，换包不丢。
@@ -143,12 +154,13 @@ adb -s a27457ef shell am start -n com.studydeck.app/.MainActivity
 
 ## 构建与安装
 
-```powershell
-# 1) 编译学习包（数据改了就要重跑）
-node tools/mkdeck.js
+学习包内容是 JSON，改完直接校验，不需要编译；只有 ml-math 与 ml-intro 有生成脚本（改了源才要重跑）。
 
-# 1.5) 按协议 v1 校验（建议随 mkdeck 一起跑）
-node tools/validate-deck.js dist/deck.json
+```powershell
+# 1) 校验（改过任何 decks/*.json 都跑一遍）
+node tools/validate-deck.js decks/ue5-pcg.json
+node tools/check-links.js decks/*.json
+node tools/audit-answers.js
 
 # 2) 打包 APK（debug）
 $env:JAVA_HOME="C:\Program Files\Eclipse Adoptium\jdk-17.0.19.10-hotspot"
@@ -156,6 +168,15 @@ $env:JAVA_HOME="C:\Program Files\Eclipse Adoptium\jdk-17.0.19.10-hotspot"
 
 # 3) 装到手机/模拟器
 adb install -r app\build\outputs\apk\debug\app-debug.apk
+```
+
+有生成源的两个包：
+
+```powershell
+node decks-src/ml-intro/build.js     # → decks/ml-intro.json
+node tools/build-ml-math.js          # → decks/ml-math.json
+node tools/demo-free-answers.js      # ml-math 重建后要重跑，恢复自由结构答案
+node tools/apply-hints.js            # 重建过任何包之后都要重跑，补回「及格线」
 ```
 
 正式包：
@@ -220,33 +241,30 @@ node tools\sync.js          # 默认 8787
 
 **A. 内置一个新包（内容随 APK 走）**
 
-1. 新建目录，例如 `decks-src/my-subject/`，放入
-   - `modules.js`：`module.exports = [{ id, title, short, priority, stage, signal, keypoints[], traps[], checks[{ t, lvl }] }]`
-   - `qa-1.js`、`qa-2.js`…：`module.exports = [{ id, m, lvl, layer, q, tags[], covers[], next[], peer[], ans[{p, h?, lvl?, list?}] }]`
-   - 可选 `meta.json`：`{ "id": "my-subject", "title": "…", "subtitle": "…", "accent": "#2f81f7" }`
-2. `node tools/mkdeck.js decks-src/my-subject`
-3. 重新打包安装
+现在内置包都是直接写 `decks/<id>.json`（协议见 `docs/deck-protocol.md`），最小可用模板在 `test/decks/minimal.deck.json`：拷一份改 `id` / `title` / 模块与问答，放到 `decks/`，再同步一份到 `app/src/main/assets/decks/` 即可。
+
+以前那套「`decks-src/` 写 JS 源 → 生成 JSON」的流程只给 `ml-intro` 留着（`decks-src/ml-intro/build.js`），生成器本体已归档到 `tools/archive/mkdeck.js`。
 
 **B. 外部导入（不重装 APK，推荐）**
 
 三条路，产出的都是同一个「导入包」：
 
 1. **微信/QQ/网盘里直接打开**：把 `deck.json` 发到手机，用「其他应用打开」选「题台」；或在文件管理器里点开、选「题台」。
-2. **设置页选文件**：「设置 → 学习包 → 从文件导入」，在系统文件选择器里挑 `.json`。
-3. **从电脑推**：把文件丢进仓库根的 `decks/`，电脑跑 `node tools/sync.js`，手机「从电脑获取学习包」→「下载」。
+2. **设置页选文件**：「设置 → 知识包 → 从文件导入」，在系统文件选择器里挑 `.json`。
+3. **从电脑推**：把文件丢进仓库根的 `decks/`，电脑跑 `node tools/sync.js`，手机「从电脑获取知识包」→「下载」。
 
-导入会先体检再入库：JSON 合法、`schema=1`、`id` 合法、模块/自查点/问答的结构与引用闭合、答案第一段是「结论」。不合格的文件不会写入，弹层直接列出问题清单（如 `E_CHECK_PREFIX：g1.2 应为 g1.1`），改完再发一次即可。
+导入会先体检再入库：JSON 合法、`schema=1`、`id` 合法、模块/知识点/问答的结构与引用闭合（答案结构 v1.5 起是自由的，只校验块字段与 1..3 级标题）。不合格的文件不会写入，弹层直接列出问题清单（如 `E_CHECK_PREFIX：g1.2 应为 g1.1`），改完再发一次即可。
 
 两种方式产出的包可以并存：同一 `id` 时导入包覆盖内置包，方便改内容而不动 APK。
 
-`mkdeck.js` 会检查：每个自查点是否至少被一条问答覆盖、`next`/`peer` 引用是否存在、QA id 是否重复——不通过就报错退出，避免把残缺内容打进 App。
+`validate-deck.js` 会把协议的不变量过一遍（id 派生规则、引用闭合、答案块结构与 1..3 级标题、覆盖深度直方图），另外检查每条知识点是否被问答覆盖、`next`/`peer` 引用是否存在、QA id 是否重复——不通过就报错退出，避免把残缺内容打进 App。
 （覆盖率是**本项目的验收线**，不是协议要求：协议里它只是 SHOULD，校验器只报 `W_UNCOVERED` 警告。）
 
-`validate-deck.js` 再把协议 v1 的不变量过一遍（id 派生规则、引用闭合、答案块结构与 1..3 级标题、`next` 层级是否递进、覆盖深度直方图），输出 `problems / warnings / notes` 三级结果，可直接接 CI。
+`audit-answers.js` 再从「读起来顺不顺」的角度扫一遍：空洞块、超长块、体裁与结构错配、结论里写步骤、该拆列表却堆成一段。它只给建议，不阻断构建。
 
-`conformance.js` 做最后一道：把 deck 塞进真实引擎资源、用无头浏览器渲染，确认没有 JS 异常、模块/自查点/问答数量与声明一致、`terms` 文案生效、详情面板能打开。
+`conformance.js` 做最后一道：把 deck 塞进真实引擎资源、用无头浏览器渲染，确认没有 JS 异常、模块/知识点/问答数量与声明一致、`terms` 文案生效、详情面板能打开。
 
-界面名词解耦：`deck.terms = { group, check, qa }` 可覆盖显示文案，缺省是「模块 / 知识点 / 问答」；本包在 `mkdeck.js` 里写成「自查点」，换包时想叫「知识点／考点」都行，不影响 id、进度与同步。
+界面名词解耦：`deck.terms = { group, check, qa }` 可覆盖显示文案，缺省是「模块 / 知识点 / 问答」；换包时想叫「章节／考点／题目」都行，不影响 id、进度与同步。
 
 进度按学习包 id 区分：每个包一份 `files/states/<id>.json`，换包后旧进度不会串味（同一个包里 id 复用则视为同一题）。升级到多包版本后，老的 `state.json` 会一次性迁移到内置包名下。
 
@@ -285,12 +303,37 @@ node tools\sync.js          # 默认 8787
 | 对比型（A 与 B 的区别） | 一句话 → 关键差异（list）→ 怎么选 → 边界 | `q.m4.prune`、`q.m2.forward` |
 | 概念型（是什么 / 为什么） | 结论 → 机制 → 取舍 → 实战 | `q.m1.biasvar` |
 
-两个工具：
+> 0.9.0 之前那次「按体裁重排 262 条答案」用的补丁机制（`restructure-answers.js` + `answers-patches.json`）已经归档到 `tools/archive/`：内容已经写进 `decks/*.json`，日常不会再跑它。现在改答案直接改 `decks/<id>.json`，然后用上面的两个工具体检。
+
+工具：
 
 - `node tools/audit-answers.js [--deck id] [--list] [--dump]` —— 按可复现的规则扫「结构不合适」的答案：E1 空洞块（正文 < 40 字，带 `list` 的块按 `p`+条目合计算）、E2 单块过长、E3 操作型问句却只有取舍/实战、E4「结论」块里写步骤、E5 该拆 list 的长段落、E6 多块无标题、E7 有嵌套语义却全用 1 级标题。
-- `node tools/restructure-answers.js [--check]` —— 应用 `tools/answers-patches.json` 里的补丁表。补丁表幂等：`decks/*.json` 被生成脚本（`build-ml-math.js`、`split-deck.js` …）重建后，重跑一次即可把重排过的答案恢复。改答案时先用 `snapshot-patches.js` 把新内容记进补丁表，避免下次重建丢失。
 - `node tools/apply-hints.js [--check] [--deck id]` —— 把 `tools/hints/<deck>.json` 里的知识点「及格线」灌进知识包（幂等，重建后重跑）。
 - `node tools/split-protocol.js` —— 从 `docs/deck-protocol.src.md` 重新拆出协议三册（总纲 / 知识包 / 计划）。**改协议改 src，再跑这个**，别直接改三册产物。
+- `node tools/conformance.js [deck.json …]` —— 无头渲染一份 deck，确认引擎能真的打开它（默认测 `decks/ue5-pcg.json`）。
+
+---
+
+## 发版流程
+
+```powershell
+# 1) 改版本号（app/build.gradle.kts 的 versionCode +1 / versionName）
+# 2) 全量自检
+node tools/validate-deck.js decks/ue5-pcg.json   # 其它包同理，或看 CI
+node tools/check-links.js decks/*.json
+node tools/audit-answers.js
+node tools/test-math.js
+# 3) 构建正式包
+.\gradlew.bat --offline assembleRelease          # → app/build/outputs/apk/release/app-release.apk
+# 4) 装机验收（真机，覆盖安装）
+adb -s a27457ef install -r app\build\outputs\apk\release\app-release.apk
+# 5) 打 tag 并推
+git tag -a v0.9.0 -m "题台 0.9.0"
+git push origin main --tags
+# 6) 在 GitHub 建 Release（附 app-release.apk），发布说明抄 CHANGELOG 对应段落
+```
+
+CI（`.github/workflows/ci.yml`）在每次 push 时跑语法检查、五个包的协议校验、计划校验、跨包引用和答案体检；**构建 APK 不在 CI 里**（需要 Android SDK 与本地签名材料）。
 
 ---
 

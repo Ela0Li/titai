@@ -1240,7 +1240,7 @@
     html.push('<div class="divider"></div>');
     html.push('<div class="sub-h"><b>局域网同步</b><span>电脑端运行 tools/sync.js</span></div>');
     html.push('<div class="field"><label>电脑地址（IP:端口）</label>' +
-      '<input class="search" id="syncHost" placeholder="192.168.1.5:8787" value="' + esc(state.sync.host) + '"></div>');
+      '<input class="search" id="syncHost" placeholder="192.168.1.100:8787" value="' + esc(state.sync.host) + '"></div>');
     html.push('<div class="field"><label>配对码</label>' +
       '<input class="search" id="syncCode" placeholder="4 位数字" inputmode="numeric" value="' + esc(state.sync.code) + '"></div>');
     html.push('<div class="btn-row">' +
