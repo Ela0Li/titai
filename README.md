@@ -17,15 +17,20 @@ studydeck/
 │  │  ├─ app.js          引擎：清单/问答/收藏/刷题/设置
 │  │  └─ deck.js         由 tools/mkdeck.js 生成，window.DECK = {...}
 │  ├─ java/com/studydeck/app/
-│  │  ├─ MainActivity.java   WebView 壳 + 返回键接管
-│  │  └─ Bridge.java         saveState / loadState / setChrome / toast
+│  │  ├─ MainActivity.java   WebView 壳 + 返回键接管 + 深链
+│  │  └─ Bridge.java         saveState / loadState / setChrome / http / versionName
 │  └─ res/               图标与主题
+├─ docs/deck-protocol.md 学习包协议 v1（内容层 / 进度层 / 同步层 + 校验规则）
+├─ schema/               JSON Schema：deck.schema.json / state.schema.json
 ├─ tools/
 │  ├─ mkdeck.js          数据源 → dist/deck.json + assets/deck.js（含覆盖率自检）
+│  ├─ validate-deck.js   协议校验器（引用闭合、全覆盖、答案结构、链路质量）
 │  └─ sync.js            局域网同步服务 + 电脑端浏览页面
 ├─ dist/deck.json        学习包真相，可 diff、可备份
 └─ sync/                 同步服务的数据（deck.json / state.json / code.txt）
 ```
+
+学习包、进度、同步三层的完整契约见 **[docs/deck-protocol.md](docs/deck-protocol.md)**。
 
 ---
 
@@ -34,6 +39,9 @@ studydeck/
 ```powershell
 # 1) 编译学习包（数据改了就要重跑）
 node tools/mkdeck.js
+
+# 1.5) 按协议 v1 校验（建议随 mkdeck 一起跑）
+node tools/validate-deck.js dist/deck.json
 
 # 2) 打包 APK（debug）
 $env:JAVA_HOME="C:\Program Files\Eclipse Adoptium\jdk-17.0.19.10-hotspot"
@@ -110,6 +118,8 @@ node tools\sync.js          # 默认 8787
 3. 重新打包安装
 
 `mkdeck.js` 会检查：每个自查点是否至少被一条问答覆盖、`next`/`peer` 引用是否存在、QA id 是否重复——不通过就报错退出，避免把残缺内容打进 App。
+
+`validate-deck.js` 再把协议 v1 的全部不变量过一遍（id 派生规则、答案四段结构与顺序、覆盖深度直方图、`next` 层级是否递进），输出 `problems / warnings / notes` 三级结果，可直接接 CI。
 
 进度按学习包 id 区分：换包后旧进度不会串味（同一个包里 id 复用则视为同一题）。
 

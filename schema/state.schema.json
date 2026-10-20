@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Ela0Li/titai/schema/state.schema.json",
+  "title": "题台进度 state.json",
+  "description": "题台 · 学习包协议 v1 的进度层。合并规则：逐 key 取 t 较大者（fav 用 on:false 作墓碑）。",
+  "type": "object",
+  "required": ["v"],
+  "additionalProperties": true,
+  "properties": {
+    "v": { "type": "integer", "const": 1 },
+    "deck": {
+      "type": "string",
+      "description": "对应的学习包 id"
+    },
+    "rev": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "单调修订号，仅用于诊断，不参与冲突判断"
+    },
+    "touched": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "最后写入时间（epoch ms）"
+    },
+    "checks": {
+      "type": "object",
+      "description": "key = 自查点 id",
+      "additionalProperties": { "$ref": "#/$defs/mark" }
+    },
+    "fav": {
+      "type": "object",
+      "description": "key = 自查点 id 或问答 id；on:false 为取消收藏的墓碑",
+      "additionalProperties": { "$ref": "#/$defs/fav" }
+    },
+    "quiz": {
+      "type": "object",
+      "description": "key = 问答 id",
+      "additionalProperties": { "$ref": "#/$defs/quiz" }
+    },
+    "settings": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "theme": { "type": "string", "enum": ["dark", "light"] },
+        "tab": { "type": "string", "enum": ["list", "qa", "fav", "drill", "more"] }
+      }
+    },
+    "sync": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "host": { "type": "string", "pattern": "^[^\\s/]+:[0-9]{1,5}$" },
+        "code": { "type": "string", "pattern": "^[0-9]{4}$" }
+      }
+    }
+  },
+  "$defs": {
+    "mark": {
+      "type": "object",
+      "required": ["m", "t"],
+      "additionalProperties": true,
+      "properties": {
+        "m": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3,
+          "description": "0 未学 / 1 模糊 / 2 会 / 3 熟练"
+        },
+        "t": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "fav": {
+      "type": "object",
+      "required": ["on", "t"],
+      "additionalProperties": true,
+      "properties": {
+        "on": { "type": "boolean" },
+        "t": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "quiz": {
+      "type": "object",
+      "required": ["ok", "no", "t"],
+      "additionalProperties": true,
+      "properties": {
+        "ok": { "type": "integer", "minimum": 0 },
+        "no": { "type": "integer", "minimum": 0 },
+        "t": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}
