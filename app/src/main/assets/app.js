@@ -45,7 +45,7 @@
   (D.groups || []).forEach(function (g, gi) {
     g.gi = gi;
     (g.checks || []).forEach(function (c) {
-      CHECK[c.id] = { id: c.id, text: c.text, lvl: c.lvl, g: g.id, group: g };
+      CHECK[c.id] = { id: c.id, text: c.text, lvl: c.lvl, g: g.id, group: g, seeAlso: c.seeAlso || [] };
       GROUP_OF[c.id] = g;
     });
   });
@@ -482,6 +482,10 @@
 
   function switchDeck(id) {
     if (!id || id === CUR_DECK) return;
+    /* 手动换包 = 结束跨包会话，顺手解掉只读 */
+    prefs.pendingBack = null;
+    prefs.pendingOpen = null;
+    try { savePrefs(); } catch (e) {}
     try {
       if (window.Native && window.Native.setCurrentDeck) {
         window.Native.setCurrentDeck(id);
@@ -564,6 +568,15 @@
     if (!d.title || typeof d.title !== "string") bad("E_TITLE", "缺少 title");
 
     var groups = Array.isArray(d.groups) ? d.groups : [];
+    /* 跨包引用（协议 v1.2）：deckId#localId —— 只查语法，解析交给 check-links */
+    function isCrossRef(r) { return typeof r === "string" && r.indexOf("#") > 0; }
+    function crossSyntax(r, where) {
+      var i = r.indexOf("#");
+      var deck = r.slice(0, i), id = r.slice(i + 1);
+      if (!DECK_ID_RE.test(deck)) bad("E_CROSS_SYNTAX", where + " 的包 id 不合法：" + deck);
+      if (deck === d.id) bad("E_CROSS_SYNTAX", where + " 不该写自己的包 id：" + r);
+      if (!id) bad("E_CROSS_SYNTAX", where + " 缺条目 id：" + r);
+    }
     if (!groups.length) bad("E_GROUPS", "至少要有一个 groups");
     var groupIds = {}, checkIds = {};
     groups.forEach(function (g, gi) {
@@ -582,6 +595,9 @@
         checkIds[c.id] = 1;
         if (!c.text) bad("E_CHECK_TEXT", c.id + " 缺 text");
         if (["P0", "P1", "P2"].indexOf(c.lvl) < 0) bad("E_CHECK_LVL", c.id + " 的 lvl 只能是 P0/P1/P2");
+        (Array.isArray(c.seeAlso) ? c.seeAlso : []).forEach(function (r) {
+          if (isCrossRef(r)) crossSyntax(r, c.id + " seeAlso");
+        });
       });
     });
 
@@ -604,12 +620,14 @@
       if (!cov.length) bad("E_QA_COVERS", q.id + " 的 covers 是空的");
       cov.forEach(function (c) {
         if (c === q.id) bad("E_SELF_REF", q.id + " 不能覆盖自己");
+        else if (isCrossRef(c)) crossSyntax(c, q.id + " covers");
         else if (!checkIds[c]) bad("E_COVER_REF", q.id + " 覆盖了不存在的自查点 " + c);
       });
 
       ["next", "peer"].forEach(function (k) {
         (Array.isArray(q[k]) ? q[k] : []).forEach(function (r) {
           if (r === q.id) bad("E_SELF_REF", q.id + " 的 " + k + " 指向自己");
+          else if (isCrossRef(r)) crossSyntax(r, q.id + " " + k);
           else if (!qaIds[r]) bad("E_QA_REF", q.id + " 的 " + k + " 指向不存在的问答 " + r);
         });
       });
@@ -679,6 +697,16 @@
     html.push(renderDeckSection());
 
     html.push('<div class="divider"></div>');
+    html.push('<div class="sub-h"><b>跨包关联</b><span>协议 v1.2</span></div>');
+    html.push('<div class="seg" id="cwSeg">' +
+      '<button data-cw="0" class="' + (prefs.crossWrite ? "" : "on") + '">只读</button>' +
+      '<button data-cw="1" class="' + (prefs.crossWrite ? "on" : "") + '">可打点</button></div>');
+    html.push('<div class="note">其他学习包指向本包的记录会显示在详情页「被引用」里。默认跨包只读：<b>只读</b>时不改对方进度，<b>可打点</b>时允许在对方包里记掌握度（两边各记一份）。</div>');
+    if (prefs.pendingBack && prefs.pendingBack.deck && prefs.pendingBack.deck !== CUR_DECK) {
+      html.push('<div class="btn-row"><button class="btn" data-act="end-cross">结束跨包只读</button></div>');
+    }
+
+    html.push('<div class="divider"></div>');
     html.push('<div class="sub-h"><b>局域网同步</b><span>电脑端运行 tools/sync.js</span></div>');
     html.push('<div class="field"><label>电脑地址（IP:端口）</label>' +
       '<input class="search" id="syncHost" placeholder="192.168.1.5:8787" value="' + esc(state.sync.host) + '"></div>');
@@ -706,13 +734,20 @@
 
   /* ---------------- 详情面板 ---------------- */
   var sheetOpen = false;
+  var SHEET_ID = "";
 
   function openSheet(html) {
     var s = $("#sheet");
+    var back = prefs.pendingBack;
+    var backBar = "";
+    if (back && back.deck && back.deck !== CUR_DECK) {
+      backBar = '<div class="backbar"><button class="jump" data-cross-back="1">← 返回 ' +
+        esc(deckTitle(back.deck)) + "</button><span class=\"note\">跨包只读</span></div>";
+    }
     s.innerHTML = '<div class="sheet-head"><span class="grab"></span>' +
       '<span class="note" style="color:var(--fg2)">详情</span>' +
       '<button class="x" data-act="close-sheet">✕</button></div>' +
-      '<div class="sheet-body">' + html + "</div>";
+      '<div class="sheet-body">' + backBar + html + "</div>";
     s.classList.add("on");
     $("#mask").classList.add("on");
     s.scrollTop = 0;
@@ -725,16 +760,158 @@
     sheetOpen = false;
   }
 
+  /* ---------------- 跨包引用（协议 v1.2 §8） ---------------- */
+  var DECK_META = null;
+  var DECK_CACHE = {};
+  var LINK_INDEX = null;
+
+  function deckMeta() {
+    if (DECK_META) return DECK_META;
+    var arr = [];
+    try {
+      if (window.Native && window.Native.listDecks) arr = JSON.parse(String(window.Native.listDecks() || "[]"));
+    } catch (e) { arr = []; }
+    if (!Array.isArray(arr) || !arr.length) arr = [{ id: CUR_DECK, title: D.title }];
+    /* 保证当前包在列表里 */
+    if (!arr.some(function (x) { return x.id === CUR_DECK; })) arr = arr.concat([{ id: CUR_DECK, title: D.title }]);
+    DECK_META = arr;
+    return arr;
+  }
+
+  function deckTitle(id) {
+    if (id === CUR_DECK) return D.title;
+    var m = deckMeta().filter(function (x) { return x.id === id; })[0];
+    return m ? m.title : id;
+  }
+
+  function readDeckData(id) {
+    if (id === CUR_DECK) return D;
+    if (Object.prototype.hasOwnProperty.call(DECK_CACHE, id)) return DECK_CACHE[id];
+    var d = null;
+    try { d = JSON.parse(String(window.Native.readDeck(id) || "null")); } catch (e) { d = null; }
+    DECK_CACHE[id] = d;
+    return d;
+  }
+
+  function splitRef(ref) {
+    var i = typeof ref === "string" ? ref.indexOf("#") : -1;
+    return i < 0 ? { deck: null, id: ref || "" } : { deck: ref.slice(0, i), id: ref.slice(i + 1) };
+  }
+
+  function deckQa(d, id) {
+    if (!d || !d.qas) return null;
+    for (var i = 0; i < d.qas.length; i++) if (d.qas[i].id === id) return d.qas[i];
+    return null;
+  }
+
+  function deckCheckItem(d, id) {
+    if (!d || !d.groups) return null;
+    for (var i = 0; i < d.groups.length; i++) {
+      var cs = d.groups[i].checks || [];
+      for (var j = 0; j < cs.length; j++) if (cs[j].id === id) return cs[j];
+    }
+    return null;
+  }
+
+  /* 解析一个引用：本地 / 跨包可解析 / 目标包未装 / 目标已删 */
+  function resolveRef(ref) {
+    var r = splitRef(ref);
+    if (!r.deck) return { deck: null, id: r.id, item: QA[r.id] || null, ok: !!QA[r.id] };
+    var d = readDeckData(r.deck);
+    if (!d) return { deck: r.deck, id: r.id, item: null, ok: false, why: "nodeck" };
+    var item = deckQa(d, r.id) || deckCheckItem(d, r.id);
+    return { deck: r.deck, id: r.id, item: item, ok: !!item, why: item ? "" : "stale", isCheck: !deckQa(d, r.id) };
+  }
+
+  /* 统一的引用按钮：本地走 data-*，跨包走 data-cross */
+  function refBtn(ref, kind) {
+    var r = resolveRef(ref);
+    var icon = kind === "next" ? "↳" : kind === "peer" ? "⇄" : kind === "check" ? "⌖" : kind === "see" ? "◇" : "↑";
+    var text;
+    if (!r.deck) {
+      var q = QA[r.id];
+      if (!q) return "";
+      text = esc(q.q);
+      return '<button class="jump" data-jump="' + esc(r.id) + '">' + icon + " " + text + "</button>";
+    }
+    var tag = '<span class="xdeck">' + esc(deckTitle(r.deck)) + "</span>";
+    if (!r.ok) {
+      text = r.why === "nodeck" ? "未安装的学习包 · " + esc(r.id) : "已失效 · " + esc(r.id);
+      return '<button class="jump stale" disabled>' + icon + " " + tag + " " + text + "</button>";
+    }
+    text = r.isCheck ? esc((r.item.text || r.id).slice(0, 16)) : esc(r.item.q || r.id);
+    return '<button class="jump xlink" data-cross="' + esc(r.deck + "#" + r.id) + '">' + icon + " " + tag + " " + text + "</button>";
+  }
+
+  /* 反向引用：扫已装包，找指向本包条目（或被本包引用的条目）的跨包连接 */
+  function buildLinkIndex() {
+    if (LINK_INDEX) return LINK_INDEX;
+    var idx = {};
+    deckMeta().forEach(function (m) {
+      if (m.id === CUR_DECK) return;
+      var d = readDeckData(m.id);
+      if (!d) return;
+      (d.qas || []).forEach(function (q) {
+        ["next", "peer", "covers"].forEach(function (k) {
+          (q[k] || []).forEach(function (ref) {
+            var r = splitRef(ref);
+            if (r.deck !== CUR_DECK) return;
+            (idx[r.id] = idx[r.id] || []).push({ deck: m.id, from: q.id, field: k });
+          });
+        });
+      });
+      (d.groups || []).forEach(function (g) {
+        (g.checks || []).forEach(function (c) {
+          (c.seeAlso || []).forEach(function (ref) {
+            var r = splitRef(ref);
+            if (r.deck !== CUR_DECK) return;
+            (idx[r.id] = idx[r.id] || []).push({ deck: m.id, from: c.id, field: "seeAlso" });
+          });
+        });
+      });
+    });
+    LINK_INDEX = idx;
+    return idx;
+  }
+
+  function backLinks(id) {
+    var idx = buildLinkIndex();
+    return idx[id] || [];
+  }
+
+  /* 跨包进来的包默认只读；设置里开启「可打点」后放开 */
+  function lockedDeck() {
+    if (prefs.crossWrite) return false;
+    if (!prefs.pendingBack || !prefs.pendingBack.deck) return false;
+    if (prefs.pendingBack.deck === CUR_DECK) return false;
+    toast("这是关联包，默认只读（设置 → 跨包关联 可改为「可打点」）");
+    return true;
+  }
+
+  /* 切包跳转：记住来路，切完重载页面再打开目标 */
+  function crossJump(ref, fromId) {
+    var r = splitRef(ref);
+    if (!r.deck || r.deck === CUR_DECK) { openQa(r.id); return; }
+    var back = { deck: CUR_DECK, id: fromId || (SHEET_ID || "") };
+    setPref("pendingOpen", { deck: r.deck, id: r.id });
+    setPref("pendingBack", back);
+    try {
+      save(true);
+      if (window.Native && window.Native.setCurrentDeck) window.Native.setCurrentDeck(r.deck);
+      location.replace("index.html");
+    } catch (e) {
+      toast("跳转失败：" + e);
+    }
+  }
+
   function jumpBtn(id, kind) {
-    var q = QA[id];
-    if (!q) return "";
-    var icon = kind === "next" ? "↳" : kind === "peer" ? "⇄" : "↑";
-    return '<button class="jump" data-jump="' + id + '">' + icon + " " + esc(q.q) + "</button>";
+    return refBtn(id, kind);
   }
 
   function openQa(id) {
     var q = QA[id];
     if (!q) return;
+    SHEET_ID = id;
     var g = D.groups.filter(function (x) { return x.id === q.m; })[0];
     var html = [];
     html.push('<div class="qa-row" style="border:0;background:transparent;padding:0">' +
@@ -751,8 +928,9 @@
     if (q.covers && q.covers.length) {
       html.push('<div class="foot-row"><span class="foot-k">覆盖点</span>' +
         q.covers.map(function (c) {
+          if (splitRef(c).deck) return refBtn(c, "check");
           var chk = CHECK[c];
-          return '<button class="jump" data-check="' + c + '">' + esc(c) + " " + esc(chk ? chk.text.slice(0, 14) : "") + "…</button>";
+          return '<button class="jump" data-check="' + esc(c) + '">' + esc(c) + " " + esc(chk ? chk.text.slice(0, 14) : "") + "…</button>";
         }).join("") + "</div>");
     }
     if (q.next && q.next.length) {
@@ -764,6 +942,12 @@
     if (q.backNext && q.backNext.length) {
       html.push('<div class="foot-row"><span class="foot-k">被追问</span>' + q.backNext.map(function (x) { return jumpBtn(x, "back"); }).join("") + "</div>");
     }
+    var bl = backLinks(q.id);
+    if (bl.length) {
+      html.push('<div class="foot-row"><span class="foot-k">被引用</span>' + bl.map(function (x) {
+        return refBtn(x.deck + "#" + x.from, "peer");
+      }).join("") + "</div>");
+    }
     html.push('<div class="btn-row" style="margin-top:16px">' +
       '<button class="btn" data-act="fav-qa" data-id="' + q.id + '">' + (isFav(q.id) ? "★ 已收藏" : "☆ 收藏此题") + "</button>" +
       '<button class="btn" data-act="drill-this" data-id="' + q.id + '">拿它刷一遍</button></div>');
@@ -773,6 +957,7 @@
   function openCheck(id) {
     var c = CHECK[id];
     if (!c) return;
+    SHEET_ID = id;
     var qs = QAS_OF_CHECK[id] || [];
     var html = [];
     html.push('<div class="meta-row"><span class="tag">' + esc(id) + '</span><span class="lvl ' + esc(c.lvl) + '">' + esc(c.lvl) + "</span></div>");
@@ -785,6 +970,22 @@
       html.push('<div class="qa-row" data-jump="' + qid + '"><div class="lr"><span class="lbadge L' + q.layer + '">L' + q.layer + "</span></div>" +
         '<div class="main"><div class="q">' + rich(q.q) + "</div></div></div>");
     });
+    var bl = backLinks(id);
+    var crossCov = bl.filter(function (x) { return x.field === "covers"; });
+    var crossOther = bl.filter(function (x) { return x.field !== "covers"; });
+    if (c.seeAlso && c.seeAlso.length) {
+      html.push('<div class="foot-row"><span class="foot-k">参见</span>' +
+        c.seeAlso.map(function (r) { return refBtn(r, "see"); }).join("") + "</div>");
+    }
+    if (crossOther.length) {
+      html.push('<div class="foot-row"><span class="foot-k">被引用</span>' +
+        crossOther.map(function (x) { return refBtn(x.deck + "#" + x.from, "peer"); }).join("") + "</div>");
+    }
+    if (crossCov.length) {
+      html.push('<div class="foot-row"><span class="foot-k">外包装覆盖</span>' +
+        crossCov.map(function (x) { return refBtn(x.deck + "#" + x.from, "peer"); }).join("") + "</div>");
+      html.push('<div class="note">其他学习包的记录也覆盖这一条；两边各自记掌握度。</div>');
+    }
     html.push('<div class="sub-h"><b>掌握度</b></div>');
     html.push('<div class="seg" id="checkSeg">' + [1, 2, 3].map(function (k) {
       return '<button data-cm="' + k + '" data-cid="' + id + '" class="' + (mOf(id) >= k ? "on" : "") + '">' +
@@ -902,11 +1103,33 @@
   }
 
   document.addEventListener("click", function (ev) {
-    var t = ev.target.closest("[data-tab],[data-act],[data-chip],[data-qchip],[data-qa],[data-jump],[data-star],[data-m],[data-check],[data-dmode],[data-rate],[data-cm],[data-deck],[data-del-deck],[data-download],.seg [data-theme]");
+    var t = ev.target.closest("[data-tab],[data-act],[data-chip],[data-qchip],[data-qa],[data-jump],[data-cross],[data-cross-back],[data-star],[data-m],[data-check],[data-dmode],[data-rate],[data-cm],[data-deck],[data-del-deck],[data-download],[data-cw],.seg [data-theme]");
     if (!t) { console.log("[click] miss " + ev.target.tagName); return; }
     console.log("[click] " + (t.dataset.tab ? "tab=" + t.dataset.tab : JSON.stringify(t.dataset).slice(0, 80)));
 
     if (t.dataset.tab) { setTab(t.dataset.tab); return; }
+
+    /* 跨包跳转 */
+    if (t.dataset.cross) { crossJump(t.dataset.cross, SHEET_ID); return; }
+    if (t.dataset.crossBack) {
+      var bk = prefs.pendingBack;
+      prefs.pendingBack = null;
+      prefs.pendingOpen = bk;
+      savePrefs();
+      try {
+        save(true);
+        if (window.Native && window.Native.setCurrentDeck) window.Native.setCurrentDeck(bk.deck);
+        location.replace("index.html");
+      } catch (e) { toast("返回失败：" + e); }
+      return;
+    }
+    if (t.dataset.cw !== undefined && t.dataset.cw !== "") {
+      prefs.crossWrite = t.dataset.cw === "1";
+      savePrefs();
+      renderMore();
+      toast(prefs.crossWrite ? "已允许在关联包里打点" : "关联包已改为只读");
+      return;
+    }
 
     /* 学习包切换 / 删除 / 下载 */
     if (t.dataset.deck) { switchDeck(t.dataset.deck); return; }
@@ -935,6 +1158,7 @@
     }
 
     if (t.dataset.m && t.closest("[data-dots]")) {
+      if (lockedDeck()) return;
       var cid = t.closest("[data-dots]").dataset.dots;
       var cur = mOf(cid);
       var m = parseInt(t.dataset.m, 10);
@@ -955,6 +1179,7 @@
     if (t.dataset.rate) { rate(parseInt(t.dataset.rate, 10)); return; }
     if (t.dataset.theme) { setTheme(t.dataset.theme); renderMore(); return; }
     if (t.dataset.cm) {
+      if (lockedDeck()) return;
       var cid2 = t.dataset.cid;
       if (cid2) {
         setM(cid2, parseInt(t.dataset.cm, 10));
@@ -970,6 +1195,14 @@
     if (act === "toggle") { t.closest(".mod").classList.toggle("open"); return; }
     if (act === "open-check") { openCheck(t.closest(".check").dataset.check); return; }
     if (act === "close-sheet") { closeSheet(); return; }
+    if (act === "end-cross") {
+      prefs.pendingBack = null;
+      prefs.pendingOpen = null;
+      try { savePrefs(); } catch (e) {}
+      renderMore();
+      toast("已结束跨包只读");
+      return;
+    }
     if (act === "reveal") { drillRevealed = true; renderDrill(); return; }
     if (act === "fav-qa") {
       var qid = t.dataset.id, on2 = toggleFav(qid);
@@ -1075,4 +1308,18 @@
   setTheme(state.settings.theme || "dark");
   setTab(state.settings.tab || "list");
   applyDeepLink();
+  /* 跨包跳转落地：打开目标条目；返回入口留在 prefs.pendingBack */
+  (function restorePending() {
+    var po = prefs.pendingOpen;
+    if (!po || !po.deck || po.deck !== CUR_DECK) return;
+    prefs.pendingOpen = null;
+    try { savePrefs(); } catch (e) {}
+    if (QA[po.id]) { setTab("qa"); openQa(po.id); }
+    else if (CHECK[po.id]) { setTab("list"); openCheck(po.id); }
+    else {
+      prefs.pendingBack = null;
+      try { savePrefs(); } catch (e) {}
+      toast("目标条目已不存在：" + po.id);
+    }
+  })();
 })();

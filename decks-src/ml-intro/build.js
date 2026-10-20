@@ -17,10 +17,11 @@ function fail(msg) {
 
 /* ---------- 1. 生成 group 与 check id ---------- */
 const groups = modules.map((m) => {
-  const checks = m.checks.map(([text, lvl], i) => ({
+  const checks = m.checks.map(([text, lvl, seeAlso], i) => ({
     id: `${m.id}.${i + 1}`,
     text,
     lvl,
+    ...(seeAlso && seeAlso.length ? { seeAlso } : {}),
   }));
   return {
     id: m.id,
@@ -42,6 +43,9 @@ for (const g of groups) {
     checkMap.set(c.id, c);
   }
 }
+
+/* 跨包引用（协议 v1.2）：deckId#localId 不在本包内解析，交给 tools/check-links.js */
+const isCross = (r) => typeof r === "string" && r.indexOf("#") >= 0;
 
 /* ---------- 2. 基础 QA 覆盖检查 ---------- */
 const qaMap = new Map();
@@ -70,6 +74,7 @@ for (const q of allQa) {
 
   if (!Array.isArray(q.covers) || q.covers.length === 0) fail(`${q.id}: covers 为空`);
   for (const cid of q.covers || []) {
+    if (isCross(cid)) continue;
     if (!checkMap.has(cid)) fail(`${q.id}: covers 指向不存在的 check ${cid}`);
     if (q.id.startsWith("q.syn.")) continue;
     covered.set(cid, (covered.get(cid) || 0) + 1);
@@ -93,6 +98,7 @@ for (const q of allQa) {
   for (const key of ["next", "peer"]) {
     for (const other of q[key] || []) {
       if (!qaMap.has(other)) {
+        if (isCross(other)) continue; // 跨包引用，交给 check-links.js
         fail(`${q.id}: ${key} 指向不存在的 QA ${other}`);
         continue;
       }

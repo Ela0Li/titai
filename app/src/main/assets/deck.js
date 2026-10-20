@@ -10,7 +10,7 @@ window.DECK = {
   "check": "自查点",
   "qa": "问答"
  },
- "updatedAt": "2026-10-20T17:10:59.109Z",
+ "updatedAt": "2026-10-20T17:27:05.268Z",
  "groups": [
   {
    "id": "m1",
@@ -7665,7 +7665,8 @@ window.DECK = {
     "q.m11.poisson"
    ],
    "peer": [
-    "q.m11.noise"
+    "q.m11.noise",
+    "ml-intro#q.m2.prob"
    ],
    "ans": [
     {
@@ -7717,7 +7718,8 @@ window.DECK = {
     "q.m11.voronoi"
    ],
    "peer": [
-    "q.m11.interp"
+    "q.m11.interp",
+    "ml-intro#q.m2.moments"
    ],
    "ans": [
     {
@@ -7952,7 +7954,8 @@ window.DECK = {
     "q.m15.compare"
    ],
    "peer": [
-    "q.m11.poisson"
+    "q.m11.poisson",
+    "ml-intro#q.m9.metric"
    ],
    "ans": [
     {

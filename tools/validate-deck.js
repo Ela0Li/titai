@@ -22,8 +22,22 @@ const RE_DECK_ID = /^[a-z0-9][a-z0-9-]{1,40}$/;
 const RE_GROUP_ID = /^[A-Za-z][A-Za-z0-9_-]{0,15}$/;
 const RE_CHECK_ID = /^[A-Za-z][A-Za-z0-9_-]*\.\d+$/;
 const RE_QA_ID = /^q\.[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$/;
+const RE_CROSS = /^(?:([a-z0-9][a-z0-9-]{1,40})#)([A-Za-z0-9_.:-]+)$/;
 /** 只做提示、不计入 warnings 的软规则（协议明确允许） */
 const NOTE_CODES = new Set(["W_CYCLE", "W_LAYER_DOWN"]);
+
+/** 拆开引用：本地 → {deck:null, id}；跨包 → {deck, id}；语法不对 → null
+ *  规则见协议 §8.2：恰好一个 #，两侧非空，deckId 合法，禁止指向本包 */
+function splitRef(ref, selfId) {
+  if (typeof ref !== "string" || !ref) return { bad: "空引用" };
+  const i = ref.indexOf("#");
+  if (i < 0) return { deck: null, id: ref };
+  if (ref.indexOf("#", i + 1) >= 0) return { bad: "只能有一个 #：" + ref };
+  const m = RE_CROSS.exec(ref);
+  if (!m) return { bad: "跨包引用格式应为 deckId#localId：" + ref };
+  if (m[1] === selfId) return { bad: "不要引用自己的包（写裸 id 即可）：" + ref };
+  return { deck: m[1], id: m[2] };
+}
 
 /* ---------- 数学标记（协议 v1.1） ----------
  * 行内 $…$，块级 $$…$$；\$ 表示字面美元符。
@@ -146,6 +160,7 @@ function validate(deck) {
   /* ---------- groups / checks ---------- */
   const groupById = new Map();
   const checkById = new Map();
+  const checkSeen = [];
   let checkCount = 0;
 
   deck.groups.forEach((g, gi) => {
@@ -175,6 +190,14 @@ function validate(deck) {
       else if (c.text.length > 300) W("W_CHECK_LONG", cat + ".text", "自查点超过 300 字，建议拆细");
       else checkMath(c.text, cat + ".text", P, W);
       if (!LVL.has(c.lvl)) P("E_CHECK_LVL", cat + ".lvl", "lvl 必须是 P0/P1/P2");
+      if (c.seeAlso != null) {
+        if (!Array.isArray(c.seeAlso)) P("E_REF_LIMIT", cat + ".seeAlso", "seeAlso 必须是数组");
+        else {
+          if (c.seeAlso.length > 2) P("E_REF_LIMIT", cat + ".seeAlso", "seeAlso 最多 2 条");
+          if (new Set(c.seeAlso).size !== c.seeAlso.length) P("E_REF_DUP", cat + ".seeAlso", "seeAlso 有重复元素");
+          c.seeAlso.forEach((r) => checkSeen.push({ at: cat + ".seeAlso", cid: c.id, ref: r }));
+        }
+      }
     });
   });
 
@@ -227,17 +250,33 @@ function validate(deck) {
     }
   });
 
-  /* ---------- 引用闭合 ---------- */
+  /* ---------- 引用闭合（本地 + 跨包，协议 §8） ---------- */
+  const crossRefs = [];
+  function collectRef(from, field, ref) {
+    const r = splitRef(ref, deck.id);
+    if (r.bad) { P("E_CROSS_SYNTAX", from + "." + field, r.bad); return null; }
+    if (r.deck) { crossRefs.push({ from, field, deck: r.deck, id: r.id }); return null; }
+    return r.id;
+  }
+
   deck.qas.forEach((q) => {
     (q.covers || []).forEach((cid) => {
-      if (!checkById.has(cid)) P("E_COVER_REF", q.id, "covers 指向不存在的自查点：" + cid);
+      const id = collectRef(q.id, "covers", cid);
+      if (id && !checkById.has(id)) P("E_COVER_REF", q.id, "covers 指向不存在的自查点：" + id);
     });
     ["next", "peer"].forEach((k) => {
       (q[k] || []).forEach((rid) => {
-        if (rid === q.id) P("E_SELF_REF", q.id, k + " 含自身");
-        else if (!qaById.has(rid)) P("E_QA_REF", q.id, k + " 指向不存在的问答：" + rid);
+        const id = collectRef(q.id, k, rid);
+        if (!id) return;
+        if (id === q.id) P("E_SELF_REF", q.id, k + " 含自身");
+        else if (!qaById.has(id)) P("E_QA_REF", q.id, k + " 指向不存在的问答：" + id);
       });
     });
+  });
+
+  checkSeen.forEach((s) => {
+    const id = collectRef(s.cid, "seeAlso", s.ref);
+    if (id && !qaById.has(id)) P("E_QA_REF", s.at, "seeAlso 指向不存在的问答：" + id);
   });
 
   /* ---------- 覆盖完整性 ---------- */
@@ -259,10 +298,11 @@ function validate(deck) {
 
   /* ---------- 追问链质量 ---------- */
   const edgeCount = { next: 0, peer: 0 };
+  const localOnly = (arr) => (arr || []).filter((x) => typeof x === "string" && x.indexOf("#") < 0);
   deck.qas.forEach((q) => {
-    edgeCount.next += (q.next || []).length;
-    edgeCount.peer += (q.peer || []).length;
-    (q.next || []).forEach((rid) => {
+    edgeCount.next += localOnly(q.next).length;
+    edgeCount.peer += localOnly(q.peer).length;
+    localOnly(q.next).forEach((rid) => {
       const t = qaById.get(rid);
       if (!t) return;
       if (t.layer < q.layer)
@@ -286,6 +326,8 @@ function validate(deck) {
     coverage: checkCount ? (checkCount - uncovered.length) / checkCount : 0,
     layers,
     depth,
+    crossRefs: crossRefs.length,
+    deps: Array.isArray(deck.deps) ? deck.deps.length : 0,
   };
 
   return { problems, warnings, stats, uncovered };
@@ -323,7 +365,8 @@ function main() {
     if (s) {
       console.log("学习包：" + (deck.title || "?") + "（" + (deck.id || "?") + "，schema " + deck.schema + "）");
       console.log("  模块 " + s.groups + " · 自查点 " + s.checks + " · 问答 " + s.qas +
-        " · 交叉引用 " + s.edges + "（next " + s.edgesNext + " / peer " + s.edgesPeer + "）");
+        " · 交叉引用 " + s.edges + "（next " + s.edgesNext + " / peer " + s.edgesPeer + "）" +
+        (s.crossRefs ? " · 跨包 " + s.crossRefs : ""));
       console.log("  覆盖 " + s.covered + "/" + s.checks + "（" + (s.coverage * 100).toFixed(1) + "%）" +
         " · 分层 L1 " + s.layers[1] + " / L2 " + s.layers[2] + " / L3 " + s.layers[3] + " / L4 " + s.layers[4]);
       console.log("  覆盖深度：1 条 " + (s.depth[1] || 0) + " · 2 条 " + (s.depth[2] || 0) +

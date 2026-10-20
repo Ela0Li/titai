@@ -22,7 +22,7 @@ studydeck/
 │  │  └─ Bridge.java         多包读写/切换 + 进度文件 + setChrome / http / versionName
 │  └─ res/               图标与主题
 ├─ decks/                想「从电脑导入」的学习包放这里（sync.js 负责下发）
-├─ docs/deck-protocol.md 学习包协议 v1.1（内容层 / 进度层 / 同步层 / 公式 + 校验规则）
+├─ docs/deck-protocol.md 学习包协议 v1.2（内容层 / 进度层 / 同步层 / 公式 / 跨包引用 + 校验规则）
 ├─ schema/               JSON Schema：deck.schema.json / state.schema.json
 ├─ tools/
 │  ├─ mkdeck.js          数据源 → dist/deck.json + assets/decks/<id>.json（含覆盖率自检）

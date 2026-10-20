@@ -87,7 +87,7 @@
 | 字段 | 类型 | 必填 | 说明 |
 |---|---|---|---|
 | `schema` | integer | MUST | 协议版本。当前为 `1`。破坏性变更才 +1。 |
-| `id` | string | MUST | 学习包标识，`^[a-z0-9][a-z0-9-]{1,40}$`。同步时用于区分不同包。 |
+| `id` | string | MUST | 学习包标识，`^[a-z0-9][a-z0-9-]{1,40}$`，**全局唯一**：它就是跨包引用的命名空间（见 §8）。同步时用于区分不同包。 |
 | `title` | string | MUST | 显示在顶栏与电脑端页面。 |
 | `subtitle` | string | MAY | 顶栏第二行，缺省由引擎按“N 个模块 · M 条问答”生成。 |
 | `accent` | string | MAY | 主色，`#rrggbb`。深/浅色主题下由引擎自行调整明度。 |
@@ -119,6 +119,7 @@
 | `id` | string | MUST | **MUST 等于 `${group.id}.${序号}`**，序号从 1 起递增，全文件唯一。 |
 | `text` | string | MUST | 一句话可自测的条目；动词开头，避免“了解/熟悉”。 |
 | `lvl` | `"P0"\|"P1"\|"P2"` | MUST | 该点的重要性。 |
+| `seeAlso` | string[] | MAY | 展开看哪里：qa id 或跨包引用（`deckId#qaId`），最多 2 条。见 §8。 |
 
 自查点是**掌握度的最小单位**：进度、筛选、覆盖率都以 check id 为键。
 
@@ -132,9 +133,9 @@
 | `layer` | integer `1..4` | MUST | 认知层级，见 §1.5。 |
 | `q` | string | MUST | 问题本身。一句话，能直接念出来问人。 |
 | `tags` | string[] | MAY | 2–4 个关键词，用于搜索与标签展示。 |
-| `covers` | string[] | MUST | 该问答能回答哪些自查点。至少 1 个，元素 MUST 是存在的 check id。**允许跨模块**（桥梁题）。 |
-| `next` | string[] | MAY | 追问的下一层：“面试官接着会问什么”。元素 MUST 是存在的 qa id，且 MUST NOT 等于自身。 |
-| `peer` | string[] | MAY | 横向关联：换个角度/换个模块看同一件事。同上约束。 |
+| `covers` | string[] | MUST | 该问答能回答哪些自查点。至少 1 个，元素 MUST 是存在的 check id。**允许跨模块**（桥梁题）；v1.2 起**允许跨包**（`deckId#checkId`，见 §8）。 |
+| `next` | string[] | MAY | 追问的下一层：“面试官接着会问什么”。元素 MUST 是存在的 qa id，且 MUST NOT 等于自身。v1.2 起允许 `deckId#qaId`。 |
+| `peer` | string[] | MAY | 横向关联：换个角度/换个模块看同一件事。同上约束，v1.2 起同样允许跨包。 |
 | `ans` | Ans[] | MUST | 答案分段，见 §1.6。 |
 | `backNext` | string[] | 只读 | 由构建器生成：哪些问答把本条目列进了 `next`。**手写源里不要写**。 |
 | `backPeer` | string[] | 只读 | 同上，对应 `peer`。 |
@@ -409,6 +410,7 @@ node tools/conformance.js a.json b.json                # 一次测多份
 |---|---|---|
 | v1.0 | 内容 / 进度 / 同步三层，四段式答案 | 1 |
 | v1.1（v0.5.0） | 多学习包共存（§6.1）；手机端导入体检（§6.2）；**数学公式 `$…$` / `$$…$$`（§7）**；掌握度圆点改为“按等级统一上色” | 1（不变） |
+| v1.2（v0.6.0） | **跨包引用（§8）**：`deckId#localId`、`check.seeAlso`、`deps`；`id` 升级为全局唯一命名空间；跳转 = 切包 + 返回栈；跨包默认只读（设置可开）；跨包 `covers` 双向计数；反向引用表随包更新刷新 | 1（不变） |
 
 公式是**纯文本语法**，不是新字段，所以 `schema` 保持 1：老引擎会把 `$\frac{a}{b}$` 当普通文字显示，内容不丢、不崩。
 
@@ -519,21 +521,143 @@ node tools/conformance.js a.json b.json                # 一次测多份
 
 ---
 
+## 8. 跨包引用（v1.2 起）
+
+学习包之间可以**互相指向**（引用式），但内容不合并：每个包仍然自带自己的模块、自查点、问答与进度。这样「数学基础」只写一遍，PCG 包和机器学习包都能指向它。
+
+### 8.1 标识符
+
+跨包引用靠 `deck.id` 做命名空间，所以 `id` 从“本机区分用”升级为**全局唯一标识符**：
+
+| 规则 | 说明 |
+|---|---|
+| 语法 | `^[a-z0-9][a-z0-9-]{1,40}$`，全小写，不得含 `#`（`#` 是引用分隔符） |
+| 唯一性 | SHOULD 全局唯一。建议写成 `作者-主题`，如 `ela-math`、`ue5-pcg`、`ml-intro` |
+| 冲突 | 同一台设备上同 `id` 的两个包按「后导入者生效」处理（§6.1），跨包引用会跟着指向新内容——导入时引擎提示一次 |
+| 不可变 | 包一旦发布过、被别人引用，`id` SHOULD NOT 再改；改 `id` 等于让所有外部引用失效 |
+
+### 8.2 语法与可用字段
+
+引用写成 `deckId#本地id`：
+
+```json
+"next":   ["q.m11.poisson", "ml-intro#q.m2.grad"],
+"covers": ["m11.3", "ml-intro#m2.4"],
+"seeAlso": ["ml-intro#q.m4.ce"]
+```
+
+| 字段 | 允许跨包 | 说明 |
+|---|---|---|
+| `qa.next` / `qa.peer` | 是 | 追问链、横向关联 |
+| `qa.covers` | 是 | 这条问答顺带讲清了别的包的某个自查点 |
+| `check.seeAlso` | 是 | 自查点视角的展开入口 |
+| `qa.m`、`groups`、`tags`、`title` | **否** | 结构与文本，不解析 `#` |
+
+约束：
+
+- MUST NOT 引用自己的包（写裸 id 即可）→ `E_SELF_DECK_REF`；
+- 列表内 MUST NOT 重复；
+- `next`/`peer` 各 ≤ 3 条，`seeAlso` ≤ 2 条；
+- 跨包引用**允许成环**（A↔B），导航靠返回栈收敛，不做环检测。
+
+### 8.3 解析的三种状态
+
+| 状态 | 判定 | 界面 |
+|---|---|---|
+| 已装 · 目标存在 | 目标包在本机且能找到该 id | 正常按钮，带包名徽标（`ml-intro`） |
+| 已装 · 目标不存在 | 包在，id 已被删/改名 | 灰掉的“链接失效”，点了提示“目标已删除”，不跳转 |
+| 未装 | 本机没有这个 `deck.id` | 虚线按钮“机器学习入门 · 未安装”，点了给一键去导入 |
+
+协议要求：**失效链接必须可见**，MUST NOT 静默丢弃——否则作者不知道内容被谁引用过。
+
+### 8.4 跳转与返回栈
+
+- 跨包跳转 = **切换当前学习包**再打开目标条目（不是弹层叠加）。
+- 引擎 MUST 记住来源 `{deck, id}`，在详情页顶部给出「← 返回 UE5 PCG」；返回时切回原包并恢复到原条目。
+- 返回栈只有一层（从哪来回哪去），不做无限栈。
+
+### 8.5 进度：默认只读
+
+| 场景 | 规则 |
+|---|---|
+| 浏览别的包 | **只读**：可以看问答、看清单，但掌握度按钮不写数据 |
+| 设置页开关「允许在关联包里打点」 | 默认关；打开后，在关联包详情里记掌握度会写进**那个包自己的** `states/<id>.json` |
+| 被两个包的 `covers` 命中同一条自查点 | 统计时**两边各算一次**：每个包的覆盖率只看自己的自查点，但被跨包覆盖到的点也算“已覆盖”，并标注来源 |
+
+进度写入一律 LWW（§2.1），跨包写同样遵循，不新建合并规则。
+
+### 8.6 反向引用（本次实现）
+
+引擎 SHOULD 显示“被谁引用”：本地 `backNext`/`backPeer` 由构建器算（§1.4），跨包部分在运行时汇总。
+
+- **缓存**：跨包引用表按 `deck.id + 文件 mtime/size` 缓存，学习包新增/更新/删除时才重建；平时只查内存。
+- 展示：详情页底部「被引用」区，跨包条目弱化显示（`ml-intro · 2 条`）。
+- 上限：一屏最多列 5 条，其余折叠成“+N”。
+
+### 8.7 校验
+
+**硬规则（单包可判）**
+
+| 规则 | 错误码 |
+|---|---|
+| `deckId` 段匹配 `^[a-z0-9][a-z0-9-]{1,40}$` | `E_CROSS_SYNTAX` |
+| `#` 只能出现一次，且两侧非空 | `E_CROSS_SYNTAX` |
+| `deckId` 不得等于本包 `id` | `E_SELF_DECK_REF` |
+| 出现在 `m`/`tags` 等禁止字段 | `E_CROSS_REF_PLACE` |
+| 列表重复、条数超限 | `E_REF_DUP` `E_REF_LIMIT` |
+
+**软规则（目标包在场才能判）**
+
+| 规则 | 级别 |
+|---|---|
+| 目标包已装但找不到该 id | `W_CROSS_MISSING` |
+| 声明的 `deps[].id` 没装 | `W_DEP_MISSING` |
+| 跨包环 | 仅报告，不告警 |
+
+跨包检查用独立工具（可以一次传多个包）：
+
+```bash
+node tools/check-links.js dist/deck.json decks/ml-intro.json
+# 本地 560 条 · 跨包 12 条（已解析 10 / 失效 1 / 未装 1）· 跨包环 1
+```
+
+### 8.8 兼容性
+
+| 引擎 | 遇到 `deck#id` | 结果 |
+|---|---|---|
+| < 0.6.0 | 当普通 id 找，找不到 | 按钮点了提示“找不到”，不崩；内容不丢 |
+| ≥ 0.6.0 | 按 §8.3 三级解析 | 正常 |
+
+因为只是字符串里多一个分隔符、没有新必填字段，`schema` 保持 `1`。
+
+### 8.9 可选字段 `deps`
+
+```json
+"deps": [{ "id": "ml-intro", "title": "机器学习入门 · 从数据到上线" }]
+```
+
+纯提示用：让“未安装”状态能显示人类可读的包名，并在设置页建议先导入。引擎 MUST NOT 因缺依赖而拒绝加载。
+
+---
+
 ## 附录 A：字段速查
 
 ```
 deck
 ├─ schema:int  id:str  title:str  subtitle?:str  accent?:str  updatedAt?:str
 ├─ terms?:  {group?:str, check?:str, qa?:str}         # 界面名词，缺省 模块/知识点/问答
-├─ groups: [ { id, title, short?, priority, stage:1..4, signal?, keypoints?[], traps?, checks:[ {id, text, lvl} ] } ]
+├─ deps?:   [ {id, title?} ]                          # v1.2 可选：声明引用了哪些包
+├─ groups: [ { id, title, short?, priority, stage:1..4, signal?, keypoints?[], traps?,
+│             checks:[ {id, text, lvl, seeAlso?[]} ] } ]
 └─ qas:    [ { id, m, lvl, layer:1..4, q, tags?[], covers[], next?[], peer?[], ans:[ {h, p} ], backNext†, backPeer† } ]
 
+跨包引用（v1.2）：任意 covers/next/peer/seeAlso 元素可写成 "deckId#本地id"
 state
 ├─ v:int  deck:str  rev:int  touched:int
 ├─ checks: {checkId: {m:0..3, t:int}}
 ├─ fav:    {id: {on:bool, t:int}}
 ├─ quiz:   {qaId: {ok:int, no:int, t:int}}
-├─ settings: {theme, tab}
+├─ settings: {theme, tab, crossWrite?}
 └─ sync:   {host, code}
 
 † 构建器生成，只读

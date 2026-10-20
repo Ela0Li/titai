@@ -52,6 +52,7 @@ function build() {
       id: m.id + "." + (i + 1),
       text: c.t,
       lvl: c.lvl,
+      ...(c.seeAlso && c.seeAlso.length ? { seeAlso: c.seeAlso } : {}),
     })),
   }));
 
@@ -70,6 +71,7 @@ function build() {
     accent: meta.accent,
     // 界面上怎么称呼这些东西；本包保留“自查点”的说法（协议默认是“知识点”）
     terms: meta.terms || { group: "模块", check: "自查点", qa: "问答" },
+    ...(meta.deps ? { deps: meta.deps } : {}),
     updatedAt: new Date().toISOString(),
     groups,
     qas,
@@ -81,13 +83,18 @@ function build() {
   // 覆盖率自检：每个自查点至少被一条问答覆盖，所有引用必须存在
   const problems = [];
   const covered = new Set();
+  /* 跨包引用（v1.2）：deckId#localId 不在本包内解析，交给 check-links.js */
+  const isCross = (r) => typeof r === "string" && r.indexOf("#") >= 0;
+
   for (const q of qas) {
     for (const c of q.covers || []) {
+      if (isCross(c)) continue;
       if (!checkIds.has(c)) problems.push(q.id + " 覆盖了不存在的自查点 " + c);
       covered.add(c);
     }
     for (const k of ["next", "peer"]) {
       for (const r of q[k] || []) {
+        if (isCross(r)) continue;
         if (!qaIds.has(r)) problems.push(q.id + "." + k + " 指向不存在的问题 " + r);
       }
     }
