@@ -1,15 +1,17 @@
 #!/usr/bin/env node
 /**
- * 题台 · 学习包校验器（协议 v1 的语义层）
+ * 题台 · 学习包校验器（协议 v1.7 的语义层）
  *
- *   node tools/validate-deck.js                     # 校验 dist/deck.json
- *   node tools/validate-deck.js path/to/deck.json    # 校验指定文件
- *   node tools/validate-deck.js --json               # 输出机器可读结果
+ *   node validate-deck.js path/to/deck.json            # 校验指定文件
+ *   node validate-deck.js --json path/to/deck.json     # 输出机器可读结果
+ *   node validate-deck.js --verbose path/to/deck.json  # 展开 notes（W_CYCLE / W_LAYER_DOWN）
  *
  * 校验 JSON Schema 表达不了的部分：引用闭合、id 派生规则、覆盖完整性、
  * 追问链的层级递进与互引、答案分段的结构与顺序。
  *
- * 退出码：0 = ok，1 = 有 problems（warnings 不影响退出码）。
+ * 这份文件在 tools/ 与 skills/titai-deck-author/scripts/ 各有一份，内容必须一致（CI 会比对）。
+ *
+ * 退出码：0 = ok，1 = 有 problems，2 = 用法问题（warnings 与 notes 不影响退出码）。
  */
 const fs = require("fs");
 const path = require("path");
@@ -128,7 +130,7 @@ function checkMath(text, at, P, W) {
 }
 
 function parseArgs(argv) {
-  const out = { file: path.join(ROOT, "dist", "deck.json"), json: false, verbose: false };
+  const out = { file: "", json: false, verbose: false };
   argv.slice(2).forEach((a) => {
     if (a === "--json") out.json = true;
     else if (a === "--verbose" || a === "-v") out.verbose = true;
@@ -376,6 +378,10 @@ function validate(deck) {
 
 function main() {
   const args = parseArgs(process.argv);
+  if (!args.file) {
+    console.log("用法：node validate-deck.js <deck.json> [--json] [--verbose]");
+    process.exit(2);
+  }
   let deck;
   try {
     deck = JSON.parse(fs.readFileSync(args.file, "utf8"));

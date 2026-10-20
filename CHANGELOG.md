@@ -4,6 +4,17 @@
 
 App 版本号在 `app/build.gradle.kts`（`versionCode` / `versionName`），设置页底部显示 `versionName`；协议版本另有一套（见 `docs/protocol-core.md` §5.1）。
 
+## [未发布]
+
+### 新增
+
+- **`skills/titai-deck-author/`**：给 AI agent 用的知识包创作技能。加载后 agent 会按协议 v1.7 写 `deck.json` / `plan.json`，并用技能自带的校验器自检到全绿；含最小可用模板、字段速查、内容规则（体裁与结构模板、及格线写法、追问链）、全部错误码与修法。
+- 技能内的 `validate-deck.js` 与 `tools/` 下那份是同一份实现，CI 用 `cmp` 比对，两侧内容必须一致。
+
+### 变更
+
+- `tools/validate-deck.js`：不带文件参数时打印用法并以退出码 2 结束（原来会去读 `dist/deck.json`）；`--verbose` 展开 `W_CYCLE` / `W_LAYER_DOWN` 这两类 notes。
+
 ## [0.9.1] - 2026-10-21
 
 搜索从「只认连续原文」改成模糊搜索。

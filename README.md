@@ -34,6 +34,8 @@ studydeck/
 │  ├─ plan-protocol.md   学习计划 §9
 │  └─ deck-protocol.src.md  合并前的原文（tools/split-protocol.js 的输入，改协议改这份再拆）
 ├─ schema/               JSON Schema：deck / state / plan
+├─ skills/               给 agent 用的技能：写知识包 / 计划（自带校验器与模板）
+│  └─ titai-deck-author/   SKILL.md + references/ + assets/ + scripts/
 ├─ test/decks/           最小样例包（校验器与 conformance 的自测）
 ├─ tools/
 │  ├─ validate-deck.js   协议校验器（引用闭合、答案结构、链路质量；覆盖仅警告）
@@ -267,6 +269,43 @@ node tools\sync.js          # 默认 8787
 界面名词解耦：`deck.terms = { group, check, qa }` 可覆盖显示文案，缺省是「模块 / 知识点 / 问答」；换包时想叫「章节／考点／题目」都行，不影响 id、进度与同步。
 
 进度按学习包 id 区分：每个包一份 `files/states/<id>.json`，换包后旧进度不会串味（同一个包里 id 复用则视为同一题）。升级到多包版本后，老的 `state.json` 会一次性迁移到内置包名下。
+
+## 让 agent 帮你写包（skills/）
+
+`skills/titai-deck-author/` 是一个给 AI agent 用的技能（Agent Skill：`SKILL.md` + 参考文档 + 模板 + 脚本）。加载它之后，agent 知道协议怎么规定、结构怎么选、写完怎么自检，产出的 JSON 直接就能导入。
+
+```
+skills/titai-deck-author/
+├─ SKILL.md              主文件：六步工作流、硬规则速查、常见返工清单
+├─ references/
+│  ├─ deck-format.md     逐字段速查（含公式、跨包引用）
+│  ├─ content-rules.md   体裁判定、四种答案结构模板、及格线写法、追问链设计
+│  └─ validation.md      全部错误码与修法、体检规则、脚本不查什么
+├─ assets/
+│  ├─ deck.template.json 通过校验、零警告的最小可用包
+│  ├─ plan.template.json 最小可用计划
+│  └─ schema/            两份 JSON Schema（权威结构定义）
+└─ scripts/
+   ├─ check.js           一条命令总检（自动识别 deck / plan）
+   ├─ validate-deck.js   协议校验器（与 tools/ 下同一个文件）
+   ├─ validate-plan.js   计划校验器
+   └─ audit-answers.js   答案结构体检
+```
+
+装上（agent 默认从 `~/.agents/skills/` 读技能）：
+
+```bash
+git clone https://github.com/Ela0Li/titai.git
+cp -r titai/skills/titai-deck-author ~/.agents/skills/        # Windows: robocopy 或资源管理器复制
+```
+
+不装技能也能用里面的校验器，改完包跑一遍就行：
+
+```bash
+node skills/titai-deck-author/scripts/check.js decks/我的包.json
+```
+
+技能里的 `scripts/validate-deck.js` 与仓库 `tools/` 下那份是同一份实现；**改规则两边都要同步**（CI 会用技能自带的模板跑一遍，模板烂了会红）。
 
 ---
 

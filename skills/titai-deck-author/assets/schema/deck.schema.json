@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Ela0Li/titai/schema/deck.schema.json",
+  "title": "题台学习包 deck.json",
+  "description": "题台 · 学习包协议 v1 的内容层。语义不变量（引用闭合、无自引用、答案分段）由 tools/validate-deck.js 检查，JSON Schema 只覆盖结构。覆盖完整性属于推荐实践，不是协议要求。",
+  "type": "object",
+  "required": ["schema", "id", "title", "groups", "qas"],
+  "additionalProperties": true,
+  "properties": {
+    "schema": {
+      "type": "integer",
+      "const": 1,
+      "description": "协议版本，破坏性变更才 +1"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{1,40}$",
+      "description": "学习包标识，如 ue5-pcg"
+    },
+    "title": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "subtitle": { "type": "string", "maxLength": 200 },
+    "accent": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+    "terms": {
+      "type": "object",
+      "description": "界面上怎么称呼这几类东西；缺省为 模块/知识点/问答",
+      "additionalProperties": false,
+      "properties": {
+        "group": { "type": "string", "minLength": 1, "maxLength": 8 },
+        "check": { "type": "string", "minLength": 1, "maxLength": 8 },
+        "qa": { "type": "string", "minLength": 1, "maxLength": 8 }
+      }
+    },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "deps": {
+      "type": "array",
+      "description": "v1.2 可选：本包引用了哪些学习包（仅提示，不强制安装）",
+      "items": {
+        "type": "object",
+        "required": ["id"],
+        "additionalProperties": true,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{1,40}$" },
+          "title": { "type": "string", "maxLength": 120 }
+        }
+      }
+    },
+    "groups": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/group" }
+    },
+    "qas": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/qa" }
+    }
+  },
+  "$defs": {
+    "lvl": { "type": "string", "enum": ["P0", "P1", "P2"] },
+    "id": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "ref": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 120,
+      "pattern": "^(?:[a-z0-9][a-z0-9-]{1,40}#)?[A-Za-z0-9_.:-]+$",
+      "description": "本地 id，或跨包引用 deckId#localId（v1.2，见协议 §8）"
+    },
+    "group": {
+      "type": "object",
+      "required": ["id", "title", "priority", "stage", "checks"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,15}$" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "short": { "type": "string", "maxLength": 60 },
+        "priority": { "$ref": "#/$defs/lvl" },
+        "stage": { "type": "integer", "minimum": 1, "maximum": 4 },
+        "signal": { "type": "string", "maxLength": 400 },
+        "keypoints": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "traps": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "checks": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/check" }
+        }
+      }
+    },
+    "check": {
+      "type": "object",
+      "required": ["id", "text", "lvl"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_-]*\\.[0-9]+$" },
+        "text": { "type": "string", "minLength": 4, "maxLength": 300 },
+        "lvl": { "$ref": "#/$defs/lvl" },
+        "hint": {
+          "type": "string",
+          "minLength": 6,
+          "maxLength": 60,
+          "description": "及格线：说到哪几条算过。只写判据，不复述答案；不换行。"
+        },
+        "seeAlso": {
+          "type": "array",
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/ref" }
+        }
+      }
+    },
+    "qa": {
+      "type": "object",
+      "required": ["id", "m", "lvl", "layer", "q", "covers", "ans"],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^q\\.[A-Za-z0-9_]+(\\.[A-Za-z0-9_]+)*$"
+        },
+        "m": { "$ref": "#/$defs/id" },
+        "lvl": { "$ref": "#/$defs/lvl" },
+        "layer": { "type": "integer", "minimum": 1, "maximum": 4 },
+        "q": { "type": "string", "minLength": 6, "maxLength": 300 },
+        "tags": {
+          "type": "array",
+          "maxItems": 6,
+          "items": { "type": "string", "minLength": 1, "maxLength": 24 }
+        },
+        "covers": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/ref" }
+        },
+        "next": {
+          "type": "array",
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/ref" }
+        },
+        "peer": {
+          "type": "array",
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/ref" }
+        },
+        "ans": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 12,
+          "items": { "$ref": "#/$defs/ansItem" }
+        },
+        "backNext": { "type": "array", "items": { "$ref": "#/$defs/id" } },
+        "backPeer": { "type": "array", "items": { "$ref": "#/$defs/id" } }
+      }
+    },
+    "ansItem": {
+      "type": "object",
+      "required": ["p"],
+      "additionalProperties": true,
+      "properties": {
+        "h": { "type": "string", "minLength": 1, "maxLength": 24, "description": "自拟小标题；不写就是普通段落" },
+        "lvl": { "type": "integer", "enum": [1, 2, 3], "description": "标题层级，缺省 1；不能跳级" },
+        "p": { "type": "string", "minLength": 8, "maxLength": 1200 },
+        "list": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "items": { "type": "string", "minLength": 2, "maxLength": 200 }
+        }
+      }
+    }
+  }
+}

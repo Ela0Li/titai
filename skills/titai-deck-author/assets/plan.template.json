@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "id": "git-2026",
+  "title": "Git 与协作",
+  "subtitle": "先看提交模型，再看事故现场",
+  "members": ["git-basics"],
+  "primary": "git-basics",
+  "order": 1
+}

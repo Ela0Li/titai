@@ -45,3 +45,11 @@ jobs:
 
       - name: 答案结构体检
         run: node tools/audit-answers.js
+
+      - name: 技能模板自检（skills/titai-deck-author）
+        run: |
+          node skills/titai-deck-author/scripts/check.js skills/titai-deck-author/assets/deck.template.json
+          node skills/titai-deck-author/scripts/validate-plan.js skills/titai-deck-author/assets/plan.template.json
+          # 技能里那份校验器必须与 tools/ 完全一致，防止两边改歪
+          cmp tools/validate-deck.js skills/titai-deck-author/scripts/validate-deck.js
+          echo "校验器副本一致"
