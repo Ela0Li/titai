@@ -20,6 +20,7 @@ jobs:
         run: |
           node --check app/src/main/assets/app.js
           node --check app/src/main/assets/math.js
+          node --check app/src/main/assets/pinyin.js
           node --check app/src/main/assets/deck.js
 
       - name: 数学解析单测

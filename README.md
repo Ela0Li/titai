@@ -309,8 +309,29 @@ node tools\sync.js          # 默认 8787
 
 - `node tools/audit-answers.js [--deck id] [--list] [--dump]` —— 按可复现的规则扫「结构不合适」的答案：E1 空洞块（正文 < 40 字，带 `list` 的块按 `p`+条目合计算）、E2 单块过长、E3 操作型问句却只有取舍/实战、E4「结论」块里写步骤、E5 该拆 list 的长段落、E6 多块无标题、E7 有嵌套语义却全用 1 级标题。
 - `node tools/apply-hints.js [--check] [--deck id]` —— 把 `tools/hints/<deck>.json` 里的知识点「及格线」灌进知识包（幂等，重建后重跑）。
+- `node tools/build-pinyin.js` —— 由 `tools/data/pinyin-src.txt` 生成 `app/src/main/assets/pinyin.js`（汉字 → 全拼/首字母表，搜索用）。**换字表才需要重跑**，平时改代码不用。
+- `node tools/test-search.js [--dump q1 q2 …]` —— 无头跑一组查询，打印每个查询在新知识点页/问答页的命中条数与首条，并核对高亮；写新查询直接改脚本里的 `CASES`。
 - `node tools/split-protocol.js` —— 从 `docs/deck-protocol.src.md` 重新拆出协议三册（总纲 / 知识包 / 计划）。**改协议改 src，再跑这个**，别直接改三册产物。
 - `node tools/conformance.js [deck.json …]` —— 无头渲染一份 deck，确认引擎能真的打开它（默认测 `decks/ue5-pcg.json`）。
+
+---
+
+## 搜索（v0.9.1 起）
+
+两个页面的搜索框都走同一套规则，输入即时出结果：
+
+| 输入 | 命中方式 | 例子 |
+|---|---|---|
+| 任意片段 | 子串（大小写、全半角、空格都不敏感） | `噪声`、`fBm`、`perlin` |
+| 汉字全拼 | 按音节开头对齐，越靠后扣分越多 | `zaosheng` → 噪声 |
+| 首字母 | 只打声母 | `zs` → 噪声，`td` → 梯度 |
+| 子序列 | 退化的兜底，命中但分数低 | `nse` → noise |
+| 多词 | 空格分开、全部命中才算（AND） | `噪声 fbm` |
+| 答案正文 | 问答页会搜答案的每一块正文与列表；命中处给出「…」片段 | `perlin` |
+
+命中按相关度排序（标题权重最高，其次是模块名、标签、知识点、答案正文），命中的字会高亮。知识包内搜索只搜**当前计划里的包**，与列表、问答页的范围一致。
+
+代价与边界：拼音表是脚本生成的静态表（`pinyin.js` 约 18 KB），不联网、不引第三方库；没有同义词/英文别名（搜 `noise` 不会命中「噪声」），因为那需要一张人工对照表。
 
 ---
 

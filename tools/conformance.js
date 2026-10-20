@@ -137,7 +137,7 @@ function runOne(deckPath) {
   );
 
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "titai-conformance-"));
-  ["index.html", "app.css", "app.js", "math.js"].forEach((f) =>
+  ["index.html", "app.css", "app.js", "math.js", "pinyin.js"].forEach((f) =>
     fs.copyFileSync(path.join(ASSETS, f), path.join(tmp, f))
   );
   fs.writeFileSync(

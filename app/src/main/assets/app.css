@@ -217,6 +217,17 @@ mtext { font-size: .96em; }
 .qa-row .meta { font-size: 11px; color: var(--fg3); margin-top: 4px; display: flex; gap: 6px; flex-wrap: wrap; }
 .tag { font-size: 10px; color: var(--fg2); background: var(--card2); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; }
 
+/* 搜索命中高亮与来源说明 */
+mark { background: rgba(240, 180, 60, 0.30); color: inherit; border-radius: 3px; padding: 0 1px; }
+.check .cmeta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 10.5px; color: var(--fg3); margin-top: 3px; }
+.cmeta .cdtag { color: var(--accent); border: 1px solid var(--line2); border-radius: 4px; padding: 0 4px; }
+.cmeta .chint { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; opacity: 0.85; }
+.qa-row .qsnippet {
+  font-size: 12px; color: var(--fg3); line-height: 1.55; margin-top: 5px;
+  border-left: 2px solid var(--line2); padding-left: 7px;
+}
+.hint.srchin { margin: 2px 0 8px; }
+
 /* 搴曢儴 tab */
 .tabbar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;

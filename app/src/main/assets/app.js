@@ -41,6 +41,8 @@
   /* ---------------- 索引（每次换包重建） ---------------- */
   var QA = {}, CHECK = {}, GROUP_OF = {}, COVERS = {}, QAS_OF_CHECK = {};
   var QA_LIST = [];
+  /* 搜索索引缓存：数据一变（换包/导入/删除）就让版本号前进，下次查询重建 */
+  var SEARCH_VER = 0, SEARCH_CACHE = { checks: null, qa: null, ver: -1 };
 
   function hydrate(d) {
     if (d && d.groups && d.groups.length) D = d;
@@ -62,6 +64,7 @@
       });
     });
     TERMS = Object.assign({ group: "模块", check: "知识点", qa: "问答" }, D.terms || {});
+    SEARCH_VER++;
   }
   hydrate(D);
 
@@ -453,7 +456,7 @@
     return out;
   }
 
-  function checkRow(c, did) {
+  function checkRow(c, did, metaHtml) {
     did = did || CUR_DECK;
     var m = mOfIn(did, c.id);
     var fav = isFavIn(did, c.id);
@@ -461,16 +464,204 @@
       return '<button class="dot' + (m >= k ? " on" : "") + '" data-m="' + k + '" aria-label="掌握度' + k + '"></button>';
     }).join("");
     return '<div class="check" data-check="' + esc(c.id) + '" data-d="' + esc(did) + '">' +
-      '<div class="check-c" data-act="open-check"><em>' + esc(c.id) + "</em>" + rich(c.text) + "</div>" +
+      '<div class="check-c" data-act="open-check"><em>' + esc(c.id) + "</em>" +
+      (listQuery ? hl(c.text, QT) : rich(c.text)) +
+      (metaHtml ? '<div class="cmeta">' + metaHtml + "</div>" : "") + "</div>" +
       '<span class="lvl ' + esc(c.lvl) + '">' + esc(c.lvl) + "</span>" +
       '<div class="dots" data-dots="' + esc(c.id) + '" data-lv="' + m + '">' + dots + "</div>" +
       '<button class="star' + (fav ? " on" : "") + '" data-star="' + esc(c.id) + '">' + (fav ? "★" : "☆") + "</button>" +
       "</div>";
   }
 
-  function matches(text) {
-    if (!listQuery) return true;
-    return String(text).toLowerCase().indexOf(listQuery) >= 0;
+  /* ---------------- 搜索：原文子串 + 拼音 + 子序列，带打分排序 ---------------- */
+  var PY = window.PINYIN || {};
+  var QT = [];                    /* 当前查询的分词，用于高亮 */
+
+  function norm(s) {
+    return String(s == null ? "" : s)
+      .replace(/[\uFF01-\uFF5E]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); })
+      .replace(/\u3000/g, " ")
+      .toLowerCase().replace(/\s+/g, " ").trim();
+  }
+  /* 汉字 → 全拼（取首个读音）；非汉字原样保留 */
+  function pyFull(s) {
+    var out = "", i, c, p;
+    for (i = 0; i < s.length; i++) {
+      c = s.charAt(i); p = PY[c];
+      if (p) out += String(p).split("|")[0];
+      else if (/[a-z0-9]/.test(c)) out += c;
+    }
+    return out;
+  }
+  function pyInit(s) {
+    var out = "", i, c, p;
+    for (i = 0; i < s.length; i++) {
+      c = s.charAt(i); p = PY[c];
+      if (p) out += String(p).charAt(0);
+      else if (/[a-z0-9]/.test(c)) out += c;
+    }
+    return out;
+  }
+  function hay(s) { var n = norm(s); return { r: n, p: pyFull(n), i: pyInit(n) }; }
+
+  /* 不连续子序列匹配：0 表示不中，否则按紧凑度给 1–14 分 */
+  function subseq(text, tok) {
+    if (!text || !tok || tok.length < 2) return 0;
+    var ti = 0, first = -1, last = -1;
+    for (var qi = 0; qi < tok.length; qi++) {
+      var at = text.indexOf(tok.charAt(qi), ti);
+      if (at < 0) return 0;
+      if (first < 0) first = at;
+      last = at; ti = at + 1;
+    }
+    return Math.max(1, Math.round(14 * tok.length / (last - first + 1)));
+  }
+
+  /* f.k === "b" 的是长正文（答案、要点）：只认原文/全拼子串，
+     不放首字母与子序列，否则一条长答案几乎能命中任何两字查询 */
+  function fieldScore(f, tok) {
+    var h = f.h, s = 0, at = h.r.indexOf(tok);
+    if (at >= 0) { s = 100 - Math.min(24, at); if (at === 0) s += 14; }
+    else if (h.p && h.p.indexOf(tok) >= 0) s = 58;
+    else if (f.k !== "b" && h.i) {
+      var ii = h.i.indexOf(tok);
+      if (ii >= 0) { s = 46 - Math.min(30, ii * 2); if (ii === 0) s += 12; }
+      else if (tok.length >= 2 && h.r.length <= 48) {
+        var sub = subseq(h.r, tok);
+        if (sub) s = 20 + sub;
+      }
+    }
+    return s * f.w;
+  }
+
+  /* 空格分词（AND）；引号包住的当整段 */
+  function parseQuery(q) {
+    return norm(q).split(" ").map(function (t) {
+      return t.replace(/^["“]/, "").replace(/["”]$/, "");
+    }).filter(Boolean);
+  }
+
+  function rankDocs(docs, toks) {
+    var out = [];
+    docs.forEach(function (d) {
+      var total = 0, i, k, best, s;
+      for (k = 0; k < toks.length; k++) {
+        best = 0;
+        for (i = 0; i < d.f.length; i++) {
+          s = fieldScore(d.f[i], toks[k]);
+          if (s > best) best = s;
+        }
+        if (!best) return;          /* 有一个词不中就不算命中 */
+        total += best;
+      }
+      out.push({ d: d, s: total });
+    });
+    out.sort(function (a, b) { return b.s - a.s || (a.d.id < b.d.id ? -1 : 1); });
+    return out;
+  }
+
+  /* 命中片段高亮：原文命中的部分包 <mark>，其余照常走 rich() */
+  function hl(s, toks) {
+    var raw = String(s == null ? "" : s);
+    if (!toks || !toks.length) return rich(raw);
+    var low = raw.toLowerCase(), marks = [];
+    toks.forEach(function (t) {
+      var from = 0, at;
+      while ((at = low.indexOf(t, from)) >= 0) { marks.push([at, at + t.length]); from = at + t.length; }
+    });
+    if (!marks.length) return rich(raw);
+    marks.sort(function (a, b) { return a[0] - b[0]; });
+    var out = "", pos = 0;
+    marks.forEach(function (r) {
+      if (r[0] < pos) { pos = Math.max(pos, r[1]); return; }
+      if (r[0] > pos) out += rich(raw.slice(pos, r[0]));
+      out += "<mark>" + esc(raw.slice(r[0], r[1])) + "</mark>";
+      pos = r[1];
+    });
+    if (pos < raw.length) out += rich(raw.slice(pos));
+    return out;
+  }
+
+  /* 知识点索引：计划内的全部包（与是否展开无关） */
+  function checkDocs() {
+    if (SEARCH_CACHE.checks && SEARCH_CACHE.ver === SEARCH_VER) return SEARCH_CACHE.checks;
+    var docs = [];
+    listDecksOrder().forEach(function (did) {
+      var dd = readDeckData(did);
+      if (!dd) return;
+      (dd.groups || []).forEach(function (g) {
+        var kp = hay((g.keypoints || []).join(" ") + " " + (g.traps || []).join(" "));
+        (g.checks || []).forEach(function (c) {
+          docs.push({
+            deck: did, id: c.id, text: c.text, lvl: c.lvl, g: g.id, gt: g.title, hint: c.hint || "",
+            f: [{ w: 2.6, h: hay(c.text) }, { w: 1.5, h: hay(c.hint || "") },
+                { w: 1.0, h: hay(g.title) }, { w: 0.8, h: kp, k: "b" }]
+          });
+        });
+      });
+    });
+    SEARCH_CACHE.checks = docs; SEARCH_CACHE.ver = SEARCH_VER;
+    return docs;
+  }
+
+  /* 问答索引：问题、标签、答案正文、所属模块（跨全部计划内知识包） */
+  function qaDocs() {
+    if (SEARCH_CACHE.qa && SEARCH_CACHE.ver === SEARCH_VER) return SEARCH_CACHE.qa;
+    var docs = [], order = listDecksOrder();
+    if (order.indexOf(CUR_DECK) < 0 && readDeckData(CUR_DECK)) order.push(CUR_DECK);
+    order.forEach(function (did) {
+      var dd = readDeckData(did);
+      if (!dd) return;
+      var gt = {};
+      (dd.groups || []).forEach(function (g) { gt[g.id] = g.title; });
+      (dd.qas || []).forEach(function (q) {
+        var ans = (q.ans || []).map(function (a) {
+          return (a.p || "") + " " + (a.h || "") + " " + (a.list || []).join(" ");
+        }).join(" ");
+        docs.push({
+          deck: did, id: q.id, q: q.q, layer: q.layer, m: q.m, tags: q.tags || [],
+          gt: gt[q.m] || q.m, ans: ans,
+          f: [{ w: 3.2, h: hay(q.q) }, { w: 2.0, h: hay((q.tags || []).join(" ")) },
+              { w: 0.8, h: hay(gt[q.m] || "") }, { w: 0.9, h: hay(ans), k: "b" }]
+        });
+      });
+    });
+    SEARCH_CACHE.qa = docs; SEARCH_CACHE.ver = SEARCH_VER;
+    return docs;
+  }
+
+  function searchChecks(q) {
+    QT = parseQuery(q);
+    if (!QT.length) return [];
+    var rows = rankDocs(checkDocs(), QT);
+    return rows.filter(function (r) {
+      return passesMasteryIn(r.d.deck, r.d.id);
+    });
+  }
+
+  function searchQa(q) {
+    QT = parseQuery(q);
+    if (!QT.length) return [];
+    return rankDocs(qaDocs(), QT);
+  }
+
+  /* 答案里命中时给一小段上下文，省得点进去才知道为什么命中 */
+  function ansSnippet(d) {
+    if (!d.ans) return "";
+    var low = d.ans.toLowerCase(), at = -1, i;
+    for (i = 0; i < QT.length && at < 0; i++) at = low.indexOf(QT[i]);
+    if (at < 0) return "";
+    var from = Math.max(0, at - 24), to = Math.min(d.ans.length, at + 44);
+    /* 别把英文单词切成两半：起点落在词中间就往后挪到词首，终点同理往前收 */
+    if (from > 0) {
+      while (from < at && /[A-Za-z0-9]/.test(d.ans.charAt(from - 1))) from++;
+    }
+    if (to < d.ans.length) {
+      while (to > at + 1 && /[A-Za-z0-9]/.test(d.ans.charAt(to))) to--;
+    }
+    var t = (from > 0 ? "…" : "") + d.ans.slice(from, to).replace(/^\s+|\s+$/g, "") +
+      (to < d.ans.length ? "…" : "");
+    return '<div class="qsnippet">' + hl(t, QT) + "</div>";
   }
 
   function renderList() {
@@ -479,6 +670,25 @@
     html.push('<div class="chips" id="listChips">' +
       chip("all", "全部") + chip("0", "未学") + chip("1", "模糊") +
       chip("2", "会") + chip("3", "熟练") + chip("fav", "收藏") + "</div>");
+
+    /* 有关键词时不按知识包分组，直接给「全计划、按相关度排序」的结果 */
+    if (listQuery) {
+      var hits = searchChecks(listQuery);
+      html.push('<div class="hint srchin">命中 ' + hits.length + " 条 · 按相关度排序" +
+        (listFilter === "all" ? "" : " · 已叠加掌握度筛选") + "</div>");
+      if (!hits.length) {
+        html.push('<div class="empty">没有匹配的' + esc(term("check")) +
+          '<br><small>可以试试更短的关键词、拼音首字母（如 td 找「梯度」），或去掉掌握度筛选</small></div>');
+      }
+      hits.forEach(function (h) {
+        var d = h.d;
+        html.push(checkRow({ id: d.id, text: d.text, lvl: d.lvl }, d.deck,
+          '<span class="cdtag">' + esc(deckShort(d.deck)) + "</span><span>" + esc(d.gt) + "</span>" +
+          (d.hint ? '<span class="chint">' + esc(d.hint) + "</span>" : "")));
+      });
+      $("#view").innerHTML = html.join("");
+      return;
+    }
 
     var shown = 0;
     var decks = listDecksOrder();
@@ -507,7 +717,7 @@
       var box = '<div class="deckbox" data-dbox="' + esc(did) + '">';
       (dd.groups || []).forEach(function (g) {
         var checks = (g.checks || []).filter(function (c) {
-          return passesMasteryIn(did, c.id) && (matches(c.text) || matches(g.title));
+          return passesMasteryIn(did, c.id);
         });
         if (!checks.length) return;
         shown += checks.length;
@@ -576,29 +786,31 @@
         return '<button class="chip' + (qaFilter === v ? " on" : "") + '" data-qchip="' + v + '">' + label + "</button>";
       }).join("") + "</div>");
 
-    var pool = decks.length > 1 ? QA_ALL : QA_LIST.map(function (q) { return { deck: CUR_DECK, q: q.q, id: q.id, layer: q.layer, m: q.m, tags: q.tags || [] }; });
-    var list = pool.filter(function (row) {
+    /* 命中集合：有关键词就走打分排序，否则按知识包顺序平铺 */
+    var docs = qaDocs();
+    var list = qaQuery ? searchQa(qaQuery).map(function (r) { return r.d; }) : docs;
+    list = list.filter(function (row) {
       if (decks.length > 1 && qaDecks.on && !qaDecks.ids[row.deck]) return false;
       if (qaFilter !== "all" && String(row.layer) !== qaFilter) return false;
-      if (!qaQuery) return true;
-      var q = row.deck === CUR_DECK ? QA[row.id] : null;
-      var hay = row.q + " " + (row.tags || []).join(" ") + " " + (q ? (q.ans || []).map(function (a) { return a.p; }).join(" ") : "");
-      return hay.toLowerCase().indexOf(qaQuery) >= 0;
+      return true;
     });
 
     list.forEach(function (row) {
-      var dd = DECK_CACHE[row.deck] || D;
-      var g = (dd.groups || []).filter(function (x) { return x.id === row.m; })[0];
       html.push('<div class="qa-row" data-qa="' + esc(row.id) + '" data-qdeckrow="' + esc(row.deck) + '">' +
         '<div class="lr"><span class="lbadge L' + row.layer + '">L' + row.layer + "</span></div>" +
-        '<div class="main"><div class="q">' + rich(row.q) + "</div>" +
+        '<div class="main"><div class="q">' + (qaQuery ? hl(row.q, QT) : rich(row.q)) + "</div>" +
+        (qaQuery ? ansSnippet(row) : "") +
         '<div class="meta">' + (decks.length > 1 ? '<span class="dtag">' + esc(deckShort(row.deck)) + "</span>" : "") +
-        "<span>" + esc(g ? g.title : row.m) + "</span>" +
+        "<span>" + esc(row.gt || row.m) + "</span>" +
         (row.tags || []).slice(0, 3).map(function (t) { return '<span class="tag">' + esc(t) + "</span>"; }).join("") +
         "</div></div></div>");
     });
-    if (!list.length) html.push('<div class="empty">没有匹配的问答</div>');
-    html.push('<div class="hint" style="margin-top:12px">共 ' + list.length + " 条 · 点开可看四段答案与追问网络</div>");
+    if (!list.length) {
+      html.push('<div class="empty">没有匹配的问答' +
+        '<br><small>答案正文也会被搜到；也可以只打拼音首字母，如 zt 找「正态」</small></div>');
+    }
+    html.push('<div class="hint" style="margin-top:12px">共 ' + list.length +
+      (qaQuery ? " 条命中 · 按相关度排序" : " 条 · 点开可看答案与追问网络") + "</div>");
     $("#view").innerHTML = html.join("");
   }
 
@@ -1330,6 +1542,7 @@
     var d = null;
     try { d = JSON.parse(String(window.Native.readDeck(id) || "null")); } catch (e) { d = null; }
     DECK_CACHE[id] = d;
+    if (d) SEARCH_VER++;            /* 新读到的包要进搜索索引 */
     return d;
   }
 
