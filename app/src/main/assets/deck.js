@@ -10,7 +10,7 @@ window.DECK = {
   "check": "自查点",
   "qa": "问答"
  },
- "updatedAt": "2026-10-20T16:58:58.839Z",
+ "updatedAt": "2026-10-20T17:10:59.109Z",
  "groups": [
   {
    "id": "m1",
@@ -168,79 +168,7 @@ window.DECK = {
   },
   {
    "id": "m3",
-   "title": "模块三 · 程序设计与软件工程",
-   "short": "程序设计与工程",
-   "priority": "P1",
-   "stage": 1,
-   "signal": "PCG 岗位的工具代码会被长期迭代，面试官想知道你的规则能否被复用、被调试、被交接。",
-   "keypoints": [
-    "接口先于实现：输入契约、输出契约、失败语义",
-    "数据驱动让策划改参数，代码只改规则",
-    "可观测性（日志/统计/可视化）是功能的一部分",
-    "最小复现是排查能力的第一生产力"
-   ],
-   "traps": [
-    "把规则写死在节点里，改一个参数要改图",
-    "日志只打印“出错了”而没有上下文与数量",
-    "提交粒度巨大、提交信息无信息量",
-    "没有基线就宣称优化了 30%"
-   ],
-   "checks": [
-    {
-     "id": "m3.1",
-     "text": "接口设计、模块化、低耦合高内聚的落地判断标准",
-     "lvl": "P0"
-    },
-    {
-     "id": "m3.2",
-     "text": "状态机、事件驱动、回调与常见设计模式（工厂/策略/观察者/命令）",
-     "lvl": "P1"
-    },
-    {
-     "id": "m3.3",
-     "text": "数据驱动设计：参数、配置资产与生成规则的可复用性",
-     "lvl": "P1"
-    },
-    {
-     "id": "m3.4",
-     "text": "日志分级、断点、最小复现与问题记录模板",
-     "lvl": "P0"
-    },
-    {
-     "id": "m3.5",
-     "text": "单元测试、回归测试与测试数据构造",
-     "lvl": "P1"
-    },
-    {
-     "id": "m3.6",
-     "text": "Git 工作流、提交粒度、Code Review 关注点",
-     "lvl": "P1"
-    },
-    {
-     "id": "m3.7",
-     "text": "构建配置、依赖管理、版本锁定与可复现构建",
-     "lvl": "P2"
-    },
-    {
-     "id": "m3.8",
-     "text": "错误处理策略：返回值、异常、断言与失败可观测性",
-     "lvl": "P0"
-    },
-    {
-     "id": "m3.9",
-     "text": "技术方案文档与取舍记录（ADR）",
-     "lvl": "P2"
-    },
-    {
-     "id": "m3.10",
-     "text": "代码评审中如何识别耦合、隐藏状态与可测试性问题",
-     "lvl": "P1"
-    }
-   ]
-  },
-  {
-   "id": "m4",
-   "title": "模块四 · 数据结构与算法",
+   "title": "模块三 · 数据结构与算法",
    "short": "数据结构与算法",
    "priority": "P0",
    "stage": 1,
@@ -259,70 +187,70 @@ window.DECK = {
    ],
    "checks": [
     {
-     "id": "m4.1",
+     "id": "m3.1",
      "text": "数组、链表、栈、队列、树、堆、哈希表的实现要点与适用场景",
      "lvl": "P0"
     },
     {
-     "id": "m4.2",
+     "id": "m3.2",
      "text": "复杂度分析、均摊分析与常见误判",
      "lvl": "P0"
     },
     {
-     "id": "m4.3",
+     "id": "m3.3",
      "text": "排序算法特性、二分查找边界与比较器设计",
      "lvl": "P0"
     },
     {
-     "id": "m4.4",
+     "id": "m3.4",
      "text": "双指针、滑动窗口、前缀和的应用",
      "lvl": "P1"
     },
     {
-     "id": "m4.5",
+     "id": "m3.5",
      "text": "DFS/BFS、递归、回溯与栈溢出风险",
      "lvl": "P0"
     },
     {
-     "id": "m4.6",
+     "id": "m3.6",
      "text": "贪心与动态规划基础：状态定义与最优子结构",
      "lvl": "P1"
     },
     {
-     "id": "m4.7",
+     "id": "m3.7",
      "text": "空间哈希/网格邻域查询：实现与半径查询",
      "lvl": "P0"
     },
     {
-     "id": "m4.8",
+     "id": "m3.8",
      "text": "KD-Tree、八叉树、BVH 的构建、查询与更新成本",
      "lvl": "P1"
     },
     {
-     "id": "m4.9",
+     "id": "m3.9",
      "text": "随机采样：均匀、加权、蓄水池与随机数质量",
      "lvl": "P1"
     },
     {
-     "id": "m4.10",
+     "id": "m3.10",
      "text": "泊松盘采样（Bridson）、蓝噪声与最小间距控制",
      "lvl": "P1"
     },
     {
-     "id": "m4.11",
+     "id": "m3.11",
      "text": "并查集、拓扑排序与依赖/连通性处理",
      "lvl": "P2"
     },
     {
-     "id": "m4.12",
+     "id": "m3.12",
      "text": "空间划分与网格对齐：Grid/Partition 的边界与接缝",
      "lvl": "P1"
     }
    ]
   },
   {
-   "id": "m5",
-   "title": "模块五 · 操作系统与并发",
+   "id": "m4",
+   "title": "模块四 · 操作系统与并发",
    "short": "操作系统与并发",
    "priority": "P1",
    "stage": 1,
@@ -341,60 +269,60 @@ window.DECK = {
    ],
    "checks": [
     {
-     "id": "m5.1",
+     "id": "m4.1",
      "text": "进程/线程、上下文切换、用户态与内核态开销",
      "lvl": "P0"
     },
     {
-     "id": "m5.2",
+     "id": "m4.2",
      "text": "互斥锁、读写锁、条件变量、信号量的正确用法",
      "lvl": "P0"
     },
     {
-     "id": "m5.3",
+     "id": "m4.3",
      "text": "原子操作、内存序与无锁编程的边界",
      "lvl": "P2"
     },
     {
-     "id": "m5.4",
+     "id": "m4.4",
      "text": "死锁四个必要条件与工程预防手段",
      "lvl": "P0"
     },
     {
-     "id": "m5.5",
+     "id": "m4.5",
      "text": "虚拟内存、分页、TLB、缺页与内存映射",
      "lvl": "P1"
     },
     {
-     "id": "m5.6",
+     "id": "m4.6",
      "text": "缓存层级、缓存行、伪共享与数据布局优化",
      "lvl": "P1"
     },
     {
-     "id": "m5.7",
+     "id": "m4.7",
      "text": "线程池、任务队列、工作窃取与任务粒度",
      "lvl": "P1"
     },
     {
-     "id": "m5.8",
+     "id": "m4.8",
      "text": "同步/异步、阻塞/非阻塞与回调地狱",
      "lvl": "P0"
     },
     {
-     "id": "m5.9",
+     "id": "m4.9",
      "text": "UE 游戏线程/渲染线程/任务图边界与线程安全规则",
      "lvl": "P0"
     },
     {
-     "id": "m5.10",
+     "id": "m4.10",
      "text": "内存分配、碎片、对象池与批量分配",
      "lvl": "P1"
     }
    ]
   },
   {
-   "id": "m6",
-   "title": "模块六 · 计算机网络",
+   "id": "m5",
+   "title": "模块五 · 计算机网络",
    "short": "计算机网络",
    "priority": "P2",
    "stage": 1,
@@ -413,44 +341,116 @@ window.DECK = {
    ],
    "checks": [
     {
-     "id": "m6.1",
+     "id": "m5.1",
      "text": "OSI/TCP-IP 分层、封装与各层排错切入点",
      "lvl": "P2"
     },
     {
-     "id": "m6.2",
+     "id": "m5.2",
      "text": "IP/MAC/端口、DNS 解析、ARP 与 NAT 基础",
      "lvl": "P1"
     },
     {
-     "id": "m6.3",
+     "id": "m5.3",
      "text": "TCP 三次握手、四次挥手与常见状态",
      "lvl": "P1"
     },
     {
-     "id": "m6.4",
+     "id": "m5.4",
      "text": "TCP 可靠传输：确认重传、流量控制、拥塞控制",
      "lvl": "P1"
     },
     {
-     "id": "m6.5",
+     "id": "m5.5",
      "text": "UDP、可靠 UDP 与游戏同步中的取舍",
      "lvl": "P1"
     },
     {
-     "id": "m6.6",
+     "id": "m5.6",
      "text": "HTTP/HTTPS、TLS 握手与证书校验",
      "lvl": "P1"
     },
     {
-     "id": "m6.7",
+     "id": "m5.7",
      "text": "延迟、吞吐、丢包、超时、重试与幂等设计",
      "lvl": "P1"
     },
     {
-     "id": "m6.8",
+     "id": "m5.8",
      "text": "UE 中的 HTTP 请求、远程资产/DDC 下载与失败排查",
      "lvl": "P2"
+    }
+   ]
+  },
+  {
+   "id": "m6",
+   "title": "模块六 · 程序设计与软件工程",
+   "short": "程序设计与工程",
+   "priority": "P1",
+   "stage": 1,
+   "signal": "PCG 岗位的工具代码会被长期迭代，面试官想知道你的规则能否被复用、被调试、被交接。",
+   "keypoints": [
+    "接口先于实现：输入契约、输出契约、失败语义",
+    "数据驱动让策划改参数，代码只改规则",
+    "可观测性（日志/统计/可视化）是功能的一部分",
+    "最小复现是排查能力的第一生产力"
+   ],
+   "traps": [
+    "把规则写死在节点里，改一个参数要改图",
+    "日志只打印“出错了”而没有上下文与数量",
+    "提交粒度巨大、提交信息无信息量",
+    "没有基线就宣称优化了 30%"
+   ],
+   "checks": [
+    {
+     "id": "m6.1",
+     "text": "接口设计、模块化、低耦合高内聚的落地判断标准",
+     "lvl": "P0"
+    },
+    {
+     "id": "m6.2",
+     "text": "状态机、事件驱动、回调与常见设计模式（工厂/策略/观察者/命令）",
+     "lvl": "P1"
+    },
+    {
+     "id": "m6.3",
+     "text": "数据驱动设计：参数、配置资产与生成规则的可复用性",
+     "lvl": "P1"
+    },
+    {
+     "id": "m6.4",
+     "text": "日志分级、断点、最小复现与问题记录模板",
+     "lvl": "P0"
+    },
+    {
+     "id": "m6.5",
+     "text": "单元测试、回归测试与测试数据构造",
+     "lvl": "P1"
+    },
+    {
+     "id": "m6.6",
+     "text": "Git 工作流、提交粒度、Code Review 关注点",
+     "lvl": "P1"
+    },
+    {
+     "id": "m6.7",
+     "text": "构建配置、依赖管理、版本锁定与可复现构建",
+     "lvl": "P2"
+    },
+    {
+     "id": "m6.8",
+     "text": "错误处理策略：返回值、异常、断言与失败可观测性",
+     "lvl": "P0"
+    },
+    {
+     "id": "m6.9",
+     "text": "技术方案文档与取舍记录（ADR）",
+     "lvl": "P2"
+    },
+    {
+     "id": "m6.10",
+     "text": "代码评审中如何识别耦合、隐藏状态与可测试性问题",
+     "lvl": "P1"
     }
    ]
   },
@@ -854,265 +854,7 @@ window.DECK = {
   },
   {
    "id": "m11",
-   "title": "模块十一 · Bug 排查与性能优化",
-   "short": "排错与性能优化",
-   "priority": "P0",
-   "stage": 4,
-   "signal": "面试官会给一个模糊症状，看你是否能把它切成可验证的假设，而不是直接报答案。",
-   "keypoints": [
-    "先固定变量，再谈因果：版本/种子/相机/画质/数据",
-    "先分层（逻辑/资源/配置/CPU/GPU/内存），再定位",
-    "一次只改一个因素，改完在同条件回归",
-    "P95 与卡顿比平均值更能暴露问题"
-   ],
-   "traps": [
-    "没有基线就开始优化",
-    "同时改五个参数然后说“好了”",
-    "只看平均帧率忽略 1% Low",
-    "把编辑器表现当成打包表现"
-   ],
-   "checks": [
-    {
-     "id": "m11.1",
-     "text": "复现与基线：固定版本、种子、相机、画质与数据",
-     "lvl": "P0"
-    },
-    {
-     "id": "m11.2",
-     "text": "二分法、最小复现与变量隔离",
-     "lvl": "P0"
-    },
-    {
-     "id": "m11.3",
-     "text": "分层定位：逻辑/资源/配置/CPU/GPU/内存/IO",
-     "lvl": "P0"
-    },
-    {
-     "id": "m11.4",
-     "text": "中间数据检查：点数、属性、Transform、Bounds 与日志",
-     "lvl": "P0"
-    },
-    {
-     "id": "m11.5",
-     "text": "帧时间、P50/P95、1% Low 与卡顿分析",
-     "lvl": "P1"
-    },
-    {
-     "id": "m11.6",
-     "text": "生成耗时、对象创建与资源加载成本的测量",
-     "lvl": "P1"
-    },
-    {
-     "id": "m11.7",
-     "text": "内存与资源：泄漏、引用、流送与显存",
-     "lvl": "P1"
-    },
-    {
-     "id": "m11.8",
-     "text": "优化前后同条件对比、统计显著性与回归验证",
-     "lvl": "P0"
-    },
-    {
-     "id": "m11.9",
-     "text": "常见 PCG 症状：为空、重叠、悬空、闪烁、接缝断裂",
-     "lvl": "P0"
-    },
-    {
-     "id": "m11.10",
-     "text": "冷启动、缓存、首帧与 Shader 编译卡顿",
-     "lvl": "P1"
-    },
-    {
-     "id": "m11.11",
-     "text": "打包后问题：Cook、资源引用、平台差异与日志",
-     "lvl": "P1"
-    },
-    {
-     "id": "m11.12",
-     "text": "性能预算、质量取舍与可接受的退化",
-     "lvl": "P1"
-    }
-   ]
-  },
-  {
-   "id": "m12",
-   "title": "模块十二 · PCG 综合实战",
-   "short": "PCG 综合实战",
-   "priority": "P0",
-   "stage": 4,
-   "signal": "用一个真实场景考你把“采样→过滤→变换→生成→优化”串起来，并能解释每个参数为什么这么定。",
-   "keypoints": [
-    "植被：坡度/高度/密度/多样性/避让",
-    "道路：Spline 采样、切线朝向、端点与坡度约束",
-    "大世界：分区、流送、HLOD、实例化",
-    "交付：可复现工程 + 数据 + 已知限制"
-   ],
-   "traps": [
-    "只展示画面不讲规则",
-    "树木朝向随机导致“倒树”",
-    "道路与地形不贴合，出现悬空或穿地",
-    "没有记录参数，无法复现同一片森林"
-   ],
-   "checks": [
-    {
-     "id": "m12.1",
-     "text": "地形植被：采样、坡度/高度过滤、密度、旋转缩放与多样性",
-     "lvl": "P0"
-    },
-    {
-     "id": "m12.2",
-     "text": "Spline 道路与道具：间距、切线朝向、端点处理与坡度",
-     "lvl": "P1"
-    },
-    {
-     "id": "m12.3",
-     "text": "建筑/村落：规则生成、相互避让与道路连接",
-     "lvl": "P1"
-    },
-    {
-     "id": "m12.4",
-     "text": "大世界：分区、流送、LOD、HLOD 与生成半径",
-     "lvl": "P0"
-    },
-    {
-     "id": "m12.5",
-     "text": "性能报告：指标、对照组、瓶颈结论与改进量",
-     "lvl": "P0"
-    },
-    {
-     "id": "m12.6",
-     "text": "可复现工程、演示视频与技术说明",
-     "lvl": "P0"
-    },
-    {
-     "id": "m12.7",
-     "text": "边界情况：地形接缝、水边、陡坡、空洞与越界",
-     "lvl": "P1"
-    },
-    {
-     "id": "m12.8",
-     "text": "与美术/策划协作：参数暴露、预设与版本管理",
-     "lvl": "P1"
-    },
-    {
-     "id": "m12.9",
-     "text": "迭代效率：预览、局部重算、参数化与热更新",
-     "lvl": "P1"
-    },
-    {
-     "id": "m12.10",
-     "text": "质量评估：分布自然度、人工检查与指标化",
-     "lvl": "P2"
-    }
-   ]
-  },
-  {
-   "id": "m13",
-   "title": "模块十三 · 高频面试问题自测",
-   "short": "高频问题自测",
-   "priority": "P0",
-   "stage": 4,
-   "signal": "这一模块是“口头输出”检查：能不能在 90 秒内给出结构清晰、有边界、有例子的回答。",
-   "keypoints": [
-    "定义→原理→取舍→实例→边界",
-    "先给结论，再展开，不要从背景讲起",
-    "不知道就说不知道，并给出验证路径",
-    "项目题必须能被追问三层"
-   ],
-   "traps": [
-    "回答没有结构，想到哪说到哪",
-    "把“我们用了 Nanite”当成技术含量",
-    "遇到追问就重复原话",
-    "贬低团队或夸大个人贡献"
-   ],
-   "checks": [
-    {
-     "id": "m13.1",
-     "text": "不看资料回答 C++/STL/OS/网络核心题",
-     "lvl": "P0"
-    },
-    {
-     "id": "m13.2",
-     "text": "讲清坐标变换与渲染管线的每一步",
-     "lvl": "P0"
-    },
-    {
-     "id": "m13.3",
-     "text": "讲清 PCG 数据流、采样与生成方式",
-     "lvl": "P0"
-    },
-    {
-     "id": "m13.4",
-     "text": "按步骤分析生成异常与性能瓶颈",
-     "lvl": "P0"
-    },
-    {
-     "id": "m13.5",
-     "text": "用 2 分钟讲一个项目并承受三层追问",
-     "lvl": "P1"
-    },
-    {
-     "id": "m13.6",
-     "text": "主动说明技术取舍与方案边界",
-     "lvl": "P1"
-    }
-   ]
-  },
-  {
-   "id": "m14",
-   "title": "模块十四 · 最终自查与面试准备",
-   "short": "最终自查与准备",
-   "priority": "P0",
-   "stage": 4,
-   "signal": "准备度不是“看过”，而是“能演示、能复现、能对比、能承认限制”。",
-   "keypoints": [
-    "两个项目：一个讲数据流，一个讲规模与性能",
-    "三个 Bug：现象→定位→修复→回归",
-    "一次量化优化：基线、方法、结果、代价",
-    "材料：工程、视频、截图、文档、数据表"
-   ],
-   "traps": [
-    "项目无法运行或依赖缺失",
-    "性能数据没有对照组",
-    "把团队成果说成个人成果",
-    "没有准备反问问题"
-   ],
-   "checks": [
-    {
-     "id": "m14.1",
-     "text": "P0 基础知识达到可解释原理、可手写小例子的水平",
-     "lvl": "P0"
-    },
-    {
-     "id": "m14.2",
-     "text": "至少两个可演示、可复现的 PCG 项目",
-     "lvl": "P0"
-    },
-    {
-     "id": "m14.3",
-     "text": "至少三个 Bug 案例与一次量化优化",
-     "lvl": "P0"
-    },
-    {
-     "id": "m14.4",
-     "text": "工程、演示视频、技术文档与数据对比齐备",
-     "lvl": "P1"
-    },
-    {
-     "id": "m14.5",
-     "text": "准备反问问题并理解岗位职责与团队技术栈",
-     "lvl": "P2"
-    },
-    {
-     "id": "m14.6",
-     "text": "时间盒复习计划与弱项补齐路径",
-     "lvl": "P1"
-    }
-   ]
-  },
-  {
-   "id": "m15",
-   "title": "模块十五 · 数学与程序化生成算法",
+   "title": "模块十一 · 数学与程序化生成算法",
    "short": "数学与程序化算法",
    "priority": "P1",
    "stage": 3,
@@ -1131,70 +873,70 @@ window.DECK = {
    ],
    "checks": [
     {
-     "id": "m15.1",
+     "id": "m11.1",
      "text": "向量点乘/叉乘/归一化的几何意义与常见用法",
      "lvl": "P0"
     },
     {
-     "id": "m15.2",
+     "id": "m11.2",
      "text": "矩阵组合顺序、旋转表示（欧拉/四元数）与插值",
      "lvl": "P1"
     },
     {
-     "id": "m15.3",
+     "id": "m11.3",
      "text": "lerp/slerp、平滑曲线、缓动与重映射",
      "lvl": "P1"
     },
     {
-     "id": "m15.4",
+     "id": "m11.4",
      "text": "概率分布、加权抽样、方差与随机流隔离",
      "lvl": "P1"
     },
     {
-     "id": "m15.5",
+     "id": "m11.5",
      "text": "噪声：Value/Perlin/Simplex/Worley 的差异与用途",
      "lvl": "P1"
     },
     {
-     "id": "m15.6",
+     "id": "m11.6",
      "text": "fBm、域扭曲、频率/振幅与噪声参数调优",
      "lvl": "P1"
     },
     {
-     "id": "m15.7",
+     "id": "m11.7",
      "text": "泊松盘、蓝噪声、抖动网格与均匀性度量",
      "lvl": "P1"
     },
     {
-     "id": "m15.8",
+     "id": "m11.8",
      "text": "Voronoi、距离场与生物群系/区域划分",
      "lvl": "P2"
     },
     {
-     "id": "m15.9",
+     "id": "m11.9",
      "text": "L-System、形状语法与 WFC 的基本思想与限制",
      "lvl": "P2"
     },
     {
-     "id": "m15.10",
+     "id": "m11.10",
      "text": "表面/三角形均匀采样、重心坐标与面积加权",
      "lvl": "P2"
     },
     {
-     "id": "m15.11",
+     "id": "m11.11",
      "text": "分布形态：聚集、排斥、带状、梯度与边缘衰减",
      "lvl": "P1"
     },
     {
-     "id": "m15.12",
+     "id": "m11.12",
      "text": "分布质量评估：覆盖率、最近邻距离、聚类与可视化",
      "lvl": "P2"
     }
    ]
   },
   {
-   "id": "m16",
-   "title": "模块十六 · 工具链与工程化",
+   "id": "m12",
+   "title": "模块十二 · 工具链与工程化",
    "short": "工具链与工程化",
    "priority": "P1",
    "stage": 3,
@@ -1213,50 +955,50 @@ window.DECK = {
    ],
    "checks": [
     {
-     "id": "m16.1",
+     "id": "m12.1",
      "text": "Editor Utility/Blueprint/Python 批处理与自动化入口",
      "lvl": "P2"
     },
     {
-     "id": "m16.2",
+     "id": "m12.2",
      "text": "资产命名、目录规范、引用管理与重定向器",
      "lvl": "P1"
     },
     {
-     "id": "m16.3",
+     "id": "m12.3",
      "text": "数据资产与参数配置外置（Data Asset/Data Table/Developer Settings）",
      "lvl": "P1"
     },
     {
-     "id": "m16.4",
+     "id": "m12.4",
      "text": "版本控制：二进制资产、文件锁、迁移与冲突处理",
      "lvl": "P2"
     },
     {
-     "id": "m16.5",
+     "id": "m12.5",
      "text": "自动化测试：功能、性能、截图对比与失败定位",
      "lvl": "P2"
     },
     {
-     "id": "m16.6",
+     "id": "m12.6",
      "text": "Cook/打包与 PCG 资源依赖、平台差异",
      "lvl": "P1"
     },
     {
-     "id": "m16.7",
+     "id": "m12.7",
      "text": "构建机与 CI 中的 PCG 校验与报告",
      "lvl": "P2"
     },
     {
-     "id": "m16.8",
+     "id": "m12.8",
      "text": "性能预算、评审流程与团队协作约定",
      "lvl": "P1"
     }
    ]
   },
   {
-   "id": "m17",
-   "title": "模块十七 · 系统设计：可扩展 PCG 框架",
+   "id": "m13",
+   "title": "模块十三 · 系统设计：可扩展 PCG 框架",
    "short": "PCG 框架设计",
    "priority": "P1",
    "stage": 3,
@@ -1275,50 +1017,256 @@ window.DECK = {
    ],
    "checks": [
     {
-     "id": "m17.1",
+     "id": "m13.1",
      "text": "分层架构：数据源/规则/生成/表现与层间契约",
      "lvl": "P0"
     },
     {
-     "id": "m17.2",
+     "id": "m13.2",
      "text": "参数与规则的数据契约：类型、范围、默认值与校验",
      "lvl": "P1"
     },
     {
-     "id": "m17.3",
+     "id": "m13.3",
      "text": "组合与复用：子图、模块、策略与继承的取舍",
      "lvl": "P1"
     },
     {
-     "id": "m17.4",
+     "id": "m13.4",
      "text": "确定性设计：随机流隔离、稳定排序与版本锁定",
      "lvl": "P1"
     },
     {
-     "id": "m17.5",
+     "id": "m13.5",
      "text": "增量生成与依赖失效：依赖图、脏标记与重算范围",
      "lvl": "P1"
     },
     {
-     "id": "m17.6",
+     "id": "m13.6",
      "text": "可观测性：日志、统计、可视化与性能计数",
      "lvl": "P1"
     },
     {
-     "id": "m17.7",
+     "id": "m13.7",
      "text": "失败降级与兜底：空结果、超时、资源缺失",
      "lvl": "P2"
     },
     {
-     "id": "m17.8",
+     "id": "m13.8",
      "text": "演进与兼容：版本化、废弃策略与迁移",
      "lvl": "P2"
     }
    ]
   },
   {
-   "id": "m18",
-   "title": "模块十八 · 追问链与压力题",
+   "id": "m14",
+   "title": "模块十四 · PCG 综合实战",
+   "short": "PCG 综合实战",
+   "priority": "P0",
+   "stage": 4,
+   "signal": "用一个真实场景考你把“采样→过滤→变换→生成→优化”串起来，并能解释每个参数为什么这么定。",
+   "keypoints": [
+    "植被：坡度/高度/密度/多样性/避让",
+    "道路：Spline 采样、切线朝向、端点与坡度约束",
+    "大世界：分区、流送、HLOD、实例化",
+    "交付：可复现工程 + 数据 + 已知限制"
+   ],
+   "traps": [
+    "只展示画面不讲规则",
+    "树木朝向随机导致“倒树”",
+    "道路与地形不贴合，出现悬空或穿地",
+    "没有记录参数，无法复现同一片森林"
+   ],
+   "checks": [
+    {
+     "id": "m14.1",
+     "text": "地形植被：采样、坡度/高度过滤、密度、旋转缩放与多样性",
+     "lvl": "P0"
+    },
+    {
+     "id": "m14.2",
+     "text": "Spline 道路与道具：间距、切线朝向、端点处理与坡度",
+     "lvl": "P1"
+    },
+    {
+     "id": "m14.3",
+     "text": "建筑/村落：规则生成、相互避让与道路连接",
+     "lvl": "P1"
+    },
+    {
+     "id": "m14.4",
+     "text": "大世界：分区、流送、LOD、HLOD 与生成半径",
+     "lvl": "P0"
+    },
+    {
+     "id": "m14.5",
+     "text": "性能报告：指标、对照组、瓶颈结论与改进量",
+     "lvl": "P0"
+    },
+    {
+     "id": "m14.6",
+     "text": "可复现工程、演示视频与技术说明",
+     "lvl": "P0"
+    },
+    {
+     "id": "m14.7",
+     "text": "边界情况：地形接缝、水边、陡坡、空洞与越界",
+     "lvl": "P1"
+    },
+    {
+     "id": "m14.8",
+     "text": "与美术/策划协作：参数暴露、预设与版本管理",
+     "lvl": "P1"
+    },
+    {
+     "id": "m14.9",
+     "text": "迭代效率：预览、局部重算、参数化与热更新",
+     "lvl": "P1"
+    },
+    {
+     "id": "m14.10",
+     "text": "质量评估：分布自然度、人工检查与指标化",
+     "lvl": "P2"
+    }
+   ]
+  },
+  {
+   "id": "m15",
+   "title": "模块十五 · Bug 排查与性能优化",
+   "short": "排错与性能优化",
+   "priority": "P0",
+   "stage": 4,
+   "signal": "面试官会给一个模糊症状，看你是否能把它切成可验证的假设，而不是直接报答案。",
+   "keypoints": [
+    "先固定变量，再谈因果：版本/种子/相机/画质/数据",
+    "先分层（逻辑/资源/配置/CPU/GPU/内存），再定位",
+    "一次只改一个因素，改完在同条件回归",
+    "P95 与卡顿比平均值更能暴露问题"
+   ],
+   "traps": [
+    "没有基线就开始优化",
+    "同时改五个参数然后说“好了”",
+    "只看平均帧率忽略 1% Low",
+    "把编辑器表现当成打包表现"
+   ],
+   "checks": [
+    {
+     "id": "m15.1",
+     "text": "复现与基线：固定版本、种子、相机、画质与数据",
+     "lvl": "P0"
+    },
+    {
+     "id": "m15.2",
+     "text": "二分法、最小复现与变量隔离",
+     "lvl": "P0"
+    },
+    {
+     "id": "m15.3",
+     "text": "分层定位：逻辑/资源/配置/CPU/GPU/内存/IO",
+     "lvl": "P0"
+    },
+    {
+     "id": "m15.4",
+     "text": "中间数据检查：点数、属性、Transform、Bounds 与日志",
+     "lvl": "P0"
+    },
+    {
+     "id": "m15.5",
+     "text": "帧时间、P50/P95、1% Low 与卡顿分析",
+     "lvl": "P1"
+    },
+    {
+     "id": "m15.6",
+     "text": "生成耗时、对象创建与资源加载成本的测量",
+     "lvl": "P1"
+    },
+    {
+     "id": "m15.7",
+     "text": "内存与资源：泄漏、引用、流送与显存",
+     "lvl": "P1"
+    },
+    {
+     "id": "m15.8",
+     "text": "优化前后同条件对比、统计显著性与回归验证",
+     "lvl": "P0"
+    },
+    {
+     "id": "m15.9",
+     "text": "常见 PCG 症状：为空、重叠、悬空、闪烁、接缝断裂",
+     "lvl": "P0"
+    },
+    {
+     "id": "m15.10",
+     "text": "冷启动、缓存、首帧与 Shader 编译卡顿",
+     "lvl": "P1"
+    },
+    {
+     "id": "m15.11",
+     "text": "打包后问题：Cook、资源引用、平台差异与日志",
+     "lvl": "P1"
+    },
+    {
+     "id": "m15.12",
+     "text": "性能预算、质量取舍与可接受的退化",
+     "lvl": "P1"
+    }
+   ]
+  },
+  {
+   "id": "m16",
+   "title": "模块十六 · 高频面试问题自测",
+   "short": "高频问题自测",
+   "priority": "P0",
+   "stage": 4,
+   "signal": "这一模块是“口头输出”检查：能不能在 90 秒内给出结构清晰、有边界、有例子的回答。",
+   "keypoints": [
+    "定义→原理→取舍→实例→边界",
+    "先给结论，再展开，不要从背景讲起",
+    "不知道就说不知道，并给出验证路径",
+    "项目题必须能被追问三层"
+   ],
+   "traps": [
+    "回答没有结构，想到哪说到哪",
+    "把“我们用了 Nanite”当成技术含量",
+    "遇到追问就重复原话",
+    "贬低团队或夸大个人贡献"
+   ],
+   "checks": [
+    {
+     "id": "m16.1",
+     "text": "不看资料回答 C++/STL/OS/网络核心题",
+     "lvl": "P0"
+    },
+    {
+     "id": "m16.2",
+     "text": "讲清坐标变换与渲染管线的每一步",
+     "lvl": "P0"
+    },
+    {
+     "id": "m16.3",
+     "text": "讲清 PCG 数据流、采样与生成方式",
+     "lvl": "P0"
+    },
+    {
+     "id": "m16.4",
+     "text": "按步骤分析生成异常与性能瓶颈",
+     "lvl": "P0"
+    },
+    {
+     "id": "m16.5",
+     "text": "用 2 分钟讲一个项目并承受三层追问",
+     "lvl": "P1"
+    },
+    {
+     "id": "m16.6",
+     "text": "主动说明技术取舍与方案边界",
+     "lvl": "P1"
+    }
+   ]
+  },
+  {
+   "id": "m17",
+   "title": "模块十七 · 追问链与压力题",
    "short": "追问链与压力题",
    "priority": "P0",
    "stage": 4,
@@ -1337,44 +1285,96 @@ window.DECK = {
    ],
    "checks": [
     {
-     "id": "m18.1",
+     "id": "m17.1",
      "text": "连续追问三层的应答结构：结论→依据→边界→验证",
      "lvl": "P0"
     },
     {
-     "id": "m18.2",
+     "id": "m17.2",
      "text": "被质疑“只是摆模型”时用规则/数据/取舍证明技术含量",
      "lvl": "P0"
     },
     {
-     "id": "m18.3",
+     "id": "m17.3",
      "text": "数据与直觉冲突时的决策与验证方法",
      "lvl": "P1"
     },
     {
-     "id": "m18.4",
+     "id": "m17.4",
      "text": "不会的问题如何诚实作答并给出验证路径",
      "lvl": "P1"
     },
     {
-     "id": "m18.5",
+     "id": "m17.5",
      "text": "设计题：从零设计一个生物群系/植被系统",
      "lvl": "P1"
     },
     {
-     "id": "m18.6",
+     "id": "m17.6",
      "text": "设计题：百万级树木的性能方案与预算拆分",
      "lvl": "P0"
     },
     {
-     "id": "m18.7",
+     "id": "m17.7",
      "text": "排错题：结果不可复现的排查顺序",
      "lvl": "P0"
     },
     {
-     "id": "m18.8",
+     "id": "m17.8",
      "text": "反问环节的问题设计与岗位匹配判断",
      "lvl": "P2"
+    }
+   ]
+  },
+  {
+   "id": "m18",
+   "title": "模块十八 · 最终自查与面试准备",
+   "short": "最终自查与准备",
+   "priority": "P0",
+   "stage": 4,
+   "signal": "准备度不是“看过”，而是“能演示、能复现、能对比、能承认限制”。",
+   "keypoints": [
+    "两个项目：一个讲数据流，一个讲规模与性能",
+    "三个 Bug：现象→定位→修复→回归",
+    "一次量化优化：基线、方法、结果、代价",
+    "材料：工程、视频、截图、文档、数据表"
+   ],
+   "traps": [
+    "项目无法运行或依赖缺失",
+    "性能数据没有对照组",
+    "把团队成果说成个人成果",
+    "没有准备反问问题"
+   ],
+   "checks": [
+    {
+     "id": "m18.1",
+     "text": "P0 基础知识达到可解释原理、可手写小例子的水平",
+     "lvl": "P0"
+    },
+    {
+     "id": "m18.2",
+     "text": "至少两个可演示、可复现的 PCG 项目",
+     "lvl": "P0"
+    },
+    {
+     "id": "m18.3",
+     "text": "至少三个 Bug 案例与一次量化优化",
+     "lvl": "P0"
+    },
+    {
+     "id": "m18.4",
+     "text": "工程、演示视频、技术文档与数据对比齐备",
+     "lvl": "P1"
+    },
+    {
+     "id": "m18.5",
+     "text": "准备反问问题并理解岗位职责与团队技术栈",
+     "lvl": "P2"
+    },
+    {
+     "id": "m18.6",
+     "text": "时间盒复习计划与弱项补齐路径",
+     "lvl": "P1"
     }
    ]
   }
@@ -1420,7 +1420,7 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m13.basics"
+    "q.m16.basics"
    ],
    "backPeer": [
     "q.m1.memory"
@@ -1467,7 +1467,7 @@ window.DECK = {
    ],
    "backNext": [
     "q.m1.types",
-    "q.m13.basics"
+    "q.m16.basics"
    ],
    "backPeer": [
     "q.m1.raii"
@@ -1536,7 +1536,7 @@ window.DECK = {
     "m1.4"
    ],
    "next": [
-    "q.m3.interface",
+    "q.m6.interface",
     "q.m9.threads"
    ],
    "peer": [
@@ -1581,7 +1581,7 @@ window.DECK = {
    ],
    "next": [
     "q.m1.threadtools",
-    "q.m3.patterns"
+    "q.m6.patterns"
    ],
    "peer": [
     "q.m1.build"
@@ -1626,7 +1626,7 @@ window.DECK = {
     "m1.6"
    ],
    "next": [
-    "q.m3.errors",
+    "q.m6.errors",
     "q.m1.build"
    ],
    "peer": [
@@ -1652,7 +1652,7 @@ window.DECK = {
    ],
    "backNext": [
     "q.m1.raii",
-    "q.m3.errors"
+    "q.m6.errors"
    ],
    "backPeer": []
   },
@@ -1671,8 +1671,8 @@ window.DECK = {
     "m1.7"
    ],
    "next": [
-    "q.m16.cook",
-    "q.m16.assets"
+    "q.m12.cook",
+    "q.m12.assets"
    ],
    "peer": [
     "q.m1.template"
@@ -1718,7 +1718,7 @@ window.DECK = {
     "m1.9"
    ],
    "next": [
-    "q.m5.alloc",
+    "q.m4.alloc",
     "q.m1.raii"
    ],
    "peer": [
@@ -1745,7 +1745,7 @@ window.DECK = {
    "backNext": [
     "q.m1.types",
     "q.m2.iterator",
-    "q.m5.vm",
+    "q.m4.vm",
     "q.x.ownership"
    ],
    "backPeer": [
@@ -1817,7 +1817,7 @@ window.DECK = {
     "m1.11"
    ],
    "next": [
-    "q.m3.patterns",
+    "q.m6.patterns",
     "q.m10.component"
    ],
    "peer": [
@@ -1859,11 +1859,11 @@ window.DECK = {
     "m1.12"
    ],
    "next": [
-    "q.m5.ue_threads",
+    "q.m4.ue_threads",
     "q.m10.threading"
    ],
    "peer": [
-    "q.m5.locks"
+    "q.m4.locks"
    ],
    "ans": [
     {
@@ -1885,8 +1885,8 @@ window.DECK = {
    ],
    "backNext": [
     "q.m1.template",
-    "q.m5.atomics",
-    "q.m5.threadpool"
+    "q.m4.atomics",
+    "q.m4.threadpool"
    ],
    "backPeer": [
     "q.m9.threads"
@@ -1910,7 +1910,7 @@ window.DECK = {
    ],
    "next": [
     "q.m2.iterator",
-    "q.m5.alloc"
+    "q.m4.alloc"
    ],
    "peer": [
     "q.m10.instancing"
@@ -1940,7 +1940,7 @@ window.DECK = {
     "q.m1.types",
     "q.m2.iterator",
     "q.m2.tarray",
-    "q.m13.basics"
+    "q.m16.basics"
    ]
   },
   {
@@ -2004,7 +2004,7 @@ window.DECK = {
    ],
    "next": [
     "q.m2.vector",
-    "q.m4.structures"
+    "q.m3.structures"
    ],
    "peer": [
     "q.m2.map"
@@ -2032,7 +2032,7 @@ window.DECK = {
    ],
    "backPeer": [
     "q.m2.map",
-    "q.m4.structures"
+    "q.m3.structures"
    ]
   },
   {
@@ -2051,7 +2051,7 @@ window.DECK = {
     "m2.8"
    ],
    "next": [
-    "q.m4.spatialhash",
+    "q.m3.spatialhash",
     "q.m2.algo"
    ],
    "peer": [
@@ -2097,8 +2097,8 @@ window.DECK = {
     "m2.10"
    ],
    "next": [
-    "q.m4.sortsearch",
-    "q.m3.errors"
+    "q.m3.sortsearch",
+    "q.m6.errors"
    ],
    "peer": [
     "q.m2.map"
@@ -2123,7 +2123,7 @@ window.DECK = {
    ],
    "backNext": [
     "q.m2.map",
-    "q.m4.sortsearch"
+    "q.m3.sortsearch"
    ],
    "backPeer": []
   },
@@ -2143,7 +2143,7 @@ window.DECK = {
    ],
    "next": [
     "q.m1.ueobject",
-    "q.m16.dataasset"
+    "q.m12.dataasset"
    ],
    "peer": [
     "q.m2.vector"
@@ -2170,8 +2170,8 @@ window.DECK = {
    "backPeer": []
   },
   {
-   "id": "q.m3.interface",
-   "m": "m3",
+   "id": "q.m6.interface",
+   "m": "m6",
    "lvl": "P0",
    "layer": 3,
    "q": "怎样判断一个模块的接口设计是好的？Code Review 时你会盯什么？",
@@ -2181,15 +2181,15 @@ window.DECK = {
     "评审"
    ],
    "covers": [
-    "m3.1",
-    "m3.10"
+    "m6.1",
+    "m6.10"
    ],
    "next": [
-    "q.m3.adr",
-    "q.m17.layers"
+    "q.m6.adr",
+    "q.m13.layers"
    ],
    "peer": [
-    "q.m3.patterns"
+    "q.m6.patterns"
    ],
    "ans": [
     {
@@ -2213,14 +2213,14 @@ window.DECK = {
     "q.m1.vtable"
    ],
    "backPeer": [
-    "q.m3.patterns",
-    "q.m3.datadriven",
-    "q.m3.adr"
+    "q.m6.patterns",
+    "q.m6.datadriven",
+    "q.m6.adr"
    ]
   },
   {
-   "id": "q.m3.patterns",
-   "m": "m3",
+   "id": "q.m6.patterns",
+   "m": "m6",
    "lvl": "P1",
    "layer": 2,
    "q": "状态机、事件驱动和常见设计模式，在 PCG 里分别解决什么问题？",
@@ -2230,15 +2230,15 @@ window.DECK = {
     "策略"
    ],
    "covers": [
-    "m3.2",
-    "m3.3"
+    "m6.2",
+    "m6.3"
    ],
    "next": [
     "q.m10.graph",
-    "q.m17.reuse"
+    "q.m13.reuse"
    ],
    "peer": [
-    "q.m3.interface"
+    "q.m6.interface"
    ],
    "ans": [
     {
@@ -2263,12 +2263,12 @@ window.DECK = {
     "q.m1.delegate"
    ],
    "backPeer": [
-    "q.m3.interface"
+    "q.m6.interface"
    ]
   },
   {
-   "id": "q.m3.datadriven",
-   "m": "m3",
+   "id": "q.m6.datadriven",
+   "m": "m6",
    "lvl": "P1",
    "layer": 2,
    "q": "数据驱动设计在 PCG 中怎么落地？哪些该外置、哪些必须留在代码里？",
@@ -2278,14 +2278,14 @@ window.DECK = {
     "参数"
    ],
    "covers": [
-    "m3.3"
+    "m6.3"
    ],
    "next": [
-    "q.m16.dataasset",
-    "q.m17.contract"
+    "q.m12.dataasset",
+    "q.m13.contract"
    ],
    "peer": [
-    "q.m3.interface"
+    "q.m6.interface"
    ],
    "ans": [
     {
@@ -2309,8 +2309,8 @@ window.DECK = {
    "backPeer": []
   },
   {
-   "id": "q.m3.debug",
-   "m": "m3",
+   "id": "q.m6.debug",
+   "m": "m6",
    "lvl": "P0",
    "layer": 1,
    "q": "一次有效的 Bug 报告应该包含什么？怎样做出最小复现？",
@@ -2320,15 +2320,15 @@ window.DECK = {
     "排查"
    ],
    "covers": [
-    "m3.4",
-    "m3.5"
+    "m6.4",
+    "m6.5"
    ],
    "next": [
-    "q.m11.repro",
-    "q.m11.layers"
+    "q.m15.repro",
+    "q.m15.layers"
    ],
    "peer": [
-    "q.m3.errors"
+    "q.m6.errors"
    ],
    "ans": [
     {
@@ -2350,13 +2350,13 @@ window.DECK = {
    ],
    "backNext": [],
    "backPeer": [
-    "q.m3.errors",
-    "q.m6.layers"
+    "q.m6.errors",
+    "q.m5.layers"
    ]
   },
   {
-   "id": "q.m3.git",
-   "m": "m3",
+   "id": "q.m6.git",
+   "m": "m6",
    "lvl": "P1",
    "layer": 1,
    "q": "提交粒度、提交信息和二进制资产，在 UE 项目里应该怎么管理？",
@@ -2366,15 +2366,15 @@ window.DECK = {
     "协作"
    ],
    "covers": [
-    "m3.6",
-    "m3.7"
+    "m6.6",
+    "m6.7"
    ],
    "next": [
-    "q.m16.vcs",
-    "q.m16.ci"
+    "q.m12.vcs",
+    "q.m12.ci"
    ],
    "peer": [
-    "q.m3.errors"
+    "q.m6.errors"
    ],
    "ans": [
     {
@@ -2398,8 +2398,8 @@ window.DECK = {
    "backPeer": []
   },
   {
-   "id": "q.m3.errors",
-   "m": "m3",
+   "id": "q.m6.errors",
+   "m": "m6",
    "lvl": "P0",
    "layer": 3,
    "q": "错误处理应该用返回值、异常还是断言？怎样让失败可观测？",
@@ -2409,15 +2409,15 @@ window.DECK = {
     "可观测性"
    ],
    "covers": [
-    "m3.8",
-    "m3.9"
+    "m6.8",
+    "m6.9"
    ],
    "next": [
     "q.m1.exceptions",
-    "q.m17.failure"
+    "q.m13.failure"
    ],
    "peer": [
-    "q.m3.debug"
+    "q.m6.debug"
    ],
    "ans": [
     {
@@ -2442,14 +2442,14 @@ window.DECK = {
     "q.m2.algo"
    ],
    "backPeer": [
-    "q.m3.debug",
-    "q.m3.git",
+    "q.m6.debug",
+    "q.m6.git",
     "q.x.test"
    ]
   },
   {
-   "id": "q.m3.adr",
-   "m": "m3",
+   "id": "q.m6.adr",
+   "m": "m6",
    "lvl": "P2",
    "layer": 3,
    "q": "技术方案文档（ADR）该记录什么？为什么它对 PCG 项目尤其重要？",
@@ -2459,14 +2459,14 @@ window.DECK = {
     "文档"
    ],
    "covers": [
-    "m3.9"
+    "m6.9"
    ],
    "next": [
-    "q.m17.evolution",
-    "q.m14.materials"
+    "q.m13.evolution",
+    "q.m18.materials"
    ],
    "peer": [
-    "q.m3.interface"
+    "q.m6.interface"
    ],
    "ans": [
     {
@@ -2487,13 +2487,13 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m3.interface"
+    "q.m6.interface"
    ],
    "backPeer": []
   },
   {
-   "id": "q.m4.structures",
-   "m": "m4",
+   "id": "q.m3.structures",
+   "m": "m3",
    "lvl": "P0",
    "layer": 1,
    "q": "数组、链表、栈、队列、树、堆、哈希表，各自的“典型用途 + 代价”是什么？",
@@ -2503,12 +2503,12 @@ window.DECK = {
     "选型"
    ],
    "covers": [
-    "m4.1",
-    "m4.2"
+    "m3.1",
+    "m3.2"
    ],
    "next": [
-    "q.m4.trees",
-    "q.m4.spatialhash"
+    "q.m3.trees",
+    "q.m3.spatialhash"
    ],
    "peer": [
     "q.m2.containers"
@@ -2533,16 +2533,16 @@ window.DECK = {
    ],
    "backNext": [
     "q.m2.containers",
-    "q.m4.sortsearch"
+    "q.m3.sortsearch"
    ],
    "backPeer": [
-    "q.m4.sortsearch",
-    "q.m4.graph"
+    "q.m3.sortsearch",
+    "q.m3.graph"
    ]
   },
   {
-   "id": "q.m4.sortsearch",
-   "m": "m4",
+   "id": "q.m3.sortsearch",
+   "m": "m3",
    "lvl": "P0",
    "layer": 2,
    "q": "排序和二分查找在工程里最容易错在哪？双指针、前缀和适合什么题？",
@@ -2552,15 +2552,15 @@ window.DECK = {
     "双指针"
    ],
    "covers": [
-    "m4.3",
-    "m4.4"
+    "m3.3",
+    "m3.4"
    ],
    "next": [
     "q.m2.algo",
-    "q.m4.structures"
+    "q.m3.structures"
    ],
    "peer": [
-    "q.m4.structures"
+    "q.m3.structures"
    ],
    "ans": [
     {
@@ -2586,8 +2586,8 @@ window.DECK = {
    "backPeer": []
   },
   {
-   "id": "q.m4.graph",
-   "m": "m4",
+   "id": "q.m3.graph",
+   "m": "m3",
    "lvl": "P0",
    "layer": 2,
    "q": "DFS 与 BFS 分别适合什么？递归写图算法有什么风险？",
@@ -2597,15 +2597,15 @@ window.DECK = {
     "递归"
    ],
    "covers": [
-    "m4.5",
-    "m4.6"
+    "m3.5",
+    "m3.6"
    ],
    "next": [
-    "q.m4.union",
-    "q.m12.village"
+    "q.m3.union",
+    "q.m14.village"
    ],
    "peer": [
-    "q.m4.structures"
+    "q.m3.structures"
    ],
    "ans": [
     {
@@ -2627,12 +2627,12 @@ window.DECK = {
    ],
    "backNext": [],
    "backPeer": [
-    "q.m4.union"
+    "q.m3.union"
    ]
   },
   {
-   "id": "q.m4.spatialhash",
-   "m": "m4",
+   "id": "q.m3.spatialhash",
+   "m": "m3",
    "lvl": "P0",
    "layer": 3,
    "q": "如何把 $O(N^2)$ 的邻域检测降下来？空间哈希和网格划分怎么实现？",
@@ -2642,15 +2642,15 @@ window.DECK = {
     "网格"
    ],
    "covers": [
-    "m4.7",
-    "m4.12"
+    "m3.7",
+    "m3.12"
    ],
    "next": [
-    "q.m4.trees",
+    "q.m3.trees",
     "q.m10.filters"
    ],
    "peer": [
-    "q.m4.poisson"
+    "q.m3.poisson"
    ],
    "ans": [
     {
@@ -2672,15 +2672,15 @@ window.DECK = {
    ],
    "backNext": [
     "q.m2.map",
-    "q.m4.structures"
+    "q.m3.structures"
    ],
    "backPeer": [
-    "q.m4.trees"
+    "q.m3.trees"
    ]
   },
   {
-   "id": "q.m4.trees",
-   "m": "m4",
+   "id": "q.m3.trees",
+   "m": "m3",
    "lvl": "P1",
    "layer": 3,
    "q": "KD-Tree、八叉树和 BVH 有什么区别？构建和更新的成本怎么看？",
@@ -2690,14 +2690,14 @@ window.DECK = {
     "BVH"
    ],
    "covers": [
-    "m4.8"
+    "m3.8"
    ],
    "next": [
     "q.m7.accel",
     "q.m9.nanite"
    ],
    "peer": [
-    "q.m4.spatialhash"
+    "q.m3.spatialhash"
    ],
    "ans": [
     {
@@ -2718,8 +2718,8 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m4.structures",
-    "q.m4.spatialhash",
+    "q.m3.structures",
+    "q.m3.spatialhash",
     "q.m7.accel"
    ],
    "backPeer": [
@@ -2727,8 +2727,8 @@ window.DECK = {
    ]
   },
   {
-   "id": "q.m4.sampling",
-   "m": "m4",
+   "id": "q.m3.sampling",
+   "m": "m3",
    "lvl": "P1",
    "layer": 2,
    "q": "随机采样有哪几种？为什么直接 Random 撒点会结块和空洞？",
@@ -2738,11 +2738,11 @@ window.DECK = {
     "蓄水池"
    ],
    "covers": [
-    "m4.9"
+    "m3.9"
    ],
    "next": [
-    "q.m4.poisson",
-    "q.m15.prob"
+    "q.m3.poisson",
+    "q.m11.prob"
    ],
    "peer": [
     "q.m10.density"
@@ -2767,12 +2767,12 @@ window.DECK = {
    ],
    "backNext": [],
    "backPeer": [
-    "q.m4.poisson"
+    "q.m3.poisson"
    ]
   },
   {
-   "id": "q.m4.poisson",
-   "m": "m4",
+   "id": "q.m3.poisson",
+   "m": "m3",
    "lvl": "P1",
    "layer": 3,
    "q": "泊松盘采样（Bridson）怎么做？为什么它比纯随机更适合植被？",
@@ -2782,14 +2782,14 @@ window.DECK = {
     "最小间距"
    ],
    "covers": [
-    "m4.10"
+    "m3.10"
    ],
    "next": [
-    "q.m15.poisson",
+    "q.m11.poisson",
     "q.m10.filters"
    ],
    "peer": [
-    "q.m4.sampling"
+    "q.m3.sampling"
    ],
    "ans": [
     {
@@ -2810,15 +2810,15 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m4.sampling"
+    "q.m3.sampling"
    ],
    "backPeer": [
-    "q.m4.spatialhash"
+    "q.m3.spatialhash"
    ]
   },
   {
-   "id": "q.m4.union",
-   "m": "m4",
+   "id": "q.m3.union",
+   "m": "m3",
    "lvl": "P2",
    "layer": 3,
    "q": "并查集和拓扑排序分别解决什么问题？在生成系统里怎么用？",
@@ -2828,14 +2828,14 @@ window.DECK = {
     "依赖"
    ],
    "covers": [
-    "m4.11"
+    "m3.11"
    ],
    "next": [
-    "q.m17.incremental",
-    "q.m12.village"
+    "q.m13.incremental",
+    "q.m14.village"
    ],
    "peer": [
-    "q.m4.graph"
+    "q.m3.graph"
    ],
    "ans": [
     {
@@ -2856,13 +2856,13 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m4.graph"
+    "q.m3.graph"
    ],
    "backPeer": []
   },
   {
-   "id": "q.m5.concurrency",
-   "m": "m5",
+   "id": "q.m4.concurrency",
+   "m": "m4",
    "lvl": "P0",
    "layer": 1,
    "q": "并发和并行的区别是什么？上下文切换为什么有成本？",
@@ -2872,15 +2872,15 @@ window.DECK = {
     "上下文切换"
    ],
    "covers": [
-    "m5.1",
-    "m5.8"
+    "m4.1",
+    "m4.8"
    ],
    "next": [
-    "q.m5.locks",
-    "q.m5.threadpool"
+    "q.m4.locks",
+    "q.m4.threadpool"
    ],
    "peer": [
-    "q.m5.ue_threads"
+    "q.m4.ue_threads"
    ],
    "ans": [
     {
@@ -2904,13 +2904,13 @@ window.DECK = {
     "q.m10.threading"
    ],
    "backPeer": [
-    "q.m5.locks",
-    "q.m5.threadpool"
+    "q.m4.locks",
+    "q.m4.threadpool"
    ]
   },
   {
-   "id": "q.m5.locks",
-   "m": "m5",
+   "id": "q.m4.locks",
+   "m": "m4",
    "lvl": "P0",
    "layer": 2,
    "q": "互斥锁、条件变量和死锁：正确用法与常见错误是什么？",
@@ -2920,15 +2920,15 @@ window.DECK = {
     "死锁"
    ],
    "covers": [
-    "m5.2",
-    "m5.4"
+    "m4.2",
+    "m4.4"
    ],
    "next": [
-    "q.m5.atomics",
+    "q.m4.atomics",
     "q.m10.threading"
    ],
    "peer": [
-    "q.m5.concurrency"
+    "q.m4.concurrency"
    ],
    "ans": [
     {
@@ -2949,17 +2949,17 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m5.concurrency",
-    "q.m5.atomics"
+    "q.m4.concurrency",
+    "q.m4.atomics"
    ],
    "backPeer": [
     "q.m1.threadtools",
-    "q.m5.ue_threads"
+    "q.m4.ue_threads"
    ]
   },
   {
-   "id": "q.m5.atomics",
-   "m": "m5",
+   "id": "q.m4.atomics",
+   "m": "m4",
    "lvl": "P2",
    "layer": 3,
    "q": "原子操作和内存序是什么？什么时候不该用无锁编程？",
@@ -2969,14 +2969,14 @@ window.DECK = {
     "无锁"
    ],
    "covers": [
-    "m5.3"
+    "m4.3"
    ],
    "next": [
-    "q.m5.locks",
+    "q.m4.locks",
     "q.m1.threadtools"
    ],
    "peer": [
-    "q.m5.vm"
+    "q.m4.vm"
    ],
    "ans": [
     {
@@ -2997,13 +2997,13 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m5.locks"
+    "q.m4.locks"
    ],
    "backPeer": []
   },
   {
-   "id": "q.m5.vm",
-   "m": "m5",
+   "id": "q.m4.vm",
+   "m": "m4",
    "lvl": "P1",
    "layer": 2,
    "q": "虚拟内存、分页和缓存局部性，为什么会影响 PCG 的生成速度？",
@@ -3013,15 +3013,15 @@ window.DECK = {
     "局部性"
    ],
    "covers": [
-    "m5.5",
-    "m5.6"
+    "m4.5",
+    "m4.6"
    ],
    "next": [
     "q.m1.memory",
-    "q.m11.memory"
+    "q.m15.memory"
    ],
    "peer": [
-    "q.m5.alloc"
+    "q.m4.alloc"
    ],
    "ans": [
     {
@@ -3043,13 +3043,13 @@ window.DECK = {
    ],
    "backNext": [],
    "backPeer": [
-    "q.m5.atomics",
-    "q.m5.alloc"
+    "q.m4.atomics",
+    "q.m4.alloc"
    ]
   },
   {
-   "id": "q.m5.threadpool",
-   "m": "m5",
+   "id": "q.m4.threadpool",
+   "m": "m4",
    "lvl": "P1",
    "layer": 2,
    "q": "线程池和任务队列怎么设计？任务粒度如何影响性能？",
@@ -3059,14 +3059,14 @@ window.DECK = {
     "调度"
    ],
    "covers": [
-    "m5.7"
+    "m4.7"
    ],
    "next": [
     "q.m10.budget",
     "q.m1.threadtools"
    ],
    "peer": [
-    "q.m5.concurrency"
+    "q.m4.concurrency"
    ],
    "ans": [
     {
@@ -3087,13 +3087,13 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m5.concurrency"
+    "q.m4.concurrency"
    ],
    "backPeer": []
   },
   {
-   "id": "q.m5.ue_threads",
-   "m": "m5",
+   "id": "q.m4.ue_threads",
+   "m": "m4",
    "lvl": "P0",
    "layer": 2,
    "q": "UE 的游戏线程、渲染线程和任务图之间是什么关系？哪些操作有线程限制？",
@@ -3103,14 +3103,14 @@ window.DECK = {
     "线程安全"
    ],
    "covers": [
-    "m5.9"
+    "m4.9"
    ],
    "next": [
     "q.m9.threads",
     "q.m10.threading"
    ],
    "peer": [
-    "q.m5.locks"
+    "q.m4.locks"
    ],
    "ans": [
     {
@@ -3135,12 +3135,12 @@ window.DECK = {
     "q.m9.threads"
    ],
    "backPeer": [
-    "q.m5.concurrency"
+    "q.m4.concurrency"
    ]
   },
   {
-   "id": "q.m5.alloc",
-   "m": "m5",
+   "id": "q.m4.alloc",
+   "m": "m4",
    "lvl": "P1",
    "layer": 3,
    "q": "内存分配、碎片和对象池：为什么大量小对象会拖慢程序？",
@@ -3150,14 +3150,14 @@ window.DECK = {
     "对象池"
    ],
    "covers": [
-    "m5.10"
+    "m4.10"
    ],
    "next": [
-    "q.m11.memory",
+    "q.m15.memory",
     "q.m10.instancing"
    ],
    "peer": [
-    "q.m5.vm"
+    "q.m4.vm"
    ],
    "ans": [
     {
@@ -3182,12 +3182,12 @@ window.DECK = {
     "q.m2.vector"
    ],
    "backPeer": [
-    "q.m5.vm"
+    "q.m4.vm"
    ]
   },
   {
-   "id": "q.m6.layers",
-   "m": "m6",
+   "id": "q.m5.layers",
+   "m": "m5",
    "lvl": "P2",
    "layer": 1,
    "q": "网络分层有什么用？DNS 和 ARP 分别在解决什么问题？",
@@ -3197,15 +3197,15 @@ window.DECK = {
     "ARP"
    ],
    "covers": [
-    "m6.1",
-    "m6.2"
+    "m5.1",
+    "m5.2"
    ],
    "next": [
-    "q.m6.tcp",
-    "q.m6.http"
+    "q.m5.tcp",
+    "q.m5.http"
    ],
    "peer": [
-    "q.m3.debug"
+    "q.m6.debug"
    ],
    "ans": [
     {
@@ -3227,12 +3227,12 @@ window.DECK = {
    ],
    "backNext": [],
    "backPeer": [
-    "q.m6.tcp"
+    "q.m5.tcp"
    ]
   },
   {
-   "id": "q.m6.tcp",
-   "m": "m6",
+   "id": "q.m5.tcp",
+   "m": "m5",
    "lvl": "P1",
    "layer": 2,
    "q": "TCP 如何保证可靠？三次握手和四次挥手各自解决什么？",
@@ -3242,15 +3242,15 @@ window.DECK = {
     "拥塞控制"
    ],
    "covers": [
-    "m6.3",
-    "m6.4"
+    "m5.3",
+    "m5.4"
    ],
    "next": [
-    "q.m6.udp",
-    "q.m6.http"
+    "q.m5.udp",
+    "q.m5.http"
    ],
    "peer": [
-    "q.m6.layers"
+    "q.m5.layers"
    ],
    "ans": [
     {
@@ -3271,16 +3271,16 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m6.layers"
+    "q.m5.layers"
    ],
    "backPeer": [
-    "q.m6.udp",
-    "q.m6.http"
+    "q.m5.udp",
+    "q.m5.http"
    ]
   },
   {
-   "id": "q.m6.udp",
-   "m": "m6",
+   "id": "q.m5.udp",
+   "m": "m5",
    "lvl": "P1",
    "layer": 2,
    "q": "UDP 为什么常被说成“更适合实时”？可靠 UDP 要补哪些机制？",
@@ -3290,14 +3290,14 @@ window.DECK = {
     "可靠传输"
    ],
    "covers": [
-    "m6.5"
+    "m5.5"
    ],
    "next": [
-    "q.m6.http",
+    "q.m5.http",
     "q.m8.bound"
    ],
    "peer": [
-    "q.m6.tcp"
+    "q.m5.tcp"
    ],
    "ans": [
     {
@@ -3318,13 +3318,13 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m6.tcp"
+    "q.m5.tcp"
    ],
    "backPeer": []
   },
   {
-   "id": "q.m6.http",
-   "m": "m6",
+   "id": "q.m5.http",
+   "m": "m5",
    "lvl": "P1",
    "layer": 2,
    "q": "HTTP 请求失败如何分层排查？重试为什么必须考虑幂等？",
@@ -3334,15 +3334,15 @@ window.DECK = {
     "重试"
    ],
    "covers": [
-    "m6.6",
-    "m6.7"
+    "m5.6",
+    "m5.7"
    ],
    "next": [
-    "q.m6.ue",
-    "q.m11.layers"
+    "q.m5.ue",
+    "q.m15.layers"
    ],
    "peer": [
-    "q.m6.tcp"
+    "q.m5.tcp"
    ],
    "ans": [
     {
@@ -3363,17 +3363,17 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m6.layers",
-    "q.m6.tcp",
-    "q.m6.udp"
+    "q.m5.layers",
+    "q.m5.tcp",
+    "q.m5.udp"
    ],
    "backPeer": [
-    "q.m6.ue"
+    "q.m5.ue"
    ]
   },
   {
-   "id": "q.m6.ue",
-   "m": "m6",
+   "id": "q.m5.ue",
+   "m": "m5",
    "lvl": "P2",
    "layer": 3,
    "q": "UE 项目里的远程资源、DDC 或工具接口失败，通常怎么定位？",
@@ -3383,14 +3383,14 @@ window.DECK = {
     "远程资产"
    ],
    "covers": [
-    "m6.8"
+    "m5.8"
    ],
    "next": [
-    "q.m11.packaged",
-    "q.m16.cook"
+    "q.m15.packaged",
+    "q.m12.cook"
    ],
    "peer": [
-    "q.m6.http"
+    "q.m5.http"
    ],
    "ans": [
     {
@@ -3411,7 +3411,7 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m6.http"
+    "q.m5.http"
    ],
    "backPeer": []
   },
@@ -3457,8 +3457,8 @@ window.DECK = {
    ],
    "backNext": [
     "q.m10.transform",
-    "q.m13.graphics",
-    "q.m15.vector"
+    "q.m16.graphics",
+    "q.m11.vector"
    ],
    "backPeer": [
     "q.m7.matrix",
@@ -3508,7 +3508,7 @@ window.DECK = {
    "backNext": [
     "q.m7.transform",
     "q.m7.normal",
-    "q.m15.matrix"
+    "q.m11.matrix"
    ],
    "backPeer": []
   },
@@ -3742,7 +3742,7 @@ window.DECK = {
    ],
    "backNext": [
     "q.m7.color",
-    "q.m13.graphics"
+    "q.m16.graphics"
    ],
    "backPeer": [
     "q.m7.normal",
@@ -3903,7 +3903,7 @@ window.DECK = {
    ],
    "next": [
     "q.m9.hlod",
-    "q.m4.trees"
+    "q.m3.trees"
    ],
    "peer": [
     "q.m7.transform"
@@ -3927,7 +3927,7 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m4.trees"
+    "q.m3.trees"
    ],
    "backPeer": []
   },
@@ -3977,7 +3977,7 @@ window.DECK = {
    "backPeer": [
     "q.m8.forward",
     "q.m8.taa",
-    "q.m13.graphics"
+    "q.m16.graphics"
    ]
   },
   {
@@ -4231,7 +4231,7 @@ window.DECK = {
     "m8.9"
    ],
    "next": [
-    "q.m11.memory",
+    "q.m15.memory",
     "q.m9.stats"
    ],
    "peer": [
@@ -4257,7 +4257,7 @@ window.DECK = {
    ],
    "backNext": [
     "q.m8.ssao",
-    "q.m11.memory",
+    "q.m15.memory",
     "q.x.vt_landscape"
    ],
    "backPeer": []
@@ -4372,7 +4372,7 @@ window.DECK = {
    ],
    "next": [
     "q.m9.stats",
-    "q.m11.frame"
+    "q.m15.frame"
    ],
    "peer": [
     "q.m8.drawcall"
@@ -4396,7 +4396,7 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m6.udp",
+    "q.m5.udp",
     "q.m7.shadow",
     "q.m8.drawcall",
     "q.m8.forward",
@@ -4404,7 +4404,7 @@ window.DECK = {
     "q.m9.stats"
    ],
    "backPeer": [
-    "q.m11.frame"
+    "q.m15.frame"
    ]
   },
   {
@@ -4464,7 +4464,7 @@ window.DECK = {
     "m9.2"
    ],
    "next": [
-    "q.m5.ue_threads",
+    "q.m4.ue_threads",
     "q.m9.stats"
    ],
    "peer": [
@@ -4491,7 +4491,7 @@ window.DECK = {
    "backNext": [
     "q.m1.vtable",
     "q.m1.ueobject",
-    "q.m5.ue_threads",
+    "q.m4.ue_threads",
     "q.m8.pipeline",
     "q.m9.objects",
     "q.m10.threading"
@@ -4516,7 +4516,7 @@ window.DECK = {
    ],
    "next": [
     "q.m8.deferred",
-    "q.m11.cold"
+    "q.m15.cold"
    ],
    "peer": [
     "q.m9.nanite"
@@ -4543,10 +4543,10 @@ window.DECK = {
     "q.m7.blend",
     "q.m7.pbr",
     "q.m8.deferred",
-    "q.m11.cold"
+    "q.m15.cold"
    ],
    "backPeer": [
-    "q.m11.memory"
+    "q.m15.memory"
    ]
   },
   {
@@ -4589,7 +4589,7 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m4.trees",
+    "q.m3.trees",
     "q.m7.geometry",
     "q.m8.gpudriven",
     "q.x.nanite_veg"
@@ -4744,7 +4744,7 @@ window.DECK = {
    ],
    "backPeer": [
     "q.m9.hlod",
-    "q.m18.design_forest",
+    "q.m17.design_forest",
     "q.x.gpu_scatter"
    ]
   },
@@ -4764,7 +4764,7 @@ window.DECK = {
    ],
    "next": [
     "q.m10.integration",
-    "q.m11.gencost",
+    "q.m15.gencost",
     "q.x.vt_landscape"
    ],
    "peer": [
@@ -4811,7 +4811,7 @@ window.DECK = {
     "m9.10"
    ],
    "next": [
-    "q.m12.world",
+    "q.m14.world",
     "q.m8.bound"
    ],
    "peer": [
@@ -4840,7 +4840,7 @@ window.DECK = {
     "q.m9.nanite",
     "q.m10.partition",
     "q.m10.integration",
-    "q.m12.world",
+    "q.m14.world",
     "q.x.hlod_stream"
    ],
    "backPeer": [
@@ -4865,11 +4865,11 @@ window.DECK = {
     "m9.14"
    ],
    "next": [
-    "q.m11.frame",
+    "q.m15.frame",
     "q.m8.bound"
    ],
    "peer": [
-    "q.m11.packaged"
+    "q.m15.packaged"
    ],
    "ans": [
     {
@@ -4894,13 +4894,13 @@ window.DECK = {
     "q.m8.bound",
     "q.m9.threads",
     "q.m9.vsm",
-    "q.m11.frame",
+    "q.m15.frame",
     "q.x.profile_flow"
    ],
    "backPeer": [
     "q.m9.renderdoc",
-    "q.m11.layers",
-    "q.m13.debug"
+    "q.m15.layers",
+    "q.m16.debug"
    ]
   },
   {
@@ -4919,7 +4919,7 @@ window.DECK = {
     "m9.16"
    ],
    "next": [
-    "q.m11.packaged",
+    "q.m15.packaged",
     "q.m8.rdg"
    ],
    "peer": [
@@ -4945,7 +4945,7 @@ window.DECK = {
    ],
    "backNext": [
     "q.m8.rdg",
-    "q.m11.packaged"
+    "q.m15.packaged"
    ],
    "backPeer": [
     "q.x.profile_flow"
@@ -5060,7 +5060,7 @@ window.DECK = {
     "q.m10.data"
    ],
    "peer": [
-    "q.m17.layers"
+    "q.m13.layers"
    ],
    "ans": [
     {
@@ -5081,13 +5081,13 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m3.patterns",
-    "q.m13.pcg",
-    "q.m17.layers"
+    "q.m6.patterns",
+    "q.m16.pcg",
+    "q.m13.layers"
    ],
    "backPeer": [
     "q.m10.subgraph",
-    "q.m17.layers"
+    "q.m13.layers"
    ]
   },
   {
@@ -5160,7 +5160,7 @@ window.DECK = {
     "q.m10.custom"
    ],
    "peer": [
-    "q.m15.prob"
+    "q.m11.prob"
    ],
    "ans": [
     {
@@ -5182,7 +5182,7 @@ window.DECK = {
    ],
    "backNext": [
     "q.m10.graph",
-    "q.m13.pcg"
+    "q.m16.pcg"
    ],
    "backPeer": [
     "q.m10.density",
@@ -5204,7 +5204,7 @@ window.DECK = {
     "m10.4"
    ],
    "next": [
-    "q.m15.poisson",
+    "q.m11.poisson",
     "q.m10.density"
    ],
    "peer": [
@@ -5229,10 +5229,10 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m11.data",
-    "q.m12.vegetation",
-    "q.m12.road",
-    "q.m15.surface"
+    "q.m15.data",
+    "q.m14.vegetation",
+    "q.m14.road",
+    "q.m11.surface"
    ],
    "backPeer": [
     "q.m10.slope"
@@ -5254,7 +5254,7 @@ window.DECK = {
    ],
    "next": [
     "q.m10.filters",
-    "q.m15.prob",
+    "q.m11.prob",
     "q.x.poisson"
    ],
    "peer": [
@@ -5281,13 +5281,13 @@ window.DECK = {
    "backNext": [
     "q.m10.data",
     "q.m10.samplers",
-    "q.m11.data",
-    "q.m15.prob",
+    "q.m15.data",
+    "q.m11.prob",
     "q.x.spatial",
     "q.x.poisson"
    ],
    "backPeer": [
-    "q.m4.sampling",
+    "q.m3.sampling",
     "q.m10.filters",
     "q.m10.debug"
    ]
@@ -5333,16 +5333,16 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m4.spatialhash",
-    "q.m4.poisson",
+    "q.m3.spatialhash",
+    "q.m3.poisson",
     "q.m10.density",
-    "q.m12.vegetation",
-    "q.m15.poisson",
+    "q.m14.vegetation",
+    "q.m11.poisson",
     "q.x.spatial"
    ],
    "backPeer": [
-    "q.m11.data",
-    "q.m12.edges"
+    "q.m15.data",
+    "q.m14.edges"
    ]
   },
   {
@@ -5386,7 +5386,7 @@ window.DECK = {
    ],
    "backNext": [
     "q.m10.filters",
-    "q.m15.vector",
+    "q.m11.vector",
     "q.x.noise_density"
    ],
    "backPeer": [
@@ -5499,7 +5499,7 @@ window.DECK = {
     "m10.10"
    ],
    "next": [
-    "q.m11.memory",
+    "q.m15.memory",
     "q.m8.drawcall"
    ],
    "peer": [
@@ -5524,18 +5524,18 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m5.alloc",
+    "q.m4.alloc",
     "q.m9.instancing",
     "q.m10.spawner",
-    "q.m11.memory",
-    "q.m18.design_forest",
+    "q.m15.memory",
+    "q.m17.design_forest",
     "q.x.nanite_veg"
    ],
    "backPeer": [
     "q.m2.vector",
     "q.m8.drawcall",
     "q.m10.budget",
-    "q.m13.pcg",
+    "q.m16.pcg",
     "q.x.instancing_cost"
    ]
   },
@@ -5554,8 +5554,8 @@ window.DECK = {
     "m10.11"
    ],
    "next": [
-    "q.m17.reuse",
-    "q.m16.assets"
+    "q.m13.reuse",
+    "q.m12.assets"
    ],
    "peer": [
     "q.m10.graph"
@@ -5579,8 +5579,8 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m16.dataasset",
-    "q.m17.reuse"
+    "q.m12.dataasset",
+    "q.m13.reuse"
    ],
    "backPeer": []
   },
@@ -5599,8 +5599,8 @@ window.DECK = {
     "m10.12"
    ],
    "next": [
-    "q.m17.determinism",
-    "q.m11.repro",
+    "q.m13.determinism",
+    "q.m15.repro",
     "q.x.determinism"
    ],
    "peer": [
@@ -5626,15 +5626,15 @@ window.DECK = {
    ],
    "backNext": [
     "q.m10.transform",
-    "q.m17.determinism",
-    "q.m18.debug_nondet",
+    "q.m13.determinism",
+    "q.m17.debug_nondet",
     "q.x.determinism"
    ],
    "backPeer": [
     "q.m10.version",
-    "q.m11.repro",
-    "q.m12.quality",
-    "q.m16.autotest"
+    "q.m15.repro",
+    "q.m14.quality",
+    "q.m12.autotest"
    ]
   },
   {
@@ -5652,7 +5652,7 @@ window.DECK = {
     "m10.13"
    ],
    "next": [
-    "q.m12.world",
+    "q.m14.world",
     "q.m9.hlod"
    ],
    "peer": [
@@ -5677,11 +5677,11 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m12.world"
+    "q.m14.world"
    ],
    "backPeer": [
     "q.m10.integration",
-    "q.m12.road",
+    "q.m14.road",
     "q.x.hlod_stream"
    ]
   },
@@ -5700,7 +5700,7 @@ window.DECK = {
     "m10.14"
    ],
    "next": [
-    "q.m11.frame",
+    "q.m15.frame",
     "q.m10.threading"
    ],
    "peer": [
@@ -5726,7 +5726,7 @@ window.DECK = {
    ],
    "backNext": [
     "q.m10.component",
-    "q.m11.frame"
+    "q.m15.frame"
    ],
    "backPeer": []
   },
@@ -5745,7 +5745,7 @@ window.DECK = {
     "m10.15"
    ],
    "next": [
-    "q.m17.contract",
+    "q.m13.contract",
     "q.m1.template",
     "q.x.ownership"
    ],
@@ -5776,7 +5776,7 @@ window.DECK = {
    ],
    "backPeer": [
     "q.m10.threading",
-    "q.m16.scripting"
+    "q.m12.scripting"
    ]
   },
   {
@@ -5794,7 +5794,7 @@ window.DECK = {
     "m10.16"
    ],
    "next": [
-    "q.m5.concurrency",
+    "q.m4.concurrency",
     "q.m9.threads"
    ],
    "peer": [
@@ -5820,8 +5820,8 @@ window.DECK = {
    ],
    "backNext": [
     "q.m1.threadtools",
-    "q.m5.locks",
-    "q.m5.ue_threads",
+    "q.m4.locks",
+    "q.m4.ue_threads",
     "q.m10.component",
     "q.m10.runtime"
    ],
@@ -5845,8 +5845,8 @@ window.DECK = {
     "m10.17"
    ],
    "next": [
-    "q.m11.repro",
-    "q.m11.symptoms"
+    "q.m15.repro",
+    "q.m15.symptoms"
    ],
    "peer": [
     "q.m10.density"
@@ -5870,9 +5870,9 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m11.repro",
-    "q.m11.layers",
-    "q.m11.symptoms"
+    "q.m15.repro",
+    "q.m15.layers",
+    "q.m15.symptoms"
    ],
    "backPeer": [
     "q.x.ownership"
@@ -5893,7 +5893,7 @@ window.DECK = {
     "m10.18"
    ],
    "next": [
-    "q.m12.world",
+    "q.m14.world",
     "q.m9.hlod"
    ],
    "peer": [
@@ -5937,8 +5937,8 @@ window.DECK = {
     "m10.19"
    ],
    "next": [
-    "q.m16.vcs",
-    "q.m16.cook"
+    "q.m12.vcs",
+    "q.m12.cook"
    ],
    "peer": [
     "q.m10.seed"
@@ -5962,11 +5962,11 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m16.vcs"
+    "q.m12.vcs"
    ],
    "backPeer": [
-    "q.m12.deliver",
-    "q.m16.assets"
+    "q.m14.deliver",
+    "q.m12.assets"
    ]
   },
   {
@@ -5984,8 +5984,8 @@ window.DECK = {
     "m10.20"
    ],
    "next": [
-    "q.m11.budget",
-    "q.m17.observability"
+    "q.m15.budget",
+    "q.m13.observability"
    ],
    "peer": [
     "q.m10.instancing"
@@ -6009,12 +6009,12 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m5.threadpool",
+    "q.m4.threadpool",
     "q.m10.filters",
-    "q.m11.gencost",
-    "q.m11.compare",
-    "q.m11.budget",
-    "q.m13.tradeoff",
+    "q.m15.gencost",
+    "q.m15.compare",
+    "q.m15.budget",
+    "q.m16.tradeoff",
     "q.x.gpu_scatter"
    ],
    "backPeer": [
@@ -6022,8 +6022,8 @@ window.DECK = {
    ]
   },
   {
-   "id": "q.m11.repro",
-   "m": "m11",
+   "id": "q.m15.repro",
+   "m": "m15",
    "lvl": "P0",
    "layer": 4,
    "q": "线上/评审现场出了问题，你怎样在十分钟内建立可复现？",
@@ -6033,11 +6033,11 @@ window.DECK = {
     "方法论"
    ],
    "covers": [
-    "m11.1",
-    "m11.2"
+    "m15.1",
+    "m15.2"
    ],
    "next": [
-    "q.m11.symptoms",
+    "q.m15.symptoms",
     "q.m10.debug"
    ],
    "peer": [
@@ -6062,19 +6062,19 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m3.debug",
+    "q.m6.debug",
     "q.m10.seed",
     "q.m10.debug",
-    "q.m14.bugs"
+    "q.m18.bugs"
    ],
    "backPeer": [
-    "q.m11.compare",
-    "q.m18.debug_nondet"
+    "q.m15.compare",
+    "q.m17.debug_nondet"
    ]
   },
   {
-   "id": "q.m11.layers",
-   "m": "m11",
+   "id": "q.m15.layers",
+   "m": "m15",
    "lvl": "P0",
    "layer": 4,
    "q": "PCG 结果不对时，你怎么分层排查？",
@@ -6084,11 +6084,11 @@ window.DECK = {
     "渲染"
    ],
    "covers": [
-    "m11.3"
+    "m15.3"
    ],
    "next": [
     "q.m10.debug",
-    "q.m11.data",
+    "q.m15.data",
     "q.x.profile_flow"
    ],
    "peer": [
@@ -6113,19 +6113,19 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m3.debug",
-    "q.m6.http",
-    "q.m13.debug",
-    "q.m14.bugs"
+    "q.m6.debug",
+    "q.m5.http",
+    "q.m16.debug",
+    "q.m18.bugs"
    ],
    "backPeer": [
-    "q.m11.symptoms",
+    "q.m15.symptoms",
     "q.x.profile_flow"
    ]
   },
   {
-   "id": "q.m11.data",
-   "m": "m11",
+   "id": "q.m15.data",
+   "m": "m15",
    "lvl": "P1",
    "layer": 4,
    "q": "PCG 点数不对（太多/太少/位置错）通常是什么原因？",
@@ -6135,7 +6135,7 @@ window.DECK = {
     "过滤"
    ],
    "covers": [
-    "m11.4"
+    "m15.4"
    ],
    "next": [
     "q.m10.density",
@@ -6163,13 +6163,13 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m11.layers"
+    "q.m15.layers"
    ],
    "backPeer": []
   },
   {
-   "id": "q.m11.frame",
-   "m": "m11",
+   "id": "q.m15.frame",
+   "m": "m15",
    "lvl": "P0",
    "layer": 4,
    "q": "PCG 场景掉帧，怎么区分“生成卡顿”和“渲染卡顿”？",
@@ -6179,7 +6179,7 @@ window.DECK = {
     "渲染"
    ],
    "covers": [
-    "m11.5"
+    "m15.5"
    ],
    "next": [
     "q.m9.stats",
@@ -6210,17 +6210,17 @@ window.DECK = {
     "q.m8.bound",
     "q.m9.stats",
     "q.m10.runtime",
-    "q.m13.debug",
+    "q.m16.debug",
     "q.x.profile_flow"
    ],
    "backPeer": [
-    "q.m11.gencost",
-    "q.m11.cold"
+    "q.m15.gencost",
+    "q.m15.cold"
    ]
   },
   {
-   "id": "q.m11.gencost",
-   "m": "m11",
+   "id": "q.m15.gencost",
+   "m": "m15",
    "lvl": "P0",
    "layer": 4,
    "q": "生成太慢，你会按什么顺序优化？",
@@ -6230,14 +6230,14 @@ window.DECK = {
     "采样"
    ],
    "covers": [
-    "m11.6"
+    "m15.6"
    ],
    "next": [
     "q.m10.budget",
-    "q.m17.incremental"
+    "q.m13.incremental"
    ],
    "peer": [
-    "q.m11.frame"
+    "q.m15.frame"
    ],
    "ans": [
     {
@@ -6259,14 +6259,14 @@ window.DECK = {
    ],
    "backNext": [
     "q.m9.landscape",
-    "q.m12.iterate",
-    "q.m17.incremental"
+    "q.m14.iterate",
+    "q.m13.incremental"
    ],
    "backPeer": []
   },
   {
-   "id": "q.m11.memory",
-   "m": "m11",
+   "id": "q.m15.memory",
+   "m": "m15",
    "lvl": "P1",
    "layer": 4,
    "q": "PCG 场景内存/显存过高，常见来源和排查手段是什么？",
@@ -6276,7 +6276,7 @@ window.DECK = {
     "资产"
    ],
    "covers": [
-    "m11.7"
+    "m15.7"
    ],
    "next": [
     "q.m8.vt",
@@ -6304,8 +6304,8 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m5.vm",
-    "q.m5.alloc",
+    "q.m4.vm",
+    "q.m4.alloc",
     "q.m8.vt",
     "q.m10.instancing"
    ],
@@ -6314,8 +6314,8 @@ window.DECK = {
    ]
   },
   {
-   "id": "q.m11.compare",
-   "m": "m11",
+   "id": "q.m15.compare",
+   "m": "m15",
    "lvl": "P1",
    "layer": 3,
    "q": "怎样做 A/B 对比才可信？为什么“我感觉变快了”不算结论？",
@@ -6325,14 +6325,14 @@ window.DECK = {
     "统计"
    ],
    "covers": [
-    "m11.8"
+    "m15.8"
    ],
    "next": [
-    "q.m17.observability",
+    "q.m13.observability",
     "q.m10.budget"
    ],
    "peer": [
-    "q.m11.repro"
+    "q.m15.repro"
    ],
    "ans": [
     {
@@ -6353,19 +6353,19 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m15.eval",
-    "q.m17.observability",
-    "q.m18.conflict"
+    "q.m11.eval",
+    "q.m13.observability",
+    "q.m17.conflict"
    ],
    "backPeer": [
-    "q.m11.budget",
-    "q.m13.tradeoff",
+    "q.m15.budget",
+    "q.m16.tradeoff",
     "q.x.test"
    ]
   },
   {
-   "id": "q.m11.symptoms",
-   "m": "m11",
+   "id": "q.m15.symptoms",
+   "m": "m15",
    "lvl": "P0",
    "layer": 4,
    "q": "列举 PCG 常见症状与最可能的原因（至少六组）。",
@@ -6375,14 +6375,14 @@ window.DECK = {
     "经验"
    ],
    "covers": [
-    "m11.9"
+    "m15.9"
    ],
    "next": [
     "q.m10.debug",
-    "q.m12.edges"
+    "q.m14.edges"
    ],
    "peer": [
-    "q.m11.layers"
+    "q.m15.layers"
    ],
    "ans": [
     {
@@ -6404,16 +6404,16 @@ window.DECK = {
    ],
    "backNext": [
     "q.m10.debug",
-    "q.m11.repro",
-    "q.m12.edges"
+    "q.m15.repro",
+    "q.m14.edges"
    ],
    "backPeer": [
-    "q.m14.bugs"
+    "q.m18.bugs"
    ]
   },
   {
-   "id": "q.m11.cold",
-   "m": "m11",
+   "id": "q.m15.cold",
+   "m": "m15",
    "lvl": "P1",
    "layer": 4,
    "q": "首次进入区域卡一下，之后正常，通常是什么问题？",
@@ -6423,14 +6423,14 @@ window.DECK = {
     "加载"
    ],
    "covers": [
-    "m11.10"
+    "m15.10"
    ],
    "next": [
     "q.m9.material",
-    "q.m11.packaged"
+    "q.m15.packaged"
    ],
    "peer": [
-    "q.m11.frame"
+    "q.m15.frame"
    ],
    "ans": [
     {
@@ -6454,12 +6454,12 @@ window.DECK = {
     "q.m9.material"
    ],
    "backPeer": [
-    "q.m11.packaged"
+    "q.m15.packaged"
    ]
   },
   {
-   "id": "q.m11.packaged",
-   "m": "m11",
+   "id": "q.m15.packaged",
+   "m": "m15",
    "lvl": "P1",
    "layer": 4,
    "q": "编辑器正常、打包后异常，排查思路是什么？",
@@ -6469,14 +6469,14 @@ window.DECK = {
     "平台"
    ],
    "covers": [
-    "m11.11"
+    "m15.11"
    ],
    "next": [
     "q.m9.renderdoc",
-    "q.m16.cook"
+    "q.m12.cook"
    ],
    "peer": [
-    "q.m11.cold"
+    "q.m15.cold"
    ],
    "ans": [
     {
@@ -6497,10 +6497,10 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m6.ue",
+    "q.m5.ue",
     "q.m9.renderdoc",
-    "q.m11.cold",
-    "q.m16.cook",
+    "q.m15.cold",
+    "q.m12.cook",
     "q.x.cook"
    ],
    "backPeer": [
@@ -6508,8 +6508,8 @@ window.DECK = {
    ]
   },
   {
-   "id": "q.m11.budget",
-   "m": "m11",
+   "id": "q.m15.budget",
+   "m": "m15",
    "lvl": "P2",
    "layer": 3,
    "q": "如何为一个 PCG 大世界制定并守住性能预算？",
@@ -6519,14 +6519,14 @@ window.DECK = {
     "流程"
    ],
    "covers": [
-    "m11.12"
+    "m15.12"
    ],
    "next": [
     "q.m10.budget",
-    "q.m17.observability"
+    "q.m13.observability"
    ],
    "peer": [
-    "q.m11.compare"
+    "q.m15.compare"
    ],
    "ans": [
     {
@@ -6548,17 +6548,17 @@ window.DECK = {
    ],
    "backNext": [
     "q.m10.budget",
-    "q.m16.ci",
-    "q.m16.budget",
-    "q.m18.design_forest"
+    "q.m12.ci",
+    "q.m12.budget",
+    "q.m17.design_forest"
    ],
    "backPeer": [
     "q.x.hlod_stream"
    ]
   },
   {
-   "id": "q.m12.vegetation",
-   "m": "m12",
+   "id": "q.m14.vegetation",
+   "m": "m14",
    "lvl": "P0",
    "layer": 4,
    "q": "用 PCG 做植被分布，你会怎么设计整条链路？",
@@ -6568,14 +6568,14 @@ window.DECK = {
     "链路"
    ],
    "covers": [
-    "m12.1"
+    "m14.1"
    ],
    "next": [
     "q.m10.samplers",
     "q.m10.filters"
    ],
    "peer": [
-    "q.m15.poisson"
+    "q.m11.poisson"
    ],
    "ans": [
     {
@@ -6596,18 +6596,18 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m18.design_biome"
+    "q.m17.design_biome"
    ],
    "backPeer": [
-    "q.m13.project",
+    "q.m16.project",
     "q.x.poisson",
     "q.x.noise_density",
     "q.x.nanite_veg"
    ]
   },
   {
-   "id": "q.m12.road",
-   "m": "m12",
+   "id": "q.m14.road",
+   "m": "m14",
    "lvl": "P1",
    "layer": 4,
    "q": "道路/河流这类线性元素，用 PCG 怎么做？难点在哪？",
@@ -6617,11 +6617,11 @@ window.DECK = {
     "线性元素"
    ],
    "covers": [
-    "m12.2"
+    "m14.2"
    ],
    "next": [
     "q.m10.samplers",
-    "q.m12.edges",
+    "q.m14.edges",
     "q.x.spline_math"
    ],
    "peer": [
@@ -6651,8 +6651,8 @@ window.DECK = {
    "backPeer": []
   },
   {
-   "id": "q.m12.village",
-   "m": "m12",
+   "id": "q.m14.village",
+   "m": "m14",
    "lvl": "P1",
    "layer": 4,
    "q": "程序化聚落/村庄怎么生成才不呆板？",
@@ -6662,14 +6662,14 @@ window.DECK = {
     "语法"
    ],
    "covers": [
-    "m12.3"
+    "m14.3"
    ],
    "next": [
-    "q.m15.grammar",
-    "q.m15.voronoi"
+    "q.m11.grammar",
+    "q.m11.voronoi"
    ],
    "peer": [
-    "q.m12.iterate"
+    "q.m14.iterate"
    ],
    "ans": [
     {
@@ -6690,16 +6690,16 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m4.graph",
-    "q.m4.union",
-    "q.m15.voronoi",
-    "q.m15.grammar"
+    "q.m3.graph",
+    "q.m3.union",
+    "q.m11.voronoi",
+    "q.m11.grammar"
    ],
    "backPeer": []
   },
   {
-   "id": "q.m12.world",
-   "m": "m12",
+   "id": "q.m14.world",
+   "m": "m14",
    "lvl": "P0",
    "layer": 4,
    "q": "做一个可玩的大世界，PCG 的管线怎么和流送、HLOD、任务系统配合？",
@@ -6709,7 +6709,7 @@ window.DECK = {
     "管线"
    ],
    "covers": [
-    "m12.4"
+    "m14.4"
    ],
    "next": [
     "q.m10.partition",
@@ -6717,7 +6717,7 @@ window.DECK = {
     "q.x.hlod_stream"
    ],
    "peer": [
-    "q.m12.report"
+    "q.m14.report"
    ],
    "ans": [
     {
@@ -6746,8 +6746,8 @@ window.DECK = {
    "backPeer": []
   },
   {
-   "id": "q.m12.report",
-   "m": "m12",
+   "id": "q.m14.report",
+   "m": "m14",
    "lvl": "P0",
    "layer": 3,
    "q": "怎么做一次让人信服的技术汇报/评审？",
@@ -6757,14 +6757,14 @@ window.DECK = {
     "表达"
    ],
    "covers": [
-    "m12.5"
+    "m14.5"
    ],
    "next": [
-    "q.m14.projects",
-    "q.m12.deliver"
+    "q.m18.projects",
+    "q.m14.deliver"
    ],
    "peer": [
-    "q.m12.quality"
+    "q.m14.quality"
    ],
    "ans": [
     {
@@ -6785,18 +6785,18 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m12.quality",
-    "q.m13.project"
+    "q.m14.quality",
+    "q.m16.project"
    ],
    "backPeer": [
-    "q.m12.world",
-    "q.m14.projects",
-    "q.m16.budget"
+    "q.m14.world",
+    "q.m18.projects",
+    "q.m12.budget"
    ]
   },
   {
-   "id": "q.m12.deliver",
-   "m": "m12",
+   "id": "q.m14.deliver",
+   "m": "m14",
    "lvl": "P0",
    "layer": 4,
    "q": "交付一个 PCG 工具/管线时，文档和交接要包含什么？",
@@ -6806,11 +6806,11 @@ window.DECK = {
     "交接"
    ],
    "covers": [
-    "m12.6"
+    "m14.6"
    ],
    "next": [
-    "q.m16.autotest",
-    "q.m17.contract"
+    "q.m12.autotest",
+    "q.m13.contract"
    ],
    "peer": [
     "q.m10.version"
@@ -6834,14 +6834,14 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m12.report",
-    "q.m12.collab"
+    "q.m14.report",
+    "q.m14.collab"
    ],
    "backPeer": []
   },
   {
-   "id": "q.m12.edges",
-   "m": "m12",
+   "id": "q.m14.edges",
+   "m": "m14",
    "lvl": "P1",
    "layer": 4,
    "q": "PCG 的边界情况（空输入、极端参数、重叠区域、资产缺失）怎么处理？",
@@ -6851,11 +6851,11 @@ window.DECK = {
     "异常"
    ],
    "covers": [
-    "m12.7"
+    "m14.7"
    ],
    "next": [
-    "q.m17.failure",
-    "q.m11.symptoms"
+    "q.m13.failure",
+    "q.m15.symptoms"
    ],
    "peer": [
     "q.m10.filters"
@@ -6879,15 +6879,15 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m11.symptoms",
-    "q.m12.road",
-    "q.m17.failure"
+    "q.m15.symptoms",
+    "q.m14.road",
+    "q.m13.failure"
    ],
    "backPeer": []
   },
   {
-   "id": "q.m12.collab",
-   "m": "m12",
+   "id": "q.m14.collab",
+   "m": "m14",
    "lvl": "P1",
    "layer": 3,
    "q": "PCG 怎么和美术/策划/程序协作？各自的介入点在哪？",
@@ -6897,14 +6897,14 @@ window.DECK = {
     "角色"
    ],
    "covers": [
-    "m12.8"
+    "m14.8"
    ],
    "next": [
-    "q.m12.deliver",
-    "q.m16.vcs"
+    "q.m14.deliver",
+    "q.m12.vcs"
    ],
    "peer": [
-    "q.m12.iterate"
+    "q.m14.iterate"
    ],
    "ans": [
     {
@@ -6926,13 +6926,13 @@ window.DECK = {
    ],
    "backNext": [],
    "backPeer": [
-    "q.m12.iterate",
-    "q.m16.vcs"
+    "q.m14.iterate",
+    "q.m12.vcs"
    ]
   },
   {
-   "id": "q.m12.iterate",
-   "m": "m12",
+   "id": "q.m14.iterate",
+   "m": "m14",
    "lvl": "P1",
    "layer": 4,
    "q": "PCG 的迭代循环怎么设计才快？为什么改一次要等很久？",
@@ -6942,14 +6942,14 @@ window.DECK = {
     "反馈"
    ],
    "covers": [
-    "m12.9"
+    "m14.9"
    ],
    "next": [
-    "q.m17.incremental",
-    "q.m11.gencost"
+    "q.m13.incremental",
+    "q.m15.gencost"
    ],
    "peer": [
-    "q.m12.collab"
+    "q.m14.collab"
    ],
    "ans": [
     {
@@ -6970,16 +6970,16 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m17.incremental"
+    "q.m13.incremental"
    ],
    "backPeer": [
-    "q.m12.village",
-    "q.m12.collab"
+    "q.m14.village",
+    "q.m14.collab"
    ]
   },
   {
-   "id": "q.m12.quality",
-   "m": "m12",
+   "id": "q.m14.quality",
+   "m": "m14",
    "lvl": "P0",
    "layer": 3,
    "q": "程序化生成的质量怎么定义和验收？",
@@ -6989,11 +6989,11 @@ window.DECK = {
     "标准"
    ],
    "covers": [
-    "m12.10"
+    "m14.10"
    ],
    "next": [
-    "q.m16.autotest",
-    "q.m12.report"
+    "q.m12.autotest",
+    "q.m14.report"
    ],
    "peer": [
     "q.m10.seed"
@@ -7017,16 +7017,16 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m15.eval",
-    "q.m16.autotest"
+    "q.m11.eval",
+    "q.m12.autotest"
    ],
    "backPeer": [
-    "q.m12.report"
+    "q.m14.report"
    ]
   },
   {
-   "id": "q.m13.basics",
-   "m": "m13",
+   "id": "q.m16.basics",
+   "m": "m16",
    "lvl": "P0",
    "layer": 1,
    "q": "快问：指针与引用、堆与栈、虚函数、内存泄漏、const、static 各自一句话怎么说清？",
@@ -7036,7 +7036,7 @@ window.DECK = {
     "基础"
    ],
    "covers": [
-    "m13.1"
+    "m16.1"
    ],
    "next": [
     "q.m1.types",
@@ -7067,8 +7067,8 @@ window.DECK = {
    "backPeer": []
   },
   {
-   "id": "q.m13.graphics",
-   "m": "m13",
+   "id": "q.m16.graphics",
+   "m": "m16",
    "lvl": "P0",
    "layer": 1,
    "q": "快问：MVP 变换、光栅化、深度测试、混合、法线贴图、PBR 各一句话。",
@@ -7077,7 +7077,7 @@ window.DECK = {
     "图形学"
    ],
    "covers": [
-    "m13.2"
+    "m16.2"
    ],
    "next": [
     "q.m7.transform",
@@ -7108,8 +7108,8 @@ window.DECK = {
    "backPeer": []
   },
   {
-   "id": "q.m13.pcg",
-   "m": "m13",
+   "id": "q.m16.pcg",
+   "m": "m16",
    "lvl": "P0",
    "layer": 1,
    "q": "快问：PCG 是什么、点和属性是什么、确定性怎么保证、ISM 和 Actor 怎么选？",
@@ -7118,7 +7118,7 @@ window.DECK = {
     "PCG"
    ],
    "covers": [
-    "m13.3"
+    "m16.3"
    ],
    "next": [
     "q.m10.graph",
@@ -7149,8 +7149,8 @@ window.DECK = {
    "backPeer": []
   },
   {
-   "id": "q.m13.debug",
-   "m": "m13",
+   "id": "q.m16.debug",
+   "m": "m16",
    "lvl": "P0",
    "layer": 2,
    "q": "快问：掉帧怎么定位、生成不对怎么查、内存涨怎么找？",
@@ -7159,11 +7159,11 @@ window.DECK = {
     "排错"
    ],
    "covers": [
-    "m13.4"
+    "m16.4"
    ],
    "next": [
-    "q.m11.frame",
-    "q.m11.layers"
+    "q.m15.frame",
+    "q.m15.layers"
    ],
    "peer": [
     "q.m9.stats"
@@ -7190,8 +7190,8 @@ window.DECK = {
    "backPeer": []
   },
   {
-   "id": "q.m13.project",
-   "m": "m13",
+   "id": "q.m16.project",
+   "m": "m16",
    "lvl": "P0",
    "layer": 3,
    "q": "快问：介绍一个你做过的 PCG 项目（背景-方案-结果-反思）。",
@@ -7201,14 +7201,14 @@ window.DECK = {
     "表达"
    ],
    "covers": [
-    "m13.5"
+    "m16.5"
    ],
    "next": [
-    "q.m14.projects",
-    "q.m12.report"
+    "q.m18.projects",
+    "q.m14.report"
    ],
    "peer": [
-    "q.m12.vegetation"
+    "q.m14.vegetation"
    ],
    "ans": [
     {
@@ -7229,14 +7229,14 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m14.readiness",
-    "q.m14.projects"
+    "q.m18.readiness",
+    "q.m18.projects"
    ],
    "backPeer": []
   },
   {
-   "id": "q.m13.tradeoff",
-   "m": "m13",
+   "id": "q.m16.tradeoff",
+   "m": "m16",
    "lvl": "P1",
    "layer": 3,
    "q": "快问：程序化 vs 手工、烘焙 vs 运行时、实例 vs Actor、精度 vs 性能，各怎么选？",
@@ -7245,14 +7245,14 @@ window.DECK = {
     "取舍"
    ],
    "covers": [
-    "m13.6"
+    "m16.6"
    ],
    "next": [
-    "q.m17.layers",
+    "q.m13.layers",
     "q.m10.budget"
    ],
    "peer": [
-    "q.m11.compare"
+    "q.m15.compare"
    ],
    "ans": [
     {
@@ -7276,8 +7276,8 @@ window.DECK = {
    "backPeer": []
   },
   {
-   "id": "q.m14.readiness",
-   "m": "m14",
+   "id": "q.m18.readiness",
+   "m": "m18",
    "lvl": "P0",
    "layer": 3,
    "q": "面试前一天，你会怎么准备与自检？",
@@ -7287,15 +7287,15 @@ window.DECK = {
     "收尾"
    ],
    "covers": [
-    "m14.1",
-    "m14.6"
+    "m18.1",
+    "m18.6"
    ],
    "next": [
-    "q.m14.questions",
-    "q.m13.project"
+    "q.m18.questions",
+    "q.m16.project"
    ],
    "peer": [
-    "q.m14.projects"
+    "q.m18.projects"
    ],
    "ans": [
     {
@@ -7316,13 +7316,13 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m14.questions"
+    "q.m18.questions"
    ],
    "backPeer": []
   },
   {
-   "id": "q.m14.projects",
-   "m": "m14",
+   "id": "q.m18.projects",
+   "m": "m18",
    "lvl": "P0",
    "layer": 3,
    "q": "项目介绍怎么讲才能扛住追问？",
@@ -7332,14 +7332,14 @@ window.DECK = {
     "表达"
    ],
    "covers": [
-    "m14.2"
+    "m18.2"
    ],
    "next": [
-    "q.m13.project",
-    "q.m14.bugs"
+    "q.m16.project",
+    "q.m18.bugs"
    ],
    "peer": [
-    "q.m12.report"
+    "q.m14.report"
    ],
    "ans": [
     {
@@ -7360,17 +7360,17 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m12.report",
-    "q.m13.project",
-    "q.m18.stack"
+    "q.m14.report",
+    "q.m16.project",
+    "q.m17.stack"
    ],
    "backPeer": [
-    "q.m14.readiness"
+    "q.m18.readiness"
    ]
   },
   {
-   "id": "q.m14.bugs",
-   "m": "m14",
+   "id": "q.m18.bugs",
+   "m": "m18",
    "lvl": "P1",
    "layer": 4,
    "q": "讲一个你排查过的最难的 bug，结构怎么组织？",
@@ -7380,14 +7380,14 @@ window.DECK = {
     "排错"
    ],
    "covers": [
-    "m14.3"
+    "m18.3"
    ],
    "next": [
-    "q.m11.repro",
-    "q.m11.layers"
+    "q.m15.repro",
+    "q.m15.layers"
    ],
    "peer": [
-    "q.m11.symptoms"
+    "q.m15.symptoms"
    ],
    "ans": [
     {
@@ -7408,13 +7408,13 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m14.projects"
+    "q.m18.projects"
    ],
    "backPeer": []
   },
   {
-   "id": "q.m14.materials",
-   "m": "m14",
+   "id": "q.m18.materials",
+   "m": "m18",
    "lvl": "P1",
    "layer": 2,
    "q": "被问到不熟的技术（如 Nanite 内部、某个 API 细节）怎么办？",
@@ -7424,14 +7424,14 @@ window.DECK = {
     "迁移"
    ],
    "covers": [
-    "m14.4"
+    "m18.4"
    ],
    "next": [
-    "q.m18.unknown",
-    "q.m14.questions"
+    "q.m17.unknown",
+    "q.m18.questions"
    ],
    "peer": [
-    "q.m18.askback"
+    "q.m17.askback"
    ],
    "ans": [
     {
@@ -7452,16 +7452,16 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m3.adr",
-    "q.m18.unknown"
+    "q.m6.adr",
+    "q.m17.unknown"
    ],
    "backPeer": [
-    "q.m14.questions"
+    "q.m18.questions"
    ]
   },
   {
-   "id": "q.m14.questions",
-   "m": "m14",
+   "id": "q.m18.questions",
+   "m": "m18",
    "lvl": "P0",
    "layer": 3,
    "q": "面试最后反问什么才加分？",
@@ -7470,14 +7470,14 @@ window.DECK = {
     "收尾"
    ],
    "covers": [
-    "m14.5"
+    "m18.5"
    ],
    "next": [
-    "q.m14.readiness",
-    "q.m18.askback"
+    "q.m18.readiness",
+    "q.m17.askback"
    ],
    "peer": [
-    "q.m14.materials"
+    "q.m18.materials"
    ],
    "ans": [
     {
@@ -7498,17 +7498,17 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m14.readiness",
-    "q.m14.materials",
-    "q.m18.askback"
+    "q.m18.readiness",
+    "q.m18.materials",
+    "q.m17.askback"
    ],
    "backPeer": [
-    "q.m18.askback"
+    "q.m17.askback"
    ]
   },
   {
-   "id": "q.m15.vector",
-   "m": "m15",
+   "id": "q.m11.vector",
+   "m": "m11",
    "lvl": "P0",
    "layer": 1,
    "q": "点乘、叉乘、归一化在 PCG 里各自解决什么问题？",
@@ -7518,14 +7518,14 @@ window.DECK = {
     "叉乘"
    ],
    "covers": [
-    "m15.1"
+    "m11.1"
    ],
    "next": [
     "q.m7.transform",
     "q.m10.slope"
    ],
    "peer": [
-    "q.m15.matrix"
+    "q.m11.matrix"
    ],
    "ans": [
     {
@@ -7549,12 +7549,12 @@ window.DECK = {
     "q.x.spline_math"
    ],
    "backPeer": [
-    "q.m15.matrix"
+    "q.m11.matrix"
    ]
   },
   {
-   "id": "q.m15.matrix",
-   "m": "m15",
+   "id": "q.m11.matrix",
+   "m": "m11",
    "lvl": "P1",
    "layer": 2,
    "q": "矩阵为什么要按特定顺序相乘？欧拉角、四元数、旋转矩阵怎么选？",
@@ -7564,14 +7564,14 @@ window.DECK = {
     "旋转"
    ],
    "covers": [
-    "m15.2"
+    "m11.2"
    ],
    "next": [
     "q.m7.matrix",
-    "q.m15.interp"
+    "q.m11.interp"
    ],
    "peer": [
-    "q.m15.vector"
+    "q.m11.vector"
    ],
    "ans": [
     {
@@ -7592,16 +7592,16 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m15.interp"
+    "q.m11.interp"
    ],
    "backPeer": [
-    "q.m15.vector",
+    "q.m11.vector",
     "q.x.spline_math"
    ]
   },
   {
-   "id": "q.m15.interp",
-   "m": "m15",
+   "id": "q.m11.interp",
+   "m": "m11",
    "lvl": "P1",
    "layer": 2,
    "q": "lerp、slerp、smoothstep、缓动曲线的差别与误用是什么？",
@@ -7611,14 +7611,14 @@ window.DECK = {
     "重映射"
    ],
    "covers": [
-    "m15.3"
+    "m11.3"
    ],
    "next": [
-    "q.m15.noise",
-    "q.m15.matrix"
+    "q.m11.noise",
+    "q.m11.matrix"
    ],
    "peer": [
-    "q.m15.prob"
+    "q.m11.prob"
    ],
    "ans": [
     {
@@ -7639,15 +7639,15 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m15.matrix"
+    "q.m11.matrix"
    ],
    "backPeer": [
-    "q.m15.noise"
+    "q.m11.noise"
    ]
   },
   {
-   "id": "q.m15.prob",
-   "m": "m15",
+   "id": "q.m11.prob",
+   "m": "m11",
    "lvl": "P1",
    "layer": 3,
    "q": "加权抽样怎么写？随机流为什么要隔离？怎样做出“聚集/排斥/带状”的分布？",
@@ -7657,15 +7657,15 @@ window.DECK = {
     "分布形态"
    ],
    "covers": [
-    "m15.4",
-    "m15.11"
+    "m11.4",
+    "m11.11"
    ],
    "next": [
     "q.m10.density",
-    "q.m15.poisson"
+    "q.m11.poisson"
    ],
    "peer": [
-    "q.m15.noise"
+    "q.m11.noise"
    ],
    "ans": [
     {
@@ -7686,20 +7686,20 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m4.sampling",
+    "q.m3.sampling",
     "q.m10.density",
-    "q.m15.noise"
+    "q.m11.noise"
    ],
    "backPeer": [
     "q.m10.data",
-    "q.m15.interp",
-    "q.m15.poisson",
-    "q.m15.surface"
+    "q.m11.interp",
+    "q.m11.poisson",
+    "q.m11.surface"
    ]
   },
   {
-   "id": "q.m15.noise",
-   "m": "m15",
+   "id": "q.m11.noise",
+   "m": "m11",
    "lvl": "P1",
    "layer": 2,
    "q": "Value/Perlin/Simplex/Worley 噪声有什么区别？fBm 和域扭曲怎么调？",
@@ -7709,15 +7709,15 @@ window.DECK = {
     "域扭曲"
    ],
    "covers": [
-    "m15.5",
-    "m15.6"
+    "m11.5",
+    "m11.6"
    ],
    "next": [
-    "q.m15.prob",
-    "q.m15.voronoi"
+    "q.m11.prob",
+    "q.m11.voronoi"
    ],
    "peer": [
-    "q.m15.interp"
+    "q.m11.interp"
    ],
    "ans": [
     {
@@ -7738,19 +7738,19 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m15.interp",
-    "q.m15.voronoi",
-    "q.m18.design_biome",
+    "q.m11.interp",
+    "q.m11.voronoi",
+    "q.m17.design_biome",
     "q.x.noise_density"
    ],
    "backPeer": [
-    "q.m15.prob",
+    "q.m11.prob",
     "q.x.poisson"
    ]
   },
   {
-   "id": "q.m15.poisson",
-   "m": "m15",
+   "id": "q.m11.poisson",
+   "m": "m11",
    "lvl": "P1",
    "layer": 3,
    "q": "泊松盘采样为什么“看起来均匀”？和蓝噪声、抖动网格怎么选？",
@@ -7760,14 +7760,14 @@ window.DECK = {
     "采样"
    ],
    "covers": [
-    "m15.7"
+    "m11.7"
    ],
    "next": [
     "q.m10.filters",
-    "q.m15.eval"
+    "q.m11.eval"
    ],
    "peer": [
-    "q.m15.prob"
+    "q.m11.prob"
    ],
    "ans": [
     {
@@ -7788,21 +7788,21 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m4.poisson",
+    "q.m3.poisson",
     "q.m10.samplers",
-    "q.m15.prob",
-    "q.m15.surface",
+    "q.m11.prob",
+    "q.m11.surface",
     "q.x.poisson"
    ],
    "backPeer": [
-    "q.m12.vegetation",
-    "q.m15.voronoi",
-    "q.m15.eval"
+    "q.m14.vegetation",
+    "q.m11.voronoi",
+    "q.m11.eval"
    ]
   },
   {
-   "id": "q.m15.voronoi",
-   "m": "m15",
+   "id": "q.m11.voronoi",
+   "m": "m11",
    "lvl": "P2",
    "layer": 3,
    "q": "Voronoi 和距离场怎么做区域划分与生物群系？有什么坑？",
@@ -7812,14 +7812,14 @@ window.DECK = {
     "生物群系"
    ],
    "covers": [
-    "m15.8"
+    "m11.8"
    ],
    "next": [
-    "q.m12.village",
-    "q.m15.noise"
+    "q.m14.village",
+    "q.m11.noise"
    ],
    "peer": [
-    "q.m15.poisson"
+    "q.m11.poisson"
    ],
    "ans": [
     {
@@ -7840,16 +7840,16 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m12.village",
-    "q.m15.noise"
+    "q.m14.village",
+    "q.m11.noise"
    ],
    "backPeer": [
-    "q.m15.grammar"
+    "q.m11.grammar"
    ]
   },
   {
-   "id": "q.m15.grammar",
-   "m": "m15",
+   "id": "q.m11.grammar",
+   "m": "m11",
    "lvl": "P2",
    "layer": 3,
    "q": "L-System、形状语法、WFC 各适合什么？限制是什么？",
@@ -7859,14 +7859,14 @@ window.DECK = {
     "WFC"
    ],
    "covers": [
-    "m15.9"
+    "m11.9"
    ],
    "next": [
-    "q.m12.village",
-    "q.m17.layers"
+    "q.m14.village",
+    "q.m13.layers"
    ],
    "peer": [
-    "q.m15.voronoi"
+    "q.m11.voronoi"
    ],
    "ans": [
     {
@@ -7887,13 +7887,13 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m12.village"
+    "q.m14.village"
    ],
    "backPeer": []
   },
   {
-   "id": "q.m15.surface",
-   "m": "m15",
+   "id": "q.m11.surface",
+   "m": "m11",
    "lvl": "P2",
    "layer": 2,
    "q": "怎样在三角形/表面上做均匀采样？为什么直接随机取重心坐标会偏？",
@@ -7903,14 +7903,14 @@ window.DECK = {
     "面积加权"
    ],
    "covers": [
-    "m15.10"
+    "m11.10"
    ],
    "next": [
     "q.m10.samplers",
-    "q.m15.poisson"
+    "q.m11.poisson"
    ],
    "peer": [
-    "q.m15.prob"
+    "q.m11.prob"
    ],
    "ans": [
     {
@@ -7934,8 +7934,8 @@ window.DECK = {
    "backPeer": []
   },
   {
-   "id": "q.m15.eval",
-   "m": "m15",
+   "id": "q.m11.eval",
+   "m": "m11",
    "lvl": "P2",
    "layer": 4,
    "q": "怎么量化评估一个分布“好不好”？",
@@ -7945,14 +7945,14 @@ window.DECK = {
     "最近邻"
    ],
    "covers": [
-    "m15.12"
+    "m11.12"
    ],
    "next": [
-    "q.m12.quality",
-    "q.m11.compare"
+    "q.m14.quality",
+    "q.m15.compare"
    ],
    "peer": [
-    "q.m15.poisson"
+    "q.m11.poisson"
    ],
    "ans": [
     {
@@ -7973,15 +7973,15 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m15.poisson"
+    "q.m11.poisson"
    ],
    "backPeer": [
     "q.x.noise_density"
    ]
   },
   {
-   "id": "q.m16.scripting",
-   "m": "m16",
+   "id": "q.m12.scripting",
+   "m": "m12",
    "lvl": "P2",
    "layer": 3,
    "q": "Editor Utility、Blueprint、Python 在 PCG 工作流里各自负责什么？",
@@ -7991,11 +7991,11 @@ window.DECK = {
     "Python"
    ],
    "covers": [
-    "m16.1"
+    "m12.1"
    ],
    "next": [
-    "q.m16.autotest",
-    "q.m16.ci"
+    "q.m12.autotest",
+    "q.m12.ci"
    ],
    "peer": [
     "q.m10.custom"
@@ -8022,8 +8022,8 @@ window.DECK = {
    "backPeer": []
   },
   {
-   "id": "q.m16.assets",
-   "m": "m16",
+   "id": "q.m12.assets",
+   "m": "m12",
    "lvl": "P1",
    "layer": 2,
    "q": "资产命名/目录规范为什么影响 PCG 项目？重定向器是什么坑？",
@@ -8033,11 +8033,11 @@ window.DECK = {
     "引用"
    ],
    "covers": [
-    "m16.2"
+    "m12.2"
    ],
    "next": [
-    "q.m16.dataasset",
-    "q.m16.vcs"
+    "q.m12.dataasset",
+    "q.m12.vcs"
    ],
    "peer": [
     "q.m10.version"
@@ -8065,13 +8065,13 @@ window.DECK = {
     "q.m10.subgraph"
    ],
    "backPeer": [
-    "q.m16.dataasset",
-    "q.m16.cook"
+    "q.m12.dataasset",
+    "q.m12.cook"
    ]
   },
   {
-   "id": "q.m16.dataasset",
-   "m": "m16",
+   "id": "q.m12.dataasset",
+   "m": "m12",
    "lvl": "P1",
    "layer": 3,
    "q": "为什么要把参数外置到 Data Asset / Data Table？各自适合什么？",
@@ -8081,14 +8081,14 @@ window.DECK = {
     "参数"
    ],
    "covers": [
-    "m16.3"
+    "m12.3"
    ],
    "next": [
-    "q.m17.contract",
+    "q.m13.contract",
     "q.m10.subgraph"
    ],
    "peer": [
-    "q.m16.assets"
+    "q.m12.assets"
    ],
    "ans": [
     {
@@ -8110,15 +8110,15 @@ window.DECK = {
    ],
    "backNext": [
     "q.m2.tarray",
-    "q.m3.datadriven",
-    "q.m16.assets",
-    "q.m17.contract"
+    "q.m6.datadriven",
+    "q.m12.assets",
+    "q.m13.contract"
    ],
    "backPeer": []
   },
   {
-   "id": "q.m16.vcs",
-   "m": "m16",
+   "id": "q.m12.vcs",
+   "m": "m12",
    "lvl": "P2",
    "layer": 3,
    "q": "二进制资产在版本控制里怎么管？多人同时改同一张图怎么办？",
@@ -8128,14 +8128,14 @@ window.DECK = {
     "锁"
    ],
    "covers": [
-    "m16.4"
+    "m12.4"
    ],
    "next": [
     "q.m10.version",
-    "q.m17.evolution"
+    "q.m13.evolution"
    ],
    "peer": [
-    "q.m12.collab"
+    "q.m14.collab"
    ],
    "ans": [
     {
@@ -8156,17 +8156,17 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m3.git",
+    "q.m6.git",
     "q.m10.version",
-    "q.m12.collab",
-    "q.m16.assets",
-    "q.m17.evolution"
+    "q.m14.collab",
+    "q.m12.assets",
+    "q.m13.evolution"
    ],
    "backPeer": []
   },
   {
-   "id": "q.m16.autotest",
-   "m": "m16",
+   "id": "q.m12.autotest",
+   "m": "m12",
    "lvl": "P2",
    "layer": 4,
    "q": "PCG 的自动化测试能测什么？截图对比怎么防止“误报”？",
@@ -8176,11 +8176,11 @@ window.DECK = {
     "回归"
    ],
    "covers": [
-    "m16.5"
+    "m12.5"
    ],
    "next": [
-    "q.m16.ci",
-    "q.m12.quality"
+    "q.m12.ci",
+    "q.m14.quality"
    ],
    "peer": [
     "q.m10.seed"
@@ -8204,18 +8204,18 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m12.deliver",
-    "q.m12.quality",
-    "q.m16.scripting",
-    "q.m16.ci",
-    "q.m17.determinism",
+    "q.m14.deliver",
+    "q.m14.quality",
+    "q.m12.scripting",
+    "q.m12.ci",
+    "q.m13.determinism",
     "q.x.test"
    ],
    "backPeer": []
   },
   {
-   "id": "q.m16.cook",
-   "m": "m16",
+   "id": "q.m12.cook",
+   "m": "m12",
    "lvl": "P1",
    "layer": 4,
    "q": "PCG 相关资产在 Cook/打包时容易出什么问题？",
@@ -8225,14 +8225,14 @@ window.DECK = {
     "依赖"
    ],
    "covers": [
-    "m16.6"
+    "m12.6"
    ],
    "next": [
-    "q.m11.packaged",
-    "q.m16.ci"
+    "q.m15.packaged",
+    "q.m12.ci"
    ],
    "peer": [
-    "q.m16.assets"
+    "q.m12.assets"
    ],
    "ans": [
     {
@@ -8254,16 +8254,16 @@ window.DECK = {
    ],
    "backNext": [
     "q.m1.build",
-    "q.m6.ue",
+    "q.m5.ue",
     "q.m10.version",
-    "q.m11.packaged",
+    "q.m15.packaged",
     "q.x.cook"
    ],
    "backPeer": []
   },
   {
-   "id": "q.m16.ci",
-   "m": "m16",
+   "id": "q.m12.ci",
+   "m": "m12",
    "lvl": "P2",
    "layer": 3,
    "q": "CI 里怎么给 PCG 做校验与报告？为什么构建机跑得比本地慢很多？",
@@ -8273,15 +8273,15 @@ window.DECK = {
     "报告"
    ],
    "covers": [
-    "m16.7"
+    "m12.7"
    ],
    "next": [
-    "q.m16.autotest",
-    "q.m11.budget",
+    "q.m12.autotest",
+    "q.m15.budget",
     "q.x.test"
    ],
    "peer": [
-    "q.m17.observability"
+    "q.m13.observability"
    ],
    "ans": [
     {
@@ -8302,18 +8302,18 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m3.git",
-    "q.m16.scripting",
-    "q.m16.autotest",
-    "q.m16.cook",
-    "q.m17.observability",
+    "q.m6.git",
+    "q.m12.scripting",
+    "q.m12.autotest",
+    "q.m12.cook",
+    "q.m13.observability",
     "q.x.test"
    ],
    "backPeer": []
   },
   {
-   "id": "q.m16.budget",
-   "m": "m16",
+   "id": "q.m12.budget",
+   "m": "m12",
    "lvl": "P1",
    "layer": 3,
    "q": "性能预算怎么落地到团队流程，而不是写在文档里没人看？",
@@ -8323,14 +8323,14 @@ window.DECK = {
     "评审"
    ],
    "covers": [
-    "m16.8"
+    "m12.8"
    ],
    "next": [
-    "q.m11.budget",
-    "q.m17.observability"
+    "q.m15.budget",
+    "q.m13.observability"
    ],
    "peer": [
-    "q.m12.report"
+    "q.m14.report"
    ],
    "ans": [
     {
@@ -8354,8 +8354,8 @@ window.DECK = {
    "backPeer": []
   },
   {
-   "id": "q.m17.layers",
-   "m": "m17",
+   "id": "q.m13.layers",
+   "m": "m13",
    "lvl": "P0",
    "layer": 3,
    "q": "设计一个可扩展的 PCG 框架，你会怎么分层？层与层之间的契约是什么？",
@@ -8365,10 +8365,10 @@ window.DECK = {
     "契约"
    ],
    "covers": [
-    "m17.1"
+    "m13.1"
    ],
    "next": [
-    "q.m17.contract",
+    "q.m13.contract",
     "q.m10.graph"
    ],
    "peer": [
@@ -8393,19 +8393,19 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m3.interface",
-    "q.m13.tradeoff",
-    "q.m15.grammar",
-    "q.m18.challenge"
+    "q.m6.interface",
+    "q.m16.tradeoff",
+    "q.m11.grammar",
+    "q.m17.challenge"
    ],
    "backPeer": [
     "q.m10.graph",
-    "q.m17.contract"
+    "q.m13.contract"
    ]
   },
   {
-   "id": "q.m17.contract",
-   "m": "m17",
+   "id": "q.m13.contract",
+   "m": "m13",
    "lvl": "P1",
    "layer": 3,
    "q": "参数与规则的数据契约应该包含什么？为什么需要校验？",
@@ -8415,14 +8415,14 @@ window.DECK = {
     "默认值"
    ],
    "covers": [
-    "m17.2"
+    "m13.2"
    ],
    "next": [
-    "q.m16.dataasset",
-    "q.m17.failure"
+    "q.m12.dataasset",
+    "q.m13.failure"
    ],
    "peer": [
-    "q.m17.layers"
+    "q.m13.layers"
    ],
    "ans": [
     {
@@ -8443,21 +8443,21 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m3.datadriven",
+    "q.m6.datadriven",
     "q.m10.custom",
-    "q.m12.deliver",
-    "q.m16.dataasset",
-    "q.m17.layers",
-    "q.m17.evolution"
+    "q.m14.deliver",
+    "q.m12.dataasset",
+    "q.m13.layers",
+    "q.m13.evolution"
    ],
    "backPeer": [
-    "q.m17.reuse",
-    "q.m17.failure"
+    "q.m13.reuse",
+    "q.m13.failure"
    ]
   },
   {
-   "id": "q.m17.reuse",
-   "m": "m17",
+   "id": "q.m13.reuse",
+   "m": "m13",
    "lvl": "P1",
    "layer": 3,
    "q": "子图、模块、策略模式、继承，在 PCG 里怎么选？",
@@ -8467,14 +8467,14 @@ window.DECK = {
     "继承"
    ],
    "covers": [
-    "m17.3"
+    "m13.3"
    ],
    "next": [
     "q.m10.subgraph",
-    "q.m17.evolution"
+    "q.m13.evolution"
    ],
    "peer": [
-    "q.m17.contract"
+    "q.m13.contract"
    ],
    "ans": [
     {
@@ -8495,16 +8495,16 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m3.patterns",
+    "q.m6.patterns",
     "q.m10.subgraph"
    ],
    "backPeer": [
-    "q.m17.evolution"
+    "q.m13.evolution"
    ]
   },
   {
-   "id": "q.m17.determinism",
-   "m": "m17",
+   "id": "q.m13.determinism",
+   "m": "m13",
    "lvl": "P1",
    "layer": 4,
    "q": "框架层面怎么设计确定性？随机流隔离和稳定排序怎么做？",
@@ -8514,14 +8514,14 @@ window.DECK = {
     "排序"
    ],
    "covers": [
-    "m17.4"
+    "m13.4"
    ],
    "next": [
     "q.m10.seed",
-    "q.m16.autotest"
+    "q.m12.autotest"
    ],
    "peer": [
-    "q.m17.incremental"
+    "q.m13.incremental"
    ],
    "ans": [
     {
@@ -8543,16 +8543,16 @@ window.DECK = {
    ],
    "backNext": [
     "q.m10.seed",
-    "q.m18.debug_nondet",
+    "q.m17.debug_nondet",
     "q.x.determinism"
    ],
    "backPeer": [
-    "q.m17.incremental"
+    "q.m13.incremental"
    ]
   },
   {
-   "id": "q.m17.incremental",
-   "m": "m17",
+   "id": "q.m13.incremental",
+   "m": "m13",
    "lvl": "P1",
    "layer": 4,
    "q": "增量生成怎么做？依赖失效与脏标记怎么设计？",
@@ -8562,14 +8562,14 @@ window.DECK = {
     "脏标记"
    ],
    "covers": [
-    "m17.5"
+    "m13.5"
    ],
    "next": [
-    "q.m12.iterate",
-    "q.m11.gencost"
+    "q.m14.iterate",
+    "q.m15.gencost"
    ],
    "peer": [
-    "q.m17.determinism"
+    "q.m13.determinism"
    ],
    "ans": [
     {
@@ -8590,18 +8590,18 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m4.union",
-    "q.m11.gencost",
-    "q.m12.iterate"
+    "q.m3.union",
+    "q.m15.gencost",
+    "q.m14.iterate"
    ],
    "backPeer": [
-    "q.m17.determinism",
+    "q.m13.determinism",
     "q.x.determinism"
    ]
   },
   {
-   "id": "q.m17.observability",
-   "m": "m17",
+   "id": "q.m13.observability",
+   "m": "m13",
    "lvl": "P1",
    "layer": 4,
    "q": "可观测性在 PCG 框架里包含什么？日志该记什么？",
@@ -8611,14 +8611,14 @@ window.DECK = {
     "统计"
    ],
    "covers": [
-    "m17.6"
+    "m13.6"
    ],
    "next": [
-    "q.m11.compare",
-    "q.m16.ci"
+    "q.m15.compare",
+    "q.m12.ci"
    ],
    "peer": [
-    "q.m17.failure"
+    "q.m13.failure"
    ],
    "ans": [
     {
@@ -8640,18 +8640,18 @@ window.DECK = {
    ],
    "backNext": [
     "q.m10.budget",
-    "q.m11.compare",
-    "q.m11.budget",
-    "q.m16.budget",
-    "q.m17.failure"
+    "q.m15.compare",
+    "q.m15.budget",
+    "q.m12.budget",
+    "q.m13.failure"
    ],
    "backPeer": [
-    "q.m16.ci"
+    "q.m12.ci"
    ]
   },
   {
-   "id": "q.m17.failure",
-   "m": "m17",
+   "id": "q.m13.failure",
+   "m": "m13",
    "lvl": "P2",
    "layer": 4,
    "q": "失败降级与兜底怎么设计？超时、空结果、资源缺失分别怎么处理？",
@@ -8661,14 +8661,14 @@ window.DECK = {
     "兜底"
    ],
    "covers": [
-    "m17.7"
+    "m13.7"
    ],
    "next": [
-    "q.m12.edges",
-    "q.m17.observability"
+    "q.m14.edges",
+    "q.m13.observability"
    ],
    "peer": [
-    "q.m17.contract"
+    "q.m13.contract"
    ],
    "ans": [
     {
@@ -8689,18 +8689,18 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m3.errors",
-    "q.m12.edges",
-    "q.m17.contract"
+    "q.m6.errors",
+    "q.m14.edges",
+    "q.m13.contract"
    ],
    "backPeer": [
-    "q.m17.observability",
+    "q.m13.observability",
     "q.x.cook"
    ]
   },
   {
-   "id": "q.m17.evolution",
-   "m": "m17",
+   "id": "q.m13.evolution",
+   "m": "m13",
    "lvl": "P2",
    "layer": 3,
    "q": "框架怎么演进而不破坏现有内容？版本化与废弃策略怎么做？",
@@ -8710,14 +8710,14 @@ window.DECK = {
     "兼容"
    ],
    "covers": [
-    "m17.8"
+    "m13.8"
    ],
    "next": [
-    "q.m16.vcs",
-    "q.m17.contract"
+    "q.m12.vcs",
+    "q.m13.contract"
    ],
    "peer": [
-    "q.m17.reuse"
+    "q.m13.reuse"
    ],
    "ans": [
     {
@@ -8738,15 +8738,15 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m3.adr",
-    "q.m16.vcs",
-    "q.m17.reuse"
+    "q.m6.adr",
+    "q.m12.vcs",
+    "q.m13.reuse"
    ],
    "backPeer": []
   },
   {
-   "id": "q.m18.stack",
-   "m": "m18",
+   "id": "q.m17.stack",
+   "m": "m17",
    "lvl": "P0",
    "layer": 3,
    "q": "面试官连续追问三层时，你的回答结构应该是什么？",
@@ -8756,14 +8756,14 @@ window.DECK = {
     "表达"
    ],
    "covers": [
-    "m18.1"
+    "m17.1"
    ],
    "next": [
-    "q.m18.challenge",
-    "q.m14.projects"
+    "q.m17.challenge",
+    "q.m18.projects"
    ],
    "peer": [
-    "q.m18.unknown"
+    "q.m17.unknown"
    ],
    "ans": [
     {
@@ -8784,16 +8784,16 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m18.challenge",
-    "q.m18.conflict"
+    "q.m17.challenge",
+    "q.m17.conflict"
    ],
    "backPeer": [
-    "q.m18.unknown"
+    "q.m17.unknown"
    ]
   },
   {
-   "id": "q.m18.challenge",
-   "m": "m18",
+   "id": "q.m17.challenge",
+   "m": "m17",
    "lvl": "P0",
    "layer": 3,
    "q": "被质疑“PCG 不就是摆模型吗”，你怎么证明技术含量？",
@@ -8803,14 +8803,14 @@ window.DECK = {
     "表达"
    ],
    "covers": [
-    "m18.2"
+    "m17.2"
    ],
    "next": [
-    "q.m18.stack",
-    "q.m17.layers"
+    "q.m17.stack",
+    "q.m13.layers"
    ],
    "peer": [
-    "q.m18.conflict"
+    "q.m17.conflict"
    ],
    "ans": [
     {
@@ -8831,15 +8831,15 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m18.stack"
+    "q.m17.stack"
    ],
    "backPeer": [
-    "q.m18.conflict"
+    "q.m17.conflict"
    ]
   },
   {
-   "id": "q.m18.conflict",
-   "m": "m18",
+   "id": "q.m17.conflict",
+   "m": "m17",
    "lvl": "P1",
    "layer": 4,
    "q": "数据与直觉冲突时，你信谁？举个具体例子。",
@@ -8849,14 +8849,14 @@ window.DECK = {
     "决策"
    ],
    "covers": [
-    "m18.3"
+    "m17.3"
    ],
    "next": [
-    "q.m11.compare",
-    "q.m18.stack"
+    "q.m15.compare",
+    "q.m17.stack"
    ],
    "peer": [
-    "q.m18.challenge"
+    "q.m17.challenge"
    ],
    "ans": [
     {
@@ -8878,12 +8878,12 @@ window.DECK = {
    ],
    "backNext": [],
    "backPeer": [
-    "q.m18.challenge"
+    "q.m17.challenge"
    ]
   },
   {
-   "id": "q.m18.unknown",
-   "m": "m18",
+   "id": "q.m17.unknown",
+   "m": "m17",
    "lvl": "P1",
    "layer": 2,
    "q": "完全不会的问题，怎么答才不失分？",
@@ -8893,14 +8893,14 @@ window.DECK = {
     "迁移"
    ],
    "covers": [
-    "m18.4"
+    "m17.4"
    ],
    "next": [
-    "q.m14.materials",
-    "q.m18.askback"
+    "q.m18.materials",
+    "q.m17.askback"
    ],
    "peer": [
-    "q.m18.stack"
+    "q.m17.stack"
    ],
    "ans": [
     {
@@ -8921,16 +8921,16 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m14.materials",
-    "q.m18.askback"
+    "q.m18.materials",
+    "q.m17.askback"
    ],
    "backPeer": [
-    "q.m18.stack"
+    "q.m17.stack"
    ]
   },
   {
-   "id": "q.m18.design_biome",
-   "m": "m18",
+   "id": "q.m17.design_biome",
+   "m": "m17",
    "lvl": "P1",
    "layer": 4,
    "q": "设计题：从零设计一个生物群系系统，你会怎么拆？",
@@ -8940,14 +8940,14 @@ window.DECK = {
     "系统设计"
    ],
    "covers": [
-    "m18.5"
+    "m17.5"
    ],
    "next": [
-    "q.m15.noise",
-    "q.m12.vegetation"
+    "q.m11.noise",
+    "q.m14.vegetation"
    ],
    "peer": [
-    "q.m18.design_forest"
+    "q.m17.design_forest"
    ],
    "ans": [
     {
@@ -8971,8 +8971,8 @@ window.DECK = {
    "backPeer": []
   },
   {
-   "id": "q.m18.design_forest",
-   "m": "m18",
+   "id": "q.m17.design_forest",
+   "m": "m17",
    "lvl": "P0",
    "layer": 4,
    "q": "设计题：百万级树木怎么跑得动？预算怎么拆？",
@@ -8982,11 +8982,11 @@ window.DECK = {
     "性能预算"
    ],
    "covers": [
-    "m18.6"
+    "m17.6"
    ],
    "next": [
     "q.m10.instancing",
-    "q.m11.budget"
+    "q.m15.budget"
    ],
    "peer": [
     "q.m9.instancing"
@@ -9011,12 +9011,12 @@ window.DECK = {
    ],
    "backNext": [],
    "backPeer": [
-    "q.m18.design_biome"
+    "q.m17.design_biome"
    ]
   },
   {
-   "id": "q.m18.debug_nondet",
-   "m": "m18",
+   "id": "q.m17.debug_nondet",
+   "m": "m17",
    "lvl": "P0",
    "layer": 4,
    "q": "排错题：PCG 每次生成结果都不一样，怎么查？",
@@ -9026,14 +9026,14 @@ window.DECK = {
     "复现"
    ],
    "covers": [
-    "m18.7"
+    "m17.7"
    ],
    "next": [
     "q.m10.seed",
-    "q.m17.determinism"
+    "q.m13.determinism"
    ],
    "peer": [
-    "q.m11.repro"
+    "q.m15.repro"
    ],
    "ans": [
     {
@@ -9059,8 +9059,8 @@ window.DECK = {
    ]
   },
   {
-   "id": "q.m18.askback",
-   "m": "m18",
+   "id": "q.m17.askback",
+   "m": "m17",
    "lvl": "P2",
    "layer": 3,
    "q": "反问环节怎么问，才能既加分又判断岗位是否合适？",
@@ -9070,14 +9070,14 @@ window.DECK = {
     "收尾"
    ],
    "covers": [
-    "m18.8"
+    "m17.8"
    ],
    "next": [
-    "q.m14.questions",
-    "q.m18.unknown"
+    "q.m18.questions",
+    "q.m17.unknown"
    ],
    "peer": [
-    "q.m14.questions"
+    "q.m18.questions"
    ],
    "ans": [
     {
@@ -9098,11 +9098,11 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m14.questions",
-    "q.m18.unknown"
+    "q.m18.questions",
+    "q.m17.unknown"
    ],
    "backPeer": [
-    "q.m14.materials"
+    "q.m18.materials"
    ]
   },
   {
@@ -9117,7 +9117,7 @@ window.DECK = {
     "Self Pruning"
    ],
    "covers": [
-    "m4.7",
+    "m3.7",
     "m10.6"
    ],
    "next": [
@@ -9125,7 +9125,7 @@ window.DECK = {
     "q.m10.density"
    ],
    "peer": [
-    "q.m4.trees",
+    "q.m3.trees",
     "q.m10.threading"
    ],
    "ans": [
@@ -9163,16 +9163,16 @@ window.DECK = {
     "点密度"
    ],
    "covers": [
-    "m4.10",
+    "m3.10",
     "m10.5"
    ],
    "next": [
-    "q.m15.poisson",
+    "q.m11.poisson",
     "q.m10.density"
    ],
    "peer": [
-    "q.m15.noise",
-    "q.m12.vegetation"
+    "q.m11.noise",
+    "q.m14.vegetation"
    ],
    "ans": [
     {
@@ -9209,16 +9209,16 @@ window.DECK = {
     "坡度过滤"
    ],
    "covers": [
-    "m15.6",
+    "m11.6",
     "m10.7"
    ],
    "next": [
-    "q.m15.noise",
+    "q.m11.noise",
     "q.m10.slope"
    ],
    "peer": [
-    "q.m15.eval",
-    "q.m12.vegetation"
+    "q.m11.eval",
+    "q.m14.vegetation"
    ],
    "ans": [
     {
@@ -9354,7 +9354,7 @@ window.DECK = {
    ],
    "peer": [
     "q.m9.hlod",
-    "q.m12.vegetation"
+    "q.m14.vegetation"
    ],
    "ans": [
     {
@@ -9390,15 +9390,15 @@ window.DECK = {
    ],
    "covers": [
     "m9.10",
-    "m12.4"
+    "m14.4"
    ],
    "next": [
     "q.m9.hlod",
-    "q.m12.world"
+    "q.m14.world"
    ],
    "peer": [
     "q.m10.partition",
-    "q.m11.budget"
+    "q.m15.budget"
    ],
    "ans": [
     {
@@ -9419,7 +9419,7 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m12.world"
+    "q.m14.world"
    ],
    "backPeer": []
   },
@@ -9435,16 +9435,16 @@ window.DECK = {
     "版本锁定"
    ],
    "covers": [
-    "m17.4",
+    "m13.4",
     "m10.12"
    ],
    "next": [
-    "q.m17.determinism",
+    "q.m13.determinism",
     "q.m10.seed"
    ],
    "peer": [
-    "q.m18.debug_nondet",
-    "q.m17.incremental"
+    "q.m17.debug_nondet",
+    "q.m13.incremental"
    ],
    "ans": [
     {
@@ -9481,15 +9481,15 @@ window.DECK = {
     "朝向"
    ],
    "covers": [
-    "m12.2",
-    "m15.1"
+    "m14.2",
+    "m11.1"
    ],
    "next": [
-    "q.m12.road",
-    "q.m15.vector"
+    "q.m14.road",
+    "q.m11.vector"
    ],
    "peer": [
-    "q.m15.matrix",
+    "q.m11.matrix",
     "q.m10.transform"
    ],
    "ans": [
@@ -9511,7 +9511,7 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m12.road"
+    "q.m14.road"
    ],
    "backPeer": []
   },
@@ -9535,7 +9535,7 @@ window.DECK = {
     "q.m9.landscape"
    ],
    "peer": [
-    "q.m11.memory",
+    "q.m15.memory",
     "q.m9.lumen"
    ],
    "ans": [
@@ -9573,16 +9573,16 @@ window.DECK = {
     "定位流程"
    ],
    "covers": [
-    "m11.5",
+    "m15.5",
     "m9.13"
    ],
    "next": [
-    "q.m11.frame",
+    "q.m15.frame",
     "q.m9.stats"
    ],
    "peer": [
     "q.m9.renderdoc",
-    "q.m11.layers"
+    "q.m15.layers"
    ],
    "ans": [
     {
@@ -9603,7 +9603,7 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m11.layers"
+    "q.m15.layers"
    ],
    "backPeer": []
   },
@@ -9619,16 +9619,16 @@ window.DECK = {
     "生成"
    ],
    "covers": [
-    "m11.11",
-    "m16.6"
+    "m15.11",
+    "m12.6"
    ],
    "next": [
-    "q.m11.packaged",
-    "q.m16.cook"
+    "q.m15.packaged",
+    "q.m12.cook"
    ],
    "peer": [
     "q.m10.component",
-    "q.m17.failure"
+    "q.m13.failure"
    ],
    "ans": [
     {
@@ -9663,16 +9663,16 @@ window.DECK = {
     "截图对比"
    ],
    "covers": [
-    "m16.5",
-    "m3.5"
+    "m12.5",
+    "m6.5"
    ],
    "next": [
-    "q.m16.autotest",
-    "q.m16.ci"
+    "q.m12.autotest",
+    "q.m12.ci"
    ],
    "peer": [
-    "q.m3.errors",
-    "q.m11.compare"
+    "q.m6.errors",
+    "q.m15.compare"
    ],
    "ans": [
     {
@@ -9693,7 +9693,7 @@ window.DECK = {
     }
    ],
    "backNext": [
-    "q.m16.ci"
+    "q.m12.ci"
    ],
    "backPeer": []
   },
