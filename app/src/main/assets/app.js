@@ -713,10 +713,25 @@
     return false;
   };
 
+  /* 深链：?tab=qa &open=q.m1.types（问答）或 ?check=m1.1 —— 也方便截图与调试 */
+  function applyDeepLink() {
+    var q = location.search.replace(/^\?/, "");
+    if (!q) return;
+    var p = {};
+    q.split("&").forEach(function (kv) {
+      var i = kv.indexOf("=");
+      if (i > 0) p[decodeURIComponent(kv.slice(0, i))] = decodeURIComponent(kv.slice(i + 1));
+    });
+    if (p.tab) setTab(p.tab);
+    if (p.open && QA[p.open]) { setTab("qa"); openQa(p.open); }
+    else if (p.check && CHECK[p.check]) { setTab("list"); openCheck(p.check); }
+  }
+
   /* ---------------- 启动 ---------------- */
   loadState();
   $("#deckTitle").textContent = D.title || "题台";
   $("#deckSub").textContent = (D.groups.length || 0) + " 个模块 · " + QA_LIST.length + " 条问答";
   setTheme(state.settings.theme || "dark");
   setTab(state.settings.tab || "list");
+  applyDeepLink();
 })();

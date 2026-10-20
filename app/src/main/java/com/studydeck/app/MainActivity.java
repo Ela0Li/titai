@@ -71,7 +71,29 @@ public class MainActivity extends Activity {
 
         web.addJavascriptInterface(new Bridge(this), "Native");
         setContentView(web);
-        web.loadUrl("file:///android_asset/index.html");
+        web.loadUrl(startUrl(getIntent()));
+    }
+
+    /** 支持从 adb/外部唤起指定页面：am start -e open q.m1.types / -e check m1.1 / -e tab qa */
+    private String startUrl(android.content.Intent it) {
+        String base = "file:///android_asset/index.html";
+        if (it == null) return base;
+        StringBuilder q = new StringBuilder();
+        String[] keys = { "tab", "open", "check" };
+        for (String k : keys) {
+            String v = it.getStringExtra(k);
+            if (v != null && v.length() > 0) {
+                if (q.length() > 0) q.append('&');
+                q.append(k).append('=').append(android.net.Uri.encode(v));
+            }
+        }
+        return q.length() == 0 ? base : base + "?" + q;
+    }
+
+    @Override
+    protected void onNewIntent(android.content.Intent intent) {
+        super.onNewIntent(intent);
+        if (web != null) web.loadUrl(startUrl(intent));
     }
 
     @Override
