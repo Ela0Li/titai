@@ -326,7 +326,8 @@ node skills/titai-deck-author/scripts/check.js decks/我的包.json
 -e deck demo                 # 切到某个学习包
 -e download demo             # 从电脑下载并切过去（需先 -e host / -e code）
 -e decks 1                   # 打开「电脑上的学习包」列表
--e importFile /path/x.json   # 直接导入一个文件（应用私有路径，调试用）
+-e importFile /path/x.json   # 直接导入一个文件（只认应用私有路径，调试用）
+-e plan http://电脑:端口/x.plan.json   # 从电脑取一个计划文件，导入并切过去
 ```
 
 ---

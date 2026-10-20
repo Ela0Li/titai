@@ -1261,6 +1261,29 @@
     switchDeck(saved);
   }
 
+  /** 从电脑取一个计划文件（协议 §9）：体检成员是否都装了，再入库并切过去。
+   *  深链：am start -e plan http://电脑:端口/x.plan.json */
+  function fetchPlan(url) {
+    if (!window.Native || !window.Native.http) { toast("网页调试模式不支持"); return; }
+    var raw = window.Native.http("GET", url, "", 15000);
+    var res;
+    try { res = JSON.parse(raw); } catch (e) { toast("返回不是 JSON"); return; }
+    if (!res.status) { toast("连不上"); return; }
+    if (res.status !== 200) { toast("HTTP " + res.status); return; }
+    var plan = null;
+    try { plan = JSON.parse(res.body); } catch (e) { plan = null; }
+    if (!plan || !Array.isArray(plan.members) || plan.groups) { toast("不是计划文件"); return; }
+    var known = {};
+    deckList().forEach(function (d) { known[d.id] = 1; });
+    var missing = plan.members.filter(function (m) { return !known[m]; });
+    if (missing.length) { toast("计划引用了没装的知识包：" + missing.join("、")); return; }
+    var saved = "";
+    try { saved = String(window.Native.savePlan(res.body) || ""); } catch (e) { saved = ""; }
+    if (!saved) { toast("写入失败：计划 id 不合法或已存在"); return; }
+    toast("已导入计划 " + saved);
+    usePlan(saved);
+  }
+
   /* ---- 从文件导入：先在本地体检，坏包不入库 ---- */
   var IMPORT_MAX = 2 * 1024 * 1024;
   var DECK_ID_RE = /^[A-Za-z0-9_\-\.]{1,64}$/;
@@ -2155,6 +2178,7 @@
     if (p.host || p.code) save();
     if (p.tab) setTab(p.tab);
     if (p.download) { setTab("more"); downloadDeck(p.download); return; }
+    if (p.plan) { setTab("more"); fetchPlan(p.plan); return; }
     if (p.decks) { setTab("more"); setTimeout(fetchDeckIndex, 200); return; }
     if (p.pick) { setTab("more"); setTimeout(pickDeckFile, 300); return; }
     if (p.open && QA[p.open]) { setTab("qa"); openQa(p.open); }

@@ -102,7 +102,7 @@ public class MainActivity extends Activity implements Bridge.Host {
         if (it == null) return base;
         StringBuilder q = new StringBuilder();
         String[] keys = { "tab", "open", "check", "host", "code", "sync", "deck", "download", "decks",
-                "importFile", "pick" };
+                "importFile", "pick", "plan" };
         for (String k : keys) {
             String v = it.getStringExtra(k);
             if (v != null && v.length() > 0) {
