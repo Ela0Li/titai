@@ -361,3 +361,24 @@ mtext { font-size: .96em; }
   max-width: 80vw; text-align: center;
 }
 .toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------- 学习计划条（协议 v1.3） ---------- */
+.planbar { display: none; gap: 8px; padding: 10px 14px; overflow-x: auto; white-space: nowrap;
+  background: var(--bg2); border-bottom: 1px solid var(--line); scrollbar-width: none; }
+.planbar::-webkit-scrollbar { display: none; }
+.planbar.on { display: flex; }
+.pchip { flex: 0 0 auto; border: 1px solid var(--line2); background: var(--card); color: var(--fg2);
+  border-radius: 999px; padding: 7px 14px; font-size: 13px; font-family: inherit; }
+.pchip.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+
+/* ---------- 列表里的知识包分区 ---------- */
+.decksec { display: flex; align-items: center; gap: 8px; margin: 16px 0 6px; padding: 12px 14px;
+  border-radius: 14px; background: var(--card); border: 1px solid var(--line); }
+.decksec.on { border-color: var(--accent); background: var(--card2); }
+.decksec .ds-chev { color: var(--accent); font-size: 12px; line-height: 1; }
+.decksec .ds-name { font-weight: 700; color: var(--fg); }
+.decksec .ds-meta { margin-left: auto; font-size: 12px; color: var(--fg3); }
+.decksec:not(.on) .ds-name { color: var(--fg2); }
+
+.dtag { display: inline-block; margin-right: 6px; padding: 1px 7px; border-radius: 6px;
+  background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); font-size: 11px; }

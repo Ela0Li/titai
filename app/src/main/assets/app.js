@@ -38,25 +38,88 @@
   var TERMS = Object.assign({ group: "模块", check: "知识点", qa: "问答" }, D.terms || {});
   function term(k) { return TERMS[k] || k; }
 
-  /* ---------------- 索引 ---------------- */
+  /* ---------------- 索引（每次换包重建） ---------------- */
   var QA = {}, CHECK = {}, GROUP_OF = {}, COVERS = {}, QAS_OF_CHECK = {};
-  var QA_LIST = (D.qas || []).slice();
+  var QA_LIST = [];
 
-  (D.groups || []).forEach(function (g, gi) {
-    g.gi = gi;
-    (g.checks || []).forEach(function (c) {
-      CHECK[c.id] = { id: c.id, text: c.text, lvl: c.lvl, g: g.id, group: g, seeAlso: c.seeAlso || [] };
-      GROUP_OF[c.id] = g;
+  function hydrate(d) {
+    if (d && d.groups && d.groups.length) D = d;
+    QA = {}; CHECK = {}; GROUP_OF = {}; COVERS = {}; QAS_OF_CHECK = {};
+    QA_LIST = (D.qas || []).slice();
+    (D.groups || []).forEach(function (g, gi) {
+      g.gi = gi;
+      (g.checks || []).forEach(function (c) {
+        CHECK[c.id] = { id: c.id, text: c.text, lvl: c.lvl, g: g.id, group: g, seeAlso: c.seeAlso || [] };
+        GROUP_OF[c.id] = g;
+      });
     });
-  });
-  QA_LIST.forEach(function (q) {
-    QA[q.id] = q;
-    (q.covers || []).forEach(function (cid) {
-      COVERS[cid] = COVERS[cid] || [];
-      COVERS[cid].push(q.id);
-      QAS_OF_CHECK[cid] = COVERS[cid];
+    QA_LIST.forEach(function (q) {
+      QA[q.id] = q;
+      (q.covers || []).forEach(function (cid) {
+        COVERS[cid] = COVERS[cid] || [];
+        COVERS[cid].push(q.id);
+        QAS_OF_CHECK[cid] = COVERS[cid];
+      });
     });
-  });
+    TERMS = Object.assign({ group: "模块", check: "知识点", qa: "问答" }, D.terms || {});
+  }
+  hydrate(D);
+
+  /* ---------------- 学习计划（协议 v1.3） ---------------- */
+  var PLAN = null, MEMBERS = [], DECK_META = [], DECK_CACHE = {}, QA_ALL = [];
+
+  /* Java 桥方法不是普通 JS 函数，不能 apply，只能按名字定参调用 */
+  function n0(name) {
+    try { if (!window.Native || typeof window.Native[name] !== "function") return null; return window.Native[name](); } catch (e) { return null; }
+  }
+  function n1(name, a) {
+    try { if (!window.Native || typeof window.Native[name] !== "function") return null; return window.Native[name](a); } catch (e) { return null; }
+  }
+
+  (function loadPlan() {
+    var plans = [];
+    try { plans = JSON.parse(n0("listPlans") || "[]") || []; } catch (e) { plans = []; }
+    var pid = n0("currentPlan") || "";
+    plans.forEach(function (p) { if (!PLAN && p.id === pid) PLAN = p; });
+    if (!PLAN) PLAN = plans[0] || null;
+    MEMBERS = PLAN && PLAN.members && PLAN.members.length ? PLAN.members.slice() : [CUR_DECK];
+    if (MEMBERS.indexOf(CUR_DECK) < 0 && CUR_DECK) MEMBERS.unshift(CUR_DECK);
+
+    try { DECK_META = JSON.parse(n0("listDecks") || "[]") || []; } catch (e) { DECK_META = []; }
+
+    MEMBERS.forEach(function (id) {
+      try {
+        var d = null;
+        try {
+          var txt = n1("readDeck", id);
+          if (txt) d = JSON.parse(txt);
+        } catch (e) { d = null; }
+        if (!d && id === CUR_DECK) d = D;
+        if (!d) return;
+        DECK_CACHE[id] = d;
+        (d.qas || []).forEach(function (q) {
+          QA_ALL.push({ deck: id, id: q.id, q: q.q, layer: q.layer, m: q.m, tags: q.tags || [] });
+        });
+      } catch (e) {}
+    });
+    if (!DECK_CACHE[CUR_DECK]) DECK_CACHE[CUR_DECK] = D;
+  })();
+
+  function deckInfo(id) {
+    for (var i = 0; i < DECK_META.length; i++) if (DECK_META[i].id === id) return DECK_META[i];
+    var d = DECK_CACHE[id];
+    return d ? { id: id, title: d.title, checks: (d.groups || []).reduce(function (n, g) { return n + (g.checks || []).length; }, 0), qas: (d.qas || []).length } : null;
+  }
+  function deckTitle(id) {
+    var m = deckInfo(id);
+    return (m && (m.short || m.title)) || id;
+  }
+  function deckShort(id) {
+    var d = DECK_CACHE[id];
+    return (d && d.meta && d.meta.short) || String(deckTitle(id)).split(" · ")[0];
+  }
+  function inPlan(id) { return MEMBERS.indexOf(id) >= 0; }
+
 
   /* ---------------- 状态 ---------------- */
   var state = {
@@ -150,7 +213,64 @@
   }
   function setM(checkId, m) {
     state.checks[checkId] = { m: m, t: Date.now() };
+    propagateMastery(checkId, m);
     save();
+  }
+
+  /* ---- 掌握度同步：同一条问答覆盖的自查点共享掌握度（协议 v1.3 §10） ---- */
+  function splitLocal(ref) {
+    var i = String(ref).indexOf("#");
+    return i > 0 ? { deck: ref.slice(0, i), id: ref.slice(i + 1) } : { deck: "", id: String(ref) };
+  }
+  function readForeignState(deckId) {
+    try {
+      var raw = window.Native && window.Native.readState ? window.Native.readState(deckId) : null;
+      return raw ? (JSON.parse(raw) || {}) : {};
+    } catch (e) { return {}; }
+  }
+  function writeForeignState(deckId, st) {
+    try {
+      if (window.Native && window.Native.writeState) window.Native.writeState(deckId, JSON.stringify(st));
+    } catch (e) { toast("同步到 " + deckId + " 失败"); }
+  }
+  function siblingChecks(cid) {
+    var out = [], seen = {};
+    (QAS_OF_CHECK[cid] || []).forEach(function (qid) {
+      var q = QA[qid];
+      if (!q) return;
+      (q.covers || []).forEach(function (ref) {
+        var r = splitLocal(ref);
+        var deck = r.deck || CUR_DECK;
+        var key = deck + "|" + r.id;
+        if (deck === CUR_DECK && r.id === cid) return;
+        if (seen[key]) return;
+        seen[key] = 1;
+        out.push({ deck: deck, id: r.id });
+      });
+    });
+    return out;
+  }
+  function propagateMastery(cid, m) {
+    var sibs = siblingChecks(cid);
+    if (!sibs.length) return;
+    var batches = {}, touched = 0;
+    sibs.forEach(function (s) {
+      if (s.deck === CUR_DECK) {
+        if (!CHECK[s.id]) return;
+        state.checks[s.id] = { m: m, t: Date.now() };
+        touched++;
+        return;
+      }
+      if (!DECK_CACHE[s.deck]) return;          /* 对方包没装：跳过 */
+      var st = batches[s.deck] || (batches[s.deck] = readForeignState(s.deck));
+      st.checks = st.checks || {};
+      st.checks[s.id] = { m: m, t: Date.now() };
+      st.rev = (st.rev || 0) + 1;
+      st.touched = Date.now();
+      touched++;
+    });
+    Object.keys(batches).forEach(function (did) { writeForeignState(did, batches[did]); });
+    if (touched) toast("掌握度已同步到另外 " + touched + " 个" + term("check"));
   }
   function isFav(id) {
     var r = state.fav[id];
@@ -239,7 +359,19 @@
       chip("2", "会") + chip("3", "熟练") + chip("fav", "收藏") + "</div>");
 
     var shown = 0;
-    D.groups.forEach(function (g) {
+    var decks = MEMBERS.filter(function (id) { return !!DECK_CACHE[id]; });
+    if (!decks.length) decks = [CUR_DECK];
+    decks.forEach(function (did) {
+      var dd = DECK_CACHE[did] || D;
+      var active = did === CUR_DECK;
+      var dChecks = (dd.groups || []).reduce(function (n, gg) { return n + (gg.checks || []).length; }, 0);
+      var openGroups = (did === CUR_DECK ? (window.__openDecks || {}) : {})[did];
+      html.push('<div class="decksec' + (active ? " on" : "") + '" data-decksec="' + esc(did) + '">' +
+        '<span class="ds-chev">' + (active ? "▾" : "▸") + "</span>" +
+        '<span class="ds-name">' + esc(deckShort(did)) + "</span>" +
+        '<span class="ds-meta">' + (dd.groups || []).length + " 模块 · " + dChecks + " " + esc(term("check")) + "</span></div>");
+      if (!active) return;
+      (dd.groups || []).forEach(function (g) {
       var checks = g.checks.filter(function (c) { return passesMastery(c.id) && (matches(c.text) || matches(g.title)); });
       if (!checks.length) return;
       shown += checks.length;
@@ -265,6 +397,7 @@
         html.push(checkRow(c));
       });
       html.push("</div></section>");
+      });
     });
 
     if (!shown) html.push('<div class="empty">没有符合条件的' + esc(term("check")) + '</div>');
@@ -298,31 +431,47 @@
   /* ---------------- 视图：问答 ---------------- */
   var qaFilter = "all";
   var qaQuery = "";
+  /* 问答页按知识包筛选：on=false 表示“全部包” */
+  var qaDecks = { on: false, ids: {} };
 
   function renderQa() {
     var html = [];
     html.push('<input class="search" id="qaSearch" placeholder="搜索问题、标签、答案…" value="' + esc(qaQuery) + '">');
+    /* 按知识包筛选：默认勾选计划里的全部知识包 */
+    var decks = MEMBERS.filter(function (id) { return !!DECK_CACHE[id]; });
+    if (decks.length > 1) {
+      html.push('<div class="chips" id="qaDecks">' +
+        '<button class="chip' + (qaDecks.on ? "" : " on") + '" data-qdeck="all">全部包</button>' +
+        decks.map(function (id) {
+          return '<button class="chip' + (qaDecks.on && qaDecks.ids[id] ? " on" : "") +
+            '" data-qdeck="' + esc(id) + '">' + esc(deckShort(id)) + "</button>";
+        }).join("") + "</div>");
+    }
     html.push('<div class="chips" id="qaChips">' +
       ["all", "1", "2", "3", "4"].map(function (v) {
         var label = v === "all" ? "全部" : "L" + v;
         return '<button class="chip' + (qaFilter === v ? " on" : "") + '" data-qchip="' + v + '">' + label + "</button>";
       }).join("") + "</div>");
 
-    var list = QA_LIST.filter(function (q) {
-      if (qaFilter !== "all" && String(q.layer) !== qaFilter) return false;
+    var pool = decks.length > 1 ? QA_ALL : QA_LIST.map(function (q) { return { deck: CUR_DECK, q: q.q, id: q.id, layer: q.layer, m: q.m, tags: q.tags || [] }; });
+    var list = pool.filter(function (row) {
+      if (decks.length > 1 && qaDecks.on && !qaDecks.ids[row.deck]) return false;
+      if (qaFilter !== "all" && String(row.layer) !== qaFilter) return false;
       if (!qaQuery) return true;
-      var hay = q.q + " " + (q.tags || []).join(" ") + " " +
-        (q.ans || []).map(function (a) { return a.p; }).join(" ");
+      var q = row.deck === CUR_DECK ? QA[row.id] : null;
+      var hay = row.q + " " + (row.tags || []).join(" ") + " " + (q ? (q.ans || []).map(function (a) { return a.p; }).join(" ") : "");
       return hay.toLowerCase().indexOf(qaQuery) >= 0;
     });
 
-    list.forEach(function (q) {
-      var g = D.groups.filter(function (x) { return x.id === q.m; })[0];
-      html.push('<div class="qa-row" data-qa="' + q.id + '">' +
-        '<div class="lr"><span class="lbadge L' + q.layer + '">L' + q.layer + "</span></div>" +
-        '<div class="main"><div class="q">' + rich(q.q) + "</div>" +
-        '<div class="meta"><span>' + esc(g ? g.title : q.m) + "</span>" +
-        (q.tags || []).slice(0, 3).map(function (t) { return '<span class="tag">' + esc(t) + "</span>"; }).join("") +
+    list.forEach(function (row) {
+      var dd = DECK_CACHE[row.deck] || D;
+      var g = (dd.groups || []).filter(function (x) { return x.id === row.m; })[0];
+      html.push('<div class="qa-row" data-qa="' + esc(row.id) + '" data-qdeckrow="' + esc(row.deck) + '">' +
+        '<div class="lr"><span class="lbadge L' + row.layer + '">L' + row.layer + "</span></div>" +
+        '<div class="main"><div class="q">' + rich(row.q) + "</div>" +
+        '<div class="meta">' + (decks.length > 1 ? '<span class="dtag">' + esc(deckShort(row.deck)) + "</span>" : "") +
+        "<span>" + esc(g ? g.title : row.m) + "</span>" +
+        (row.tags || []).slice(0, 3).map(function (t) { return '<span class="tag">' + esc(t) + "</span>"; }).join("") +
         "</div></div></div>");
     });
     if (!list.length) html.push('<div class="empty">没有匹配的问答</div>');
@@ -462,12 +611,16 @@
 
   function renderDeckSection() {
     var list = deckList();
-    var html = ['<div class="sub-h"><b>学习包</b><span>' + list.length + " 个</span></div>"];
+    var html = ['<div class="sub-h"><b>学习计划</b><span>' + esc((PLAN && PLAN.title) || "未命名计划") + "</span></div>"];
+    html.push('<div class="note" style="margin:0 0 10px">计划里的知识包在顶部可一键切换、不重载页面；进度仍各存各的。</div>');
+    html.push('<div class="sub-h"><b>知识包</b><span>' + list.length + " 个</span></div>");
     list.forEach(function (d) {
       var on = d.id === CUR_DECK;
+      var member = inPlan(d.id);
       html.push('<div class="deck-row' + (on ? " on" : "") + '">' +
         '<div class="deck-main"><div class="deck-t">' + esc(d.title || d.id) +
-        (on ? ' <span class="deck-cur">使用中</span>' : "") + "</div>" +
+        (on ? ' <span class="deck-cur">使用中</span>' : "") +
+        (member ? ' <span class="dtag">计划内</span>' : "") + "</div>" +
         '<div class="deck-m">' + esc(d.id) + " · " + (d.checks || 0) + " " + esc(term("check")) +
         " · " + (d.qas || 0) + " " + esc(term("qa")) + (d.builtin ? " · 内置" : " · 已导入") + "</div></div>" +
         (on ? "" : '<button class="btn mini" data-deck="' + esc(d.id) + '">切换</button>') +
@@ -495,6 +648,74 @@
       }
       toast("网页调试模式不支持换包");
     } catch (e) { toast("切换失败"); }
+  }
+
+  /* 新导入的包自动加入当前计划（计划内才能一键切） */
+  function addToPlan(deckId) {
+    if (!PLAN || !deckId || inPlan(deckId)) return;
+    try {
+      PLAN.members = (PLAN.members || []).concat([deckId]);
+      if (window.Native && window.Native.savePlan) window.Native.savePlan(JSON.stringify(PLAN));
+      MEMBERS = PLAN.members.slice();
+    } catch (e) {}
+  }
+
+  function resetState() {
+    state.checks = {};
+    state.fav = {};
+    state.quiz = {};
+    state.rev = 0;
+    state.touched = 0;
+  }
+
+  /* 计划内软切换：不重载页面，就地换索引、进度与视图 */
+  function softSwitch(id) {
+    if (!id || id === CUR_DECK) return false;
+    var d = DECK_CACHE[id];
+    if (!d) { toast("这个知识包还没装"); return false; }
+    try { save(true); } catch (e) {}
+    try { if (window.Native && window.Native.setCurrentDeck) window.Native.setCurrentDeck(id); } catch (e) {}
+    CUR_DECK = id;
+    resetState();
+    hydrate(d);
+    loadState();
+    /* 主题、同步地址是设备级的，别被对方包里存的老值带跑 */
+    if (prefs.theme) state.settings.theme = prefs.theme;
+    if (prefs.host) state.sync.host = prefs.host;
+    if (prefs.code) state.sync.code = prefs.code;
+    renderTop();
+    paintRing();
+    render();
+    setTheme(state.settings.theme || "dark");
+    try { window.scrollTo(0, 0); } catch (e) {}
+    return true;
+  }
+
+  function renderTop() {
+    var bar = $("#planBar");
+    var decks = MEMBERS.filter(function (id) { return !!DECK_CACHE[id]; });
+    var total = 0, done = 0;
+    decks.forEach(function (id) {
+      var dd = DECK_CACHE[id];
+      (dd.groups || []).forEach(function (g) {
+        (g.checks || []).forEach(function (c) {
+          total++;
+          if (id === CUR_DECK && mOf(c.id) >= 2) done++;
+        });
+      });
+    });
+    $("#deckTitle").textContent = (PLAN && PLAN.title) || D.title || "题台";
+    $("#deckSub").textContent = decks.length > 1
+      ? decks.length + " 个知识包 · " + total + " " + term("check") + " · " + QA_ALL.length + " " + term("qa")
+      : (D.groups || []).length + " 个" + term("group") + " · " + QA_LIST.length + " 条" + term("qa");
+
+    if (!bar) return;
+    if (decks.length < 2) { bar.innerHTML = ""; bar.classList.remove("on"); return; }
+    bar.classList.add("on");
+    bar.innerHTML = decks.map(function (id) {
+      return '<button class="pchip' + (id === CUR_DECK ? " on" : "") + '" data-plan-deck="' + esc(id) + '">' +
+        esc(deckShort(id)) + "</button>";
+    }).join("");
   }
 
   function deckEndpoint(path) {
@@ -671,7 +892,8 @@
     try { saved = String(window.Native.saveDeck(text) || ""); } catch (e) { saved = ""; }
     try { window.Native.dropStagedImport(); } catch (e) {}
     if (!saved) { showImportProblems(["写入失败：id 不合法或存储空间不足"]); return; }
-    toast("已导入 " + saved + "（" + r.checks + " 个知识点）");
+    addToPlan(saved);
+    toast("已导入 " + saved + "（" + r.checks + " 个" + term("check") + "）");
     switchDeck(saved);
   }
   window.__importStaged = importStaged;
@@ -761,12 +983,10 @@
   }
 
   /* ---------------- 跨包引用（协议 v1.2 §8） ---------------- */
-  var DECK_META = null;
-  var DECK_CACHE = {};
   var LINK_INDEX = null;
 
   function deckMeta() {
-    if (DECK_META) return DECK_META;
+    if (DECK_META && DECK_META.length) return DECK_META;
     var arr = [];
     try {
       if (window.Native && window.Native.listDecks) arr = JSON.parse(String(window.Native.listDecks() || "[]"));
@@ -1103,11 +1323,30 @@
   }
 
   document.addEventListener("click", function (ev) {
-    var t = ev.target.closest("[data-tab],[data-act],[data-chip],[data-qchip],[data-qa],[data-jump],[data-cross],[data-cross-back],[data-star],[data-m],[data-check],[data-dmode],[data-rate],[data-cm],[data-deck],[data-del-deck],[data-download],[data-cw],.seg [data-theme]");
+    var t = ev.target.closest("[data-tab],[data-act],[data-chip],[data-qchip],[data-qdeck],[data-qa],[data-jump],[data-cross],[data-cross-back],[data-star],[data-m],[data-check],[data-dmode],[data-rate],[data-cm],[data-deck],[data-plan-deck],[data-decksec],[data-del-deck],[data-download],[data-cw],.seg [data-theme]");
     if (!t) { console.log("[click] miss " + ev.target.tagName); return; }
     console.log("[click] " + (t.dataset.tab ? "tab=" + t.dataset.tab : JSON.stringify(t.dataset).slice(0, 80)));
 
     if (t.dataset.tab) { setTab(t.dataset.tab); return; }
+
+    /* 计划内软切换（不重载） */
+    if (t.dataset.planDeck) { softSwitch(t.dataset.planDeck); return; }
+    if (t.dataset.decksec) { softSwitch(t.dataset.decksec); return; }
+    if (t.dataset.qdeck) {
+      var dq = t.dataset.qdeck;
+      if (dq === "all") {
+        qaDecks.on = false;
+        qaDecks.ids = {};
+      } else {
+        if (!qaDecks.on) {
+          qaDecks.on = true;
+          MEMBERS.forEach(function (id) { if (DECK_CACHE[id]) qaDecks.ids[id] = true; });
+        }
+        qaDecks.ids[dq] = !qaDecks.ids[dq];
+      }
+      renderQa();
+      return;
+    }
 
     /* 跨包跳转 */
     if (t.dataset.cross) { crossJump(t.dataset.cross, SHEET_ID); return; }
@@ -1132,7 +1371,12 @@
     }
 
     /* 学习包切换 / 删除 / 下载 */
-    if (t.dataset.deck) { switchDeck(t.dataset.deck); return; }
+    if (t.dataset.deck) {
+      var did = t.dataset.deck;
+      if (inPlan(did) && DECK_CACHE[did]) softSwitch(did);
+      else switchDeck(did);
+      return;
+    }
     if (t.dataset.delDeck) {
       var delId = t.dataset.delDeck;
       if (!confirm("删除学习包「" + delId + "」？它的进度也会一起删掉。")) return;
@@ -1172,7 +1416,12 @@
       return;
     }
 
-    if (t.dataset.qa) { openQa(t.dataset.qa); return; }
+    if (t.dataset.qa) {
+      var qaDeck = t.dataset.qdeckrow || CUR_DECK;
+      if (qaDeck !== CUR_DECK) softSwitch(qaDeck);
+      openQa(t.dataset.qa);
+      return;
+    }
     if (t.dataset.jump) { openQa(t.dataset.jump); return; }
 
     if (t.dataset.dmode) { drillMode = t.dataset.dmode; drillCur = null; renderDrill(); return; }
@@ -1301,10 +1550,9 @@
   /* ---------------- 启动 ---------------- */
   prefs = loadPrefs();
   loadState();
-  $("#deckTitle").textContent = D.title || "题台";
   $("#tabList").textContent = term("check");
   $("#tabQa").textContent = term("qa");
-  $("#deckSub").textContent = (D.groups || []).length + " 个" + term("group") + " · " + QA_LIST.length + " 条" + term("qa");
+  renderTop();
   setTheme(state.settings.theme || "dark");
   setTab(state.settings.tab || "list");
   applyDeepLink();

@@ -14,19 +14,24 @@ studydeck/
 │  ├─ assets/            ← 前端（HTML/CSS/JS），WebView 直接加载
 │  │  ├─ index.html
 │  │  ├─ app.css         深色/浅色两套主题（只用 rgba，兼容旧 WebView）
-│  │  ├─ app.js          引擎：清单/问答/收藏/刷题/设置/多学习包
+│  │  ├─ app.js          引擎：计划/多知识包/清单/问答/收藏/刷题/设置/掌握度同步
 │  │  ├─ deck.js         由 tools/mkdeck.js 生成，window.DECK = {...}（兜底用）
-│  │  └─ decks/*.json    内置学习包，一份一个文件（引擎按 id 读取）
+│  │  ├─ decks/*.json    内置知识包，一份一个文件（引擎按 id 读取）
+│  │  └─ plans/*.json    内置学习计划（成员顺序 = 学习顺序）
 │  ├─ java/com/studydeck/app/
 │  │  ├─ MainActivity.java   WebView 壳 + 返回键接管 + 深链
 │  │  └─ Bridge.java         多包读写/切换 + 进度文件 + setChrome / http / versionName
 │  └─ res/               图标与主题
-├─ decks/                想「从电脑导入」的学习包放这里（sync.js 负责下发）
-├─ docs/deck-protocol.md 学习包协议 v1.2（内容层 / 进度层 / 同步层 / 公式 / 跨包引用 + 校验规则）
-├─ schema/               JSON Schema：deck.schema.json / state.schema.json
+├─ decks/                想「从电脑导入」的知识包放这里（sync.js 负责下发）
+├─ plans/                学习计划（ue5-ml.plan.json）
+├─ docs/deck-protocol.md 协议 v1.3（内容层 / 进度层 / 同步层 / 公式 / 跨包引用 / 学习计划 / 掌握度同步）
+├─ schema/               JSON Schema：deck / state / plan
 ├─ tools/
 │  ├─ mkdeck.js          数据源 → dist/deck.json + assets/decks/<id>.json（含覆盖率自检）
 │  ├─ validate-deck.js   协议校验器（引用闭合、答案结构、链路质量；覆盖仅警告）
+│  ├─ validate-plan.js   计划校验器（成员存在、顺序、primary）
+│  ├─ check-links.js     多包联合检查（跨包引用解析、环、缺包）
+│  ├─ split-pcg.js       把一个大包按模块区间拆成多个包（重编号 + 跨包引用改写）
 │  ├─ conformance.js     一致性测试：真实引擎 + 无头浏览器渲染一份 deck
 │  └─ sync.js            局域网同步服务 + 电脑端浏览页面 + 学习包下发
 ├─ dist/deck.json        学习包真相，可 diff、可备份
@@ -35,7 +40,22 @@ studydeck/
 
 App 内的进度按包分文件：`files/states/<deck-id>.json`；导入包放在 `files/decks/<deck-id>.json`；主题与同步地址这类跟包无关的偏好放在 `files/prefs.json`，换包不丢。
 
-学习包、进度、同步三层的完整契约见 **[docs/deck-protocol.md](docs/deck-protocol.md)**。
+知识包、进度、同步三层的完整契约见 **[docs/deck-protocol.md](docs/deck-protocol.md)**。
+
+### 学习计划（v1.3）
+
+`plans/*.plan.json` 把多个知识包串成一条学习路径：顶部一条 chip 就能在计划内切包（不重载页面），列表按知识包分区、模块编号各自从 1 起，问答页可以按包筛选。
+
+现在仓库里有四个包串成一个计划：
+
+| 知识包 | 模块 | 知识点 | 问答 |
+|---|---|---|---|
+| `cs-base` 计算机基础 | 6 | 62 | 47 |
+| `cv-graphics` 计算机视觉与图形 | 3 | 42 | 39 |
+| `ue5-pcg` UE5 PCG | 9 | 90 | 92 |
+| `ml-intro` 机器学习入门 | 10 | 60 | 66 |
+
+同一条问答覆盖的自查点**共享掌握度**：在一个包里点亮，跨包（`deck#id`）的那一条也会同步写一份（协议 §10）。
 
 ---
 

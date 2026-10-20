@@ -349,6 +349,150 @@ public class Bridge {
         prefs().edit().putString("deck", deckId == null ? "" : deckId).apply();
     }
 
+    // ---------- 学习计划（协议 v1.3） ----------
+
+    /**
+     * 所有学习计划（内置 assets/plans/*.json + 导入 files/plans/*.json）。
+     * @return JSON 数组：[{id,title,subtitle,members:[...],primary,builtin}]
+     */
+    @JavascriptInterface
+    public String listPlans() {
+        JSONArray out = new JSONArray();
+        java.util.LinkedHashMap<String, JSONObject> byId = new java.util.LinkedHashMap<>();
+        try {
+            String[] names = ctx.getAssets().list("plans");
+            if (names != null) {
+                java.util.Arrays.sort(names);
+                for (String n : names) {
+                    if (!n.endsWith(".json")) continue;
+                    JSONObject o = summarizePlan(readAssetText("plans/" + n), true);
+                    if (o != null) byId.put(o.optString("id"), o);
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        try {
+            File[] files = plansDir().listFiles();
+            if (files != null) {
+                java.util.Arrays.sort(files);
+                for (File f : files) {
+                    if (!f.getName().endsWith(".json")) continue;
+                    JSONObject o = summarizePlan(readText(f), false);
+                    if (o != null) byId.put(o.optString("id"), o);
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        for (JSONObject o : byId.values()) out.put(o);
+        return out.toString();
+    }
+
+    private JSONObject summarizePlan(String json, boolean builtin) {
+        if (json == null || json.isEmpty()) return null;
+        try {
+            JSONObject p = new JSONObject(json);
+            String id = p.optString("id", "");
+            if (id.isEmpty()) return null;
+            JSONObject o = new JSONObject();
+            o.put("id", id);
+            o.put("title", p.optString("title", id));
+            o.put("subtitle", p.optString("subtitle", ""));
+            o.put("members", p.optJSONArray("members") == null ? new JSONArray() : p.optJSONArray("members"));
+            o.put("primary", p.optString("primary", ""));
+            o.put("builtin", builtin);
+            return o;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @JavascriptInterface
+    public String readPlan(String planId) {
+        try {
+            String[] names = ctx.getAssets().list("plans");
+            if (names != null) {
+                for (String n : names) {
+                    if (!n.endsWith(".json")) continue;
+                    String text = readAssetText("plans/" + n);
+                    if (planId.equals(planIdOf(text))) return text;
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        File f = new File(plansDir(), safeName(planId) + ".json");
+        if (f.exists()) {
+            String text = readText(f);
+            if (planId.equals(planIdOf(text))) return text;
+        }
+        return "";
+    }
+
+    private String planIdOf(String json) {
+        try {
+            return new JSONObject(json).optString("id", "");
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    @JavascriptInterface
+    public String currentPlan() {
+        String id = prefs().getString("plan", "");
+        if (id == null || id.isEmpty()) {
+            String first = "";
+            try {
+                String[] names = ctx.getAssets().list("plans");
+                if (names != null && names.length > 0) {
+                    java.util.Arrays.sort(names);
+                    for (String n : names) {
+                        if (!n.endsWith(".json")) continue;
+                        first = planIdOf(readAssetText("plans/" + n));
+                        if (!first.isEmpty()) break;
+                    }
+                }
+            } catch (Exception ignored) {
+            }
+            return first;
+        }
+        return id;
+    }
+
+    @JavascriptInterface
+    public void setCurrentPlan(String planId) {
+        prefs().edit().putString("plan", planId == null ? "" : planId).apply();
+    }
+
+    /** 导入/更新一个计划（手机端从文件导入时用），返回是否成功 */
+    @JavascriptInterface
+    public boolean savePlan(String json) {
+        try {
+            String id = planIdOf(json);
+            if (id.isEmpty()) return false;
+            File f = new File(plansDir(), safeName(id) + ".json");
+            try (java.io.FileOutputStream out = new java.io.FileOutputStream(f)) {
+                out.write(json.getBytes("UTF-8"));
+                out.flush();
+                out.getFD().sync();
+            }
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @JavascriptInterface
+    public boolean deletePlan(String planId) {
+        File f = new File(plansDir(), safeName(planId) + ".json");
+        return f.exists() && f.delete();
+    }
+
+    private File plansDir() {
+        File d = new File(ctx.getFilesDir(), "plans");
+        if (!d.exists()) d.mkdirs();
+        return d;
+    }
+
+
     // ---------- 进度（按学习包隔离） ----------
 
     @JavascriptInterface

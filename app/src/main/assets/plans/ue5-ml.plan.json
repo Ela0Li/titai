@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "id": "ue5-ml",
+  "title": "UE5 PCG 与机器学习",
+  "subtitle": "一个计划装四个知识包：基础 → 视觉 → PCG → 机器学习",
+  "members": ["cs-base", "cv-graphics", "ue5-pcg", "ml-intro"],
+  "primary": "ue5-pcg"
+}

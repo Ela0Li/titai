@@ -97,7 +97,7 @@
           "text": "解释期望、方差、协方差与相关系数在特征分析中的含义。",
           "lvl": "P1",
           "seeAlso": [
-            "ue5-pcg#q.m11.prob"
+            "ue5-pcg#q.m2.prob"
           ]
         },
         {
@@ -821,7 +821,7 @@
       ],
       "peer": [
         "q.m4.logit",
-        "ue5-pcg#q.m11.prob"
+        "ue5-pcg#q.m2.prob"
       ],
       "backNext": [
         "q.m2.vector"
@@ -866,7 +866,7 @@
       ],
       "peer": [
         "q.m7.optim",
-        "ue5-pcg#q.m11.noise"
+        "ue5-pcg#q.m2.noise"
       ],
       "backNext": [
         "q.m2.prob"
@@ -906,7 +906,7 @@
       ],
       "covers": [
         "m2.4",
-        "ue5-pcg#m11.4"
+        "ue5-pcg#m2.4"
       ],
       "next": [
         "q.m2.mle"
