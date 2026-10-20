@@ -747,6 +747,30 @@
     } catch (e) { return []; }
   }
 
+  /* 学习计划：直接在设置页列出，和知识包一样一行一个，不藏进二级面板 */
+  function renderPlanRows() {
+    reloadPlans();
+    var out = ['<div class="sub-h"><b>学习计划</b><span>' + PLANS.length + " 个</span></div>"];
+    out.push('<div class="note" style="margin:0 0 10px">计划里的知识包在顶部可一键切换、不重载页面；进度仍各存各的。</div>');
+    PLANS.forEach(function (p) {
+      var cur = PLAN && p.id === PLAN.id;
+      var names = (p.members || []).map(function (id) { return deckShort(id); }).join(" → ");
+      out.push('<div class="deck-row' + (cur ? " on" : "") + '">' +
+        '<div class="deck-main"><div class="deck-t">' + esc(p.title || p.id) +
+        (cur ? ' <span class="deck-cur">使用中</span>' : "") + "</div>" +
+        '<div class="deck-m">' + esc(p.id) + " · " + (p.members || []).length + " 个知识包" +
+        (names ? " · " + esc(names) : "") + "</div></div>" +
+        (cur ? "" : '<button class="btn mini" data-act="plan-use" data-id="' + esc(p.id) + '">使用</button>') +
+        '<button class="btn mini" data-act="plan-edit" data-id="' + esc(p.id) + '">编辑</button>' +
+        (!cur && !p.builtin && PLANS.length > 1 ? '<button class="btn mini danger" data-act="plan-del" data-id="' + esc(p.id) + '">删</button>' : "") +
+        "</div>");
+    });
+    out.push('<div class="btn-row"><button class="btn" data-act="plan-new">新建计划</button>' +
+      '<button class="btn" data-act="plan-import">导入计划文件</button></div>');
+    out.push('<div class="note">计划文件是普通 JSON（协议 §9），可以发给别人或放到电脑上。</div>');
+    return out.join("");
+  }
+
   function renderDeckSection() {
     var list = deckList();
     /* 计划内的包按计划顺序排，其余排在后面 */
@@ -757,10 +781,7 @@
       if (ia !== ib) return ia - ib;
       return String(a.id) < String(b.id) ? -1 : 1;
     });
-    var html = ['<div class="sub-h"><b>学习计划</b><span>' + esc((PLAN && PLAN.title) || "未命名计划") + "</span></div>"];
-    html.push('<div class="note" style="margin:0 0 10px">计划里的知识包在顶部可一键切换、不重载页面；进度仍各存各的。</div>');
-    html.push('<div class="btn-row"><button class="btn" data-act="plan-list">切换 / 管理计划</button>' +
-      '<button class="btn" data-act="plan-new">新建计划</button></div>');
+    var html = [renderPlanRows()];
     html.push('<div class="sub-h"><b>知识包</b><span>' + list.length + " 个</span></div>");
     list.forEach(function (d) {
       var on = d.id === CUR_DECK;
@@ -1204,6 +1225,14 @@
       '<button data-cw="0" class="' + (prefs.crossWrite ? "" : "on") + '">只读</button>' +
       '<button data-cw="1" class="' + (prefs.crossWrite ? "on" : "") + '">可打点</button></div>');
     html.push('<div class="note">其他学习包指向本包的记录会显示在详情页「被引用」里。默认跨包只读：<b>只读</b>时不改对方进度，<b>可打点</b>时允许在对方包里记掌握度（两边各记一份）。</div>');
+    /* 三态图例：详情页里的跨包链接长什么样、点下去会怎样 */
+    html.push('<div class="sub-h" style="margin-top:12px"><b>链接三态</b><span class="note">详情页里怎么看</span></div>');
+    html.push('<div class="lg-x"><div class="lg-xa"><span class="jump xlink">包名</span></div>' +
+      '<div class="lg-xt">在计划内：软切包，顶部还是计划视图</div></div>');
+    html.push('<div class="lg-x"><div class="lg-xa"><span class="jump xlink out">包名<i>计划外</i></span></div>' +
+      '<div class="lg-xt">已装但不在计划内：跳过去会临时离开计划，顶部出现「回到计划」</div></div>');
+    html.push('<div class="lg-x"><div class="lg-xa"><span class="jump stale disabled">未安装的学习包</span></div>' +
+      '<div class="lg-xt">包没装：不可点，装上后自动恢复</div></div>');
     if (prefs.pendingBack && prefs.pendingBack.deck && prefs.pendingBack.deck !== CUR_DECK) {
       html.push('<div class="btn-row"><button class="btn" data-act="end-cross">结束跨包只读</button></div>');
     }
@@ -1406,7 +1435,24 @@
     var r = splitRef(ref);
     if (!r.deck || r.deck === CUR_DECK) { openQa(r.id); return; }
     var back = { deck: CUR_DECK, id: fromId || (SHEET_ID || "") };
-    if (!planHas(r.deck)) toast("「" + deckTitle(r.deck) + "」不在当前计划内，跳到后可点顶部「回到计划」");    setPref("pendingOpen", { deck: r.deck, id: r.id });
+    if (planHas(r.deck)) { doCrossJump(r, back); return; }
+    askOutJump(r, back);
+  }
+
+  /* 计划外的引用：给一个「顺手加进计划」的岔路口，而不是只弹个提示就跳走 */
+  function askOutJump(r, back) {
+    var deck = r.deck, id = r.id;
+    var html = ['<div class="sub-h"><b>「' + esc(deckTitle(deck)) + '」不在当前计划内</b></div>'];
+    html.push('<div class="note">这个知识包已经装在本机，只是不属于「' +
+      esc((PLAN && PLAN.title) || "当前计划") + '」。加进计划后它就变成计划内的正常跳转，顶部也会多一个 chip。</div>');
+    html.push('<div class="btn-row"><button class="btn" data-outjoin="' + esc(deck + "#" + id) + '">加入计划并跳转</button></div>');
+    html.push('<div class="btn-row"><button class="btn" data-outjump="' + esc(deck + "#" + id) + '">先看看（临时离开计划）</button></div>');
+    html.push('<div class="note">临时离开不改计划成员；跳过去后顶部的「← 回到计划」可以随时切回。</div>');
+    openSheet(html.join(""));
+  }
+
+  function doCrossJump(r, back) {
+    setPref("pendingOpen", { deck: r.deck, id: r.id });
     setPref("pendingBack", back);
     try {
       save(true);
@@ -1414,6 +1460,23 @@
       location.replace("index.html");
     } catch (e) {
       toast("跳转失败：" + e);
+    }
+  }
+
+  /* 加入计划 + 直接落到那条记录上；计划变了所以整页重载一次 */
+  function joinAndJump(ref) {
+    var r = splitRef(ref);
+    if (!r.deck) return;
+    addToPlan(r.deck);
+    setPref("pendingOpen", { deck: r.deck, id: r.id });
+    setPref("pendingBack", { deck: CUR_DECK, id: SHEET_ID || "" });
+    try {
+      save(true);
+      if (window.Native && window.Native.setCurrentDeck) window.Native.setCurrentDeck(r.deck);
+      toast("已把「" + deckTitle(r.deck) + "」加入计划");
+      location.replace("index.html");
+    } catch (e) {
+      toast("加入失败：" + e);
     }
   }
 
@@ -1614,7 +1677,7 @@
   }
 
   document.addEventListener("click", function (ev) {
-    var t = ev.target.closest("[data-tab],[data-act],[data-chip],[data-qchip],[data-qdeck],[data-qa],[data-jump],[data-cross],[data-cross-back],[data-plan-back],[data-star],[data-m],[data-check],[data-dmode],[data-rate],[data-cm],[data-deck],[data-plan-deck],[data-decksec],[data-del-deck],[data-download],[data-cw],.seg [data-theme]");
+    var t = ev.target.closest("[data-tab],[data-act],[data-chip],[data-qchip],[data-qdeck],[data-qa],[data-jump],[data-cross],[data-cross-back],[data-plan-back],[data-outjoin],[data-outjump],[data-star],[data-m],[data-check],[data-dmode],[data-rate],[data-cm],[data-deck],[data-plan-deck],[data-decksec],[data-del-deck],[data-download],[data-cw],.seg [data-theme]");
     if (!t) { console.log("[click] miss " + ev.target.tagName); return; }
     console.log("[click] " + (t.dataset.tab ? "tab=" + t.dataset.tab : JSON.stringify(t.dataset).slice(0, 80)));
 
@@ -1654,6 +1717,8 @@
     }
 
     /* 跨包跳转 */
+    if (t.dataset.outjoin) { closeSheet(); joinAndJump(t.dataset.outjoin); return; }
+    if (t.dataset.outjump) { closeSheet(); crossJump(t.dataset.outjump, SHEET_ID); return; }
     if (t.dataset.cross) { crossJump(t.dataset.cross, SHEET_ID); return; }
     if (t.dataset.crossBack) {
       var bk = prefs.pendingBack;
