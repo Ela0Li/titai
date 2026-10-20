@@ -171,7 +171,10 @@
       .replace(/"/g, "&quot;");
   }
   function rich(s) {
-    return esc(s).replace(/`([^`]+)`/g, "<code>$1</code>");
+    /* 先切公式（$…$ 行内 / $$…$$ 块级），其余照旧：转义 + 反引号转 code */
+    function plain(t) { return esc(t).replace(/`([^`]+)`/g, "<code>$1</code>"); }
+    if (window.MathML && window.MathML.renderText) return window.MathML.renderText(s, plain);
+    return plain(s);
   }
   var toastTimer = null;
   function toast(msg) {
@@ -268,9 +271,9 @@
     html.push('<div class="hint lgdline" style="margin-top:14px">点圆点记掌握度（再点同一个点可清除；点文字看对应问答）'
       + '<div class="lgds">'
       + '<span class="lgt"><span class="ld"></span><span class="ld"></span><span class="ld"></span>未学</span>'
-      + '<span class="lgt"><span class="ld m1"></span><span class="ld"></span><span class="ld"></span>模糊</span>'
-      + '<span class="lgt"><span class="ld m1"></span><span class="ld m2"></span><span class="ld"></span>会</span>'
-      + '<span class="lgt"><span class="ld m1"></span><span class="ld m2"></span><span class="ld m3"></span>熟练</span>'
+      + '<span class="lgt lv1"><span class="ld on"></span><span class="ld"></span><span class="ld"></span>模糊</span>'
+      + '<span class="lgt lv2"><span class="ld on"></span><span class="ld on"></span><span class="ld"></span>会</span>'
+      + '<span class="lgt lv3"><span class="ld on"></span><span class="ld on"></span><span class="ld on"></span>熟练</span>'
       + '</div></div>');
     $("#view").innerHTML = html.join("");
   }
@@ -282,13 +285,12 @@
   function checkRow(c) {
     var m = mOf(c.id);
     var dots = [1, 2, 3].map(function (k) {
-      var cls = m >= k ? "dot on m" + m : "dot";
-      return '<button class="' + cls + '" data-m="' + k + '" aria-label="掌握度' + k + '"></button>';
+      return '<button class="dot' + (m >= k ? " on" : "") + '" data-m="' + k + '" aria-label="掌握度' + k + '"></button>';
     }).join("");
     return '<div class="check" data-check="' + c.id + '">' +
       '<div class="check-c" data-act="open-check"><em>' + esc(c.id) + "</em>" + rich(c.text) + "</div>" +
       '<span class="lvl ' + esc(c.lvl) + '">' + esc(c.lvl) + "</span>" +
-      '<div class="dots" data-dots="' + c.id + '">' + dots + "</div>" +
+      '<div class="dots" data-dots="' + c.id + '" data-lv="' + m + '">' + dots + "</div>" +
       '<button class="star' + (isFav(c.id) ? " on" : "") + '" data-star="' + c.id + '">' + (isFav(c.id) ? "★" : "☆") + "</button>" +
       "</div>";
   }

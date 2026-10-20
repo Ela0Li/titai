@@ -32,7 +32,9 @@ const EDGE =
 
 const PROBE = (expected) => `
 <script>
-window.__probe = { errors: [], expected: ${JSON.stringify(expected)} };
+window.__probe = { errors: [], expected: ${JSON.stringify(expected)}, mathQa: ${JSON.stringify(
+  expected.mathQa || null
+)} };
 window.addEventListener("error", function (e) {
   window.__probe.errors.push(String(e.message || e.error));
 });
@@ -57,12 +59,17 @@ window.addEventListener("load", function () {
       if (qaTab) qaTab.click();
       setTimeout(function () {
         p.qas = document.querySelectorAll(".qa-row").length;
-        var first = document.querySelector(".qa-row");
+        /* 优先点开“有公式的那条”，用来验证 MathML 真的排出来了 */
+        var first = (p.mathQa &&
+          document.querySelector('.qa-row[data-qa="' + p.mathQa + '"]')) ||
+          document.querySelector(".qa-row");
         if (first) first.click();
         setTimeout(function () {
           p.sheetOpen = document
             .getElementById("sheet")
             .classList.contains("on");
+          p.math = document.querySelectorAll("math").length;
+          p.mathBlock = document.querySelectorAll('math[display="block"]').length;
           finish();
         }, 30);
       }, 30);
@@ -74,6 +81,41 @@ window.addEventListener("load", function () {
 });
 </script>
 `;
+
+/* 数一个包里有多少个公式（反引号代码里的 $ 不算） */
+function countFormulas(raw) {
+  let n = 0;
+  const scan = (s) => {
+    if (typeof s !== "string") return;
+    const t = s.replace(/`[^`]*`/g, " ");
+    const m = t.match(/\$\$/g);
+    if (m) n += m.length;
+    const single = t.replace(/\$\$/g, " ").match(/(?<!\\)\$/g);
+    if (single) n += single.length;
+  };
+  (raw.groups || []).forEach((g) =>
+    (g.checks || []).forEach((c) => scan(c.text))
+  );
+  (raw.qas || []).forEach((q) => {
+    scan(q.q);
+    (q.ans || []).forEach((a) => scan(a.p));
+  });
+  return Math.ceil(n / 2);
+}
+
+/* 找第一条带公式的问答，返回它的 id（没有就返回 null） */
+function firstMathQa(raw) {
+  const has = (s) => {
+    if (typeof s !== "string") return false;
+    const t = s.replace(/`[^`]*`/g, " ");
+    return /\$[^$]/.test(t) || /\$\$/.test(t);
+  };
+  for (const q of raw.qas || []) {
+    if (has(q.q)) return q.id;
+    for (const a of q.ans || []) if (has(a.p)) return q.id;
+  }
+  return null;
+}
 
 function parseArgs(argv) {
   const files = [];
@@ -95,7 +137,7 @@ function runOne(deckPath) {
   );
 
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "titai-conformance-"));
-  ["index.html", "app.css", "app.js"].forEach((f) =>
+  ["index.html", "app.css", "app.js", "math.js"].forEach((f) =>
     fs.copyFileSync(path.join(ASSETS, f), path.join(tmp, f))
   );
   fs.writeFileSync(
@@ -103,7 +145,7 @@ function runOne(deckPath) {
     "window.DECK = " + JSON.stringify(raw) + ";\n",
     "utf8"
   );
-  const probeTag = PROBE({ qas: (raw.qas || []).length });
+  const probeTag = PROBE({ qas: (raw.qas || []).length, mathQa: firstMathQa(raw) });
   const html = fs
     .readFileSync(path.join(tmp, "index.html"), "utf8")
     .replace('<script src="deck.js"></script>', probeTag + '<script src="deck.js"></script>');
@@ -156,6 +198,13 @@ function runOne(deckPath) {
   if (p.qas !== (raw.qas || []).length)
     fails.push("问答渲染 " + p.qas + " 行，应为 " + (raw.qas || []).length);
   if (!p.sheetOpen) fails.push("点开问答后详情面板没打开");
+
+  /* 协议 v1.1：包里写了公式，页面就必须真的渲染出 <math> */
+  const wantMath = countFormulas(raw);
+  if (wantMath > 0 && !(p.math > 0))
+    fails.push("包里有 " + wantMath + " 个公式，但页面一个 <math> 都没渲染出来");
+  if (wantMath === 0 && p.math > 0)
+    fails.push("包里没有公式，页面却渲染出 " + p.math + " 个 <math>");
 
   try {
     fs.rmSync(tmp, { recursive: true, force: true });

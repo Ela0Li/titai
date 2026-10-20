@@ -170,9 +170,10 @@ code {
 .dot::after { content: ""; position: absolute; inset: 3px; border-radius: 50%; background: var(--line2); opacity: .35; }
 .dot.on { border-color: transparent; }
 .dot.on::after { opacity: .95; }
-.dot.on.m1::after { background: var(--gold); }
-.dot.on.m2::after { background: var(--accent); }
-.dot.on.m3::after { background: var(--green); }
+/* 亮起的点统一取「当前等级」的颜色：1 模糊=金、2 会=蓝、3 熟练=绿 */
+.dots[data-lv="1"] .dot.on::after { background: var(--gold); }
+.dots[data-lv="2"] .dot.on::after { background: var(--accent); }
+.dots[data-lv="3"] .dot.on::after { background: var(--green); }
 
 /* 图例里的小圆点：与上面的掌握度点同一套画法，只是缩小 */
 .lgt { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
@@ -184,9 +185,18 @@ code {
   content: ""; position: absolute; inset: 2px; border-radius: 50%;
   background: var(--line2); opacity: .3;
 }
-.lgt .ld.m1::after { background: var(--gold); opacity: .95; }
-.lgt .ld.m2::after { background: var(--accent); opacity: .95; }
-.lgt .ld.m3::after { background: var(--green); opacity: .95; }
+.lgt.lv1 .ld.on::after { background: var(--gold); opacity: .95; }
+.lgt.lv2 .ld.on::after { background: var(--accent); opacity: .95; }
+.lgt.lv3 .ld.on::after { background: var(--green); opacity: .95; }
+.lgt .ld.on { border-color: transparent; }
+
+/* 公式 */
+math { font-size: 1.03em; }
+math[display="block"] {
+  display: block; margin: 10px 0; padding: 2px 0;
+  overflow-x: auto; overflow-y: hidden;
+}
+mtext { font-size: .96em; }
 .star { flex: 0 0 auto; width: 26px; height: 26px; display: grid; place-items: center; color: var(--fg3); font-size: 14px; }
 .star.on { color: var(--gold); }
 

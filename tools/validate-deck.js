@@ -25,6 +25,94 @@ const RE_QA_ID = /^q\.[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$/;
 /** 只做提示、不计入 warnings 的软规则（协议明确允许） */
 const NOTE_CODES = new Set(["W_CYCLE", "W_LAYER_DOWN"]);
 
+/* ---------- 数学标记（协议 v1.1） ----------
+ * 行内 $…$，块级 $$…$$；\$ 表示字面美元符。
+ * 这里只做「能不能被渲染器吃下去」的结构检查，排版效果交给 conformance.js。
+ */
+const MATH_CMDS = new Set(`
+frac dfrac tfrac sqrt text mathrm textrm operatorname mathbf bm boldsymbol
+overline bar hat vec dot left right big Big bigl bigr bigl Bigr biggl biggr
+alpha beta gamma delta epsilon varepsilon zeta eta theta vartheta iota kappa
+lambda mu nu xi pi rho sigma tau upsilon phi varphi chi psi omega
+Gamma Delta Theta Lambda Xi Pi Sigma Upsilon Phi Psi Omega
+cdot times div pm mp ast star circ bullet oplus otimes
+le leq ge geq ne neq approx equiv sim simeq propto ll gg
+infty partial nabla forall exists in notin ni subset subseteq supset supseteq
+cup cap setminus emptyset to rightarrow leftarrow Rightarrow Leftarrow
+leftrightarrow Leftrightarrow mapsto longrightarrow ldots dots cdots vdots ddots
+angle perp parallel mid vert Vert prime degree therefore because
+langle rangle lfloor rfloor lceil rceil
+sum prod coprod int iint iiint oint bigcup bigcap lim log lg ln exp sin cos tan
+cot sec csc arcsin arccos arctan max min sup inf arg argmax argmin det dim mod
+quad qquad
+`.trim().split(/\s+/));
+
+function short(s) { return s.length > 60 ? s.slice(0, 60) + "…" : s; }
+
+/** 遍历文本里的公式片段，回调 {tex, block, raw}；反引号里的内容不算公式 */
+function eachMath(text, fn) {
+  let i = 0;
+  const n = text.length;
+  while (i < n) {
+    if (text[i] === "\\" && text[i + 1] === "$") { i += 2; continue; }
+    /* 跳过 `代码`，里面允许出现 $ */
+    if (text[i] === "`") {
+      const close = text.indexOf("`", i + 1);
+      if (close > 0) { i = close + 1; continue; }
+    }
+    if (text[i] !== "$") { i++; continue; }
+    const block = text[i + 1] === "$";
+    const open = block ? "$$" : "$";
+    const start = i + open.length;
+    const end = text.indexOf(open, start);
+    if (end < 0) { fn({ unclosed: true, raw: text.slice(i), from: i }); return; }
+    fn({ tex: text.slice(start, end), block, raw: text.slice(i, end + open.length) });
+    i = end + open.length;
+  }
+}
+
+/** 去掉公式片段，供 HTML 检查用（同样跳过 `代码`） */
+function stripMath(text) {
+  let out = "", i = 0;
+  const n = text.length;
+  while (i < n) {
+    if (text[i] === "\\" && text[i + 1] === "$") { out += "$"; i += 2; continue; }
+    if (text[i] === "`") {
+      const close = text.indexOf("`", i + 1);
+      if (close > 0) { out += text.slice(i, close + 1); i = close + 1; continue; }
+    }
+    if (text[i] !== "$") { out += text[i]; i++; continue; }
+    const block = text[i + 1] === "$";
+    const open = block ? "$$" : "$";
+    const start = i + open.length;
+    const end = text.indexOf(open, start);
+    if (end < 0) { out += text.slice(i); break; }
+    out += " ";
+    i = end + open.length;
+  }
+  return out;
+}
+
+function checkMath(text, at, P, W) {
+  if (typeof text !== "string" || text.indexOf("$") < 0) return;
+  eachMath(text, (m) => {
+    if (m.unclosed) { P("E_MATH_BALANCE", at, "公式 $ 没有配对：" + short(m.raw)); return; }
+    if (!m.tex.trim()) P("E_MATH_EMPTY", at, "空公式 " + (m.block ? "$$ $$" : "$ $"));
+    let depth = 0;
+    for (let k = 0; k < m.tex.length; k++) {
+      const ch = m.tex[k];
+      if (ch === "\\") { k++; continue; }
+      if (ch === "{") depth++;
+      else if (ch === "}") { depth--; if (depth < 0) break; }
+    }
+    if (depth !== 0) P("E_MATH_BRACE", at, "公式花括号不配对：" + short(m.tex));
+    (m.tex.match(/\\[A-Za-z]+/g) || []).forEach((c) => {
+      const name = c.slice(1);
+      if (!MATH_CMDS.has(name)) W("W_MATH_CMD", at, "渲染器不支持 " + c + "，会原样显示");
+    });
+  });
+}
+
 function parseArgs(argv) {
   const out = { file: path.join(ROOT, "dist", "deck.json"), json: false, verbose: false };
   argv.slice(2).forEach((a) => {
@@ -85,6 +173,7 @@ function validate(deck) {
         P("E_CHECK_PREFIX", cat + ".id", "check id 必须以 “" + g.id + ".” 开头，实际 " + c.id);
       if (typeof c.text !== "string" || c.text.trim().length < 4) P("E_CHECK_TEXT", cat + ".text", "自查点文本过短");
       else if (c.text.length > 300) W("W_CHECK_LONG", cat + ".text", "自查点超过 300 字，建议拆细");
+      else checkMath(c.text, cat + ".text", P, W);
       if (!LVL.has(c.lvl)) P("E_CHECK_LVL", cat + ".lvl", "lvl 必须是 P0/P1/P2");
     });
   });
@@ -102,6 +191,7 @@ function validate(deck) {
     if (!Number.isInteger(q.layer) || q.layer < 1 || q.layer > 4) P("E_QA_LAYER", at + ".layer", "layer 必须是 1..4");
     if (typeof q.q !== "string" || q.q.trim().length < 6) P("E_QA_Q", at + ".q", "问题文本过短");
     else if (!/[？?。]$/.test(q.q)) W("W_QA_MARK", at + ".q", "问题缺少句末标点（？或 。）：" + q.id);
+    checkMath(q.q, at + ".q", P, W);
     if (q.tags != null && (!Array.isArray(q.tags) || q.tags.length > 6)) W("W_QA_TAGS", at + ".tags", "tags 建议 0–6 个");
 
     if (!Array.isArray(q.covers) || !q.covers.length) P("E_QA_COVERS", at + ".covers", "covers 必须非空");
@@ -129,8 +219,10 @@ function validate(deck) {
         }
         if (typeof a.p !== "string" || a.p.trim().length < 8) P("E_ANS_P", aat + ".p", "段落过短");
         else if (a.p.length > 1200) W("W_ANS_LONG", aat + ".p", "段落超过 1200 字，建议拆分");
-        if (/<\/?(b|i|em|strong|br|p|div|span|code|pre|ul|ol|li|a|script|style|img)\b[^>]*>/i.test(a.p || ""))
-          P("E_ANS_HTML", aat + ".p", "段落里不要写 HTML 标签（会被转义）");
+        if (/<\/?(b|i|em|strong|br|p|div|span|code|pre|ul|ol|li|a|script|style|img|math|mrow|mi|mo|mn)\b[^>]*>/i
+          .test(stripMath(a.p || "")))
+          P("E_ANS_HTML", aat + ".p", "段落里不要写 HTML 标签（会被转义）；公式请用 $…$");
+        checkMath(a.p, aat + ".p", P, W);
       });
     }
   });
