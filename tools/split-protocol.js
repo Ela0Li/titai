@@ -71,7 +71,7 @@ const core = [
   nav,
   "---\n",
   "## 0. 这份协议管什么\n",
-  slice(cuts.intro, cuts.s2),
+  slice(cuts.intro, cuts.s0),
   slice(cuts.s2, cuts.s3),
   slice(cuts.s3, cuts.s4),
   slice(cuts.s4, cuts.s5),
