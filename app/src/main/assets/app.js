@@ -437,6 +437,8 @@
   /* ---------------- 视图：知识点 ---------------- */
   var listFilter = "all";
   var listQuery = "";
+  /* 展开过的模块（"deckId#groupId"）：重渲染后保持展开，别让「关卡片刷新」把用户正看的模块收起来 */
+  var OPEN_MODS = {};
 
   function passesMasteryIn(did, checkId) {
     if (listFilter === "all") return true;
@@ -463,15 +465,16 @@
     did = did || CUR_DECK;
     var m = mOfIn(did, c.id);
     var fav = isFavIn(did, c.id);
+    /* 圆点只做展示（掌握度只能在知识点卡片里改），所以用 span 而不是 button */
     var dots = [1, 2, 3].map(function (k) {
-      return '<button class="dot' + (m >= k ? " on" : "") + '" data-m="' + k + '" aria-label="掌握度' + k + '"></button>';
+      return '<span class="dot' + (m >= k ? " on" : "") + '" aria-hidden="true"></span>';
     }).join("");
     return '<div class="check" data-check="' + esc(c.id) + '" data-d="' + esc(did) + '">' +
       '<div class="check-c" data-act="open-check"><em>' + esc(c.id) + "</em>" +
       (listQuery ? hl(c.text, QT) : rich(c.text)) +
       (metaHtml ? '<div class="cmeta">' + metaHtml + "</div>" : "") + "</div>" +
       '<span class="lvl ' + esc(c.lvl) + '">' + esc(c.lvl) + "</span>" +
-      '<div class="dots" data-dots="' + esc(c.id) + '" data-lv="' + m + '">' + dots + "</div>" +
+      '<div class="dots" data-lv="' + m + '">' + dots + "</div>" +
       '<button class="star' + (fav ? " on" : "") + '" data-star="' + esc(c.id) + '">' + (fav ? "★" : "☆") + "</button>" +
       "</div>";
   }
@@ -726,7 +729,7 @@
         shown += checks.length;
         var done = checks.filter(function (c) { return mOfIn(did, c.id) >= 2; }).length;
         var pct = Math.round((done / checks.length) * 100);
-        box += '<section class="mod" data-g="' + esc(g.id) + '" data-d="' + esc(did) + '">' +
+        box += '<section class="mod' + (OPEN_MODS[did + "#" + g.id] ? " open" : "") + '" data-g="' + esc(g.id) + '" data-d="' + esc(did) + '">' +
           '<div class="mod-head" data-act="toggle">' +
           '<span class="mod-id">' + esc(String(g.id).toUpperCase()) + "</span>" +
           '<span class="mod-t"><b>' + esc(g.title) + "</b><small>S" + g.stage + " · " + esc(g.priority) +
@@ -750,7 +753,7 @@
     });
 
     if (!shown) html.push('<div class="empty">没有符合条件的' + esc(term("check")) + '</div>');
-    html.push('<div class="hint lgdline" style="margin-top:14px">点圆点记掌握度（再点同一个点可清除；点文字看对应问答）'
+    html.push('<div class="hint lgdline" style="margin-top:14px">圆点只表示掌握度（点知识点打开卡片，在卡片里改；改完关掉卡片列表才刷新）'
       + '<div class="lgds">'
       + '<span class="lgt"><span class="ld"></span><span class="ld"></span><span class="ld"></span>未学</span>'
       + '<span class="lgt lv1"><span class="ld on"></span><span class="ld"></span><span class="ld"></span>模糊</span>'
@@ -1550,6 +1553,7 @@
   /* ---------------- 详情面板 ---------------- */
   var sheetOpen = false;
   var SHEET_ID = "";
+  var SHEET_DIRTY = false;
 
   /* 自绘确认框：系统 confirm 会带「网址为 file:/// …」前缀，很难看 */
   var pendingConfirm = null;
@@ -1578,12 +1582,15 @@
     $("#mask").classList.add("on");
     s.scrollTop = 0;
     sheetOpen = true;
+    SHEET_DIRTY = false;
   }
 
   function closeSheet() {
     $("#sheet").classList.remove("on");
     $("#mask").classList.remove("on");
     sheetOpen = false;
+    /* 卡片里改过掌握度：只在退出卡片时整页刷一次（筛选后该消失的行才会消失） */
+    if (SHEET_DIRTY) { SHEET_DIRTY = false; render(); }
   }
 
   /* ---------------- 跨包引用（协议 v1.2 §8） ---------------- */
@@ -1847,10 +1854,12 @@
       html.push('<div class="note">其他知识包的记录也覆盖这一条；两边各自记掌握度。</div>');
     }
     html.push('<div class="sub-h"><b>掌握度</b></div>');
+    var mc = mOf(id);
     html.push('<div class="seg" id="checkSeg">' + [1, 2, 3].map(function (k) {
-      return '<button data-cm="' + k + '" data-cid="' + id + '" class="' + (mOf(id) >= k ? "on" : "") + '">' +
+      return '<button data-cm="' + k + '" data-cid="' + id + '" class="lv' + k + (mc === k ? " on" : "") + '">' +
         ["", "模糊", "会", "熟练"][k] + "</button>";
     }).join("") + "</div>");
+    html.push('<div class="note">只亮当前档位；再点一次取消（回到未学）。关掉这张卡片时列表才刷新。</div>');
     html.push('<div class="btn-row"><button class="btn" data-act="fav-check" data-id="' + id + '">' +
       (isFav(id) ? "★ 已收藏" : "☆ 收藏此" + esc(term("check")) ) + "</button></div>");
     openSheet(html.join(""));
@@ -1963,7 +1972,7 @@
   }
 
   document.addEventListener("click", function (ev) {
-    var t = ev.target.closest("[data-tab],[data-act],[data-chip],[data-qchip],[data-qdeck],[data-qa],[data-jump],[data-cross],[data-cross-back],[data-plan-back],[data-outjoin],[data-outjump],[data-star],[data-m],[data-check],[data-dmode],[data-rate],[data-cm],[data-deck],[data-plan-deck],[data-decksec],[data-del-deck],[data-download],[data-cw],.seg [data-theme]");
+    var t = ev.target.closest("[data-tab],[data-act],[data-chip],[data-qchip],[data-qdeck],[data-qa],[data-jump],[data-cross],[data-cross-back],[data-plan-back],[data-outjoin],[data-outjump],[data-star],[data-dmode],[data-rate],[data-cm],[data-deck],[data-plan-deck],[data-decksec],[data-del-deck],[data-download],[data-cw],.seg [data-theme]");
     if (!t) { console.log("[click] miss " + ev.target.tagName); return; }
     console.log("[click] " + (t.dataset.tab ? "tab=" + t.dataset.tab : JSON.stringify(t.dataset).slice(0, 80)));
 
@@ -2062,27 +2071,6 @@
       return;
     }
 
-    if (t.dataset.m && t.closest("[data-dots]")) {
-      if (lockedDeck()) return;
-      var dotsEl = t.closest("[data-dots]");
-      var row = t.closest(".check");
-      var dck = (row && row.dataset.d) || CUR_DECK;
-      var cid = dotsEl.dataset.dots;
-      var cur = mOfIn(dck, cid);
-      var m = parseInt(t.dataset.m, 10);
-      setMIn(dck, cid, cur === m ? 0 : m);
-      paintRing();
-      var modEl = row.closest(".mod");
-      refreshAggregates(dck, modEl && modEl.dataset.g);
-      var item = (dck === CUR_DECK ? CHECK[cid] : deckCheckItem(readDeckData(dck), cid)) ||
-        { id: cid, text: "", lvl: "" };
-      var fresh = checkRow(item, dck);
-      var tmp = document.createElement("div");
-      tmp.innerHTML = fresh;
-      row.replaceWith(tmp.firstChild);
-      return;
-    }
-
     if (t.dataset.qa) {
       var qaDeck = t.dataset.qdeckrow || CUR_DECK;
       if (qaDeck !== CUR_DECK) softSwitch(qaDeck);
@@ -2098,10 +2086,14 @@
       if (lockedDeck()) return;
       var cid2 = t.dataset.cid;
       if (cid2) {
-        setM(cid2, parseInt(t.dataset.cm, 10));
+        var want = parseInt(t.dataset.cm, 10);
+        /* 点当前档位 = 取消，回到未学 */
+        setM(cid2, mOf(cid2) === want ? 0 : want);
+        var cur2 = mOf(cid2);
         Array.prototype.forEach.call(document.querySelectorAll("#checkSeg button"), function (b) {
-          b.classList.toggle("on", mOf(cid2) >= parseInt(b.dataset.cm, 10));
+          b.classList.toggle("on", cur2 === parseInt(b.dataset.cm, 10));
         });
+        SHEET_DIRTY = true;
         paintRing();
         refreshAggregates(CUR_DECK, (CHECK[cid2] || {}).g);
       }
@@ -2109,7 +2101,13 @@
     }
 
     var act = t.dataset.act;
-    if (act === "toggle") { t.closest(".mod").classList.toggle("open"); return; }
+    if (act === "toggle") {
+      var modEl = t.closest(".mod");
+      var isOpen = modEl.classList.toggle("open");
+      var mk = (modEl.dataset.d || CUR_DECK) + "#" + modEl.dataset.g;
+      if (isOpen) OPEN_MODS[mk] = 1; else delete OPEN_MODS[mk];
+      return;
+    }
     if (act === "plan-list") { openPlanList(); return; }
     if (act === "plan-new") { openPlanEdit(""); return; }
     if (act === "plan-edit") { openPlanEdit(t.dataset.id); return; }

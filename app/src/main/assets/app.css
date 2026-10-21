@@ -161,11 +161,11 @@ code {
 .lvl.P0 { color: var(--red); border: 1px solid var(--line2); }
 .lvl.P1 { color: var(--gold); border: 1px solid var(--line2); }
 .lvl.P2 { color: var(--fg2); border: 1px solid var(--line2); }
-.dots { display: flex; gap: 3px; flex: 0 0 auto; }
+.dots { display: flex; gap: 3px; flex: 0 0 auto; pointer-events: none; }
 .dot {
   width: 22px; height: 22px; border-radius: 50%;
   border: 1px solid var(--line2); background: transparent;
-  position: relative;
+  position: relative; display: block; flex: 0 0 auto; box-sizing: border-box;
 }
 .dot::after { content: ""; position: absolute; inset: 3px; border-radius: 50%; background: var(--line2); opacity: .35; }
 .dot.on { border-color: transparent; }
@@ -345,8 +345,12 @@ mark { background: rgba(240, 180, 60, 0.30); color: inherit; border-radius: 3px;
 .seg { display: flex; gap: 6px; margin: 8px 0 12px; }
 .seg button { flex: 1 1 0; height: 38px; border-radius: 9px; border: 1px solid var(--line); background: var(--card); font-size: 13px; color: var(--fg2); }
 .seg button.on { border-color: var(--accent); color: var(--accent); background: rgba(47, 129, 247, .14); }
+/* 卡片里的掌握度三段：只亮当前档位，颜色与列表圆点同一套（模糊=金、会=蓝、熟练=绿） */
+.seg button.on.lv1 { border-color: var(--gold); color: var(--gold); background: rgba(210, 153, 34, .16); }
+.seg button.on.lv2 { border-color: var(--accent); color: var(--accent); background: rgba(47, 129, 247, .16); }
+.seg button.on.lv3 { border-color: var(--green); color: var(--green); background: rgba(63, 185, 80, .16); }
 
-/* 璁剧疆 */
+/* 设置 */
 .field { margin: 10px 0; }
 .field label { display: block; font-size: 12px; color: var(--fg2); margin-bottom: 5px; }
 .field .search { margin: 0; }

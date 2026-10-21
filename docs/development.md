@@ -54,7 +54,7 @@ studydeck/
 │  ├─ hints/             知识点的「及格线」文案（tools/hints/*.json）
 │  ├─ build-pinyin.js    生成搜索用的拼音表（app/src/main/assets/pinyin.js）
 │  ├─ test-search.js     无头跑一组搜索查询，核对命中与高亮
-│  └─ test-progress.js   打点后模块/知识包百分比必须当场更新（防回退）
+│  └─ test-progress.js   掌握度回归：圆点只展示、卡片单亮、关卡片后百分比刷新
 ├─ .github/workflows/    CI：语法检查 + 协议/计划/引用/答案体检
 └─ sync/                 同步服务的运行时数据（配对码与进度，不入库）
 ```
@@ -355,7 +355,7 @@ node skills/titai-deck-author/scripts/check.js decks/我的包.json
 - `node tools/test-search.js [--dump q1 q2 …]` —— 无头跑一组查询，打印每个查询在新知识点页/问答页的命中条数与首条，并核对高亮；写新查询直接改脚本里的 `CASES`。
 - `node tools/split-protocol.js` —— 从 `docs/deck-protocol.src.md` 重新拆出协议三册（总纲 / 知识包 / 计划）。**改协议改 src，再跑这个**，别直接改三册产物。
 - `node tools/conformance.js [deck.json …]` —— 无头渲染一份 deck，确认引擎能真的打开它（默认测 `decks/ml-intro.json`）。
-- `node tools/test-progress.js [deck.json …]` —— 点掌握度圆点后，模块百分比、进度条宽度、知识包百分比必须**当场**变（不需要收起/展开知识包）；顺带覆盖详情面板里改掌握度那条路。需要本机 Edge，CI 不跑。
+- `node tools/test-progress.js [deck.json …]` —— 掌握度交互回归：列表圆点只展示（点它不改状态）、卡片里只亮当前档位、关掉卡片后模块百分比 / 进度条 / 知识包百分比跟着变、再点当前档位能取消。需要本机 Edge，CI 不跑。
 
 ---
 
