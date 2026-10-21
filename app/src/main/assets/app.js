@@ -1590,6 +1590,7 @@
 
   /* ---------------- 详情面板 ---------------- */
   var sheetOpen = false;
+  var subOpen = false;
   var SHEET_ID = "";
   var SHEET_DIRTY = false;
 
@@ -1604,29 +1605,62 @@
       '<button class="btn" data-act="close-sheet">取消</button></div>');
   }
 
-  function openSheet(html) {
-    var s = $("#sheet");
+  /* 详情卡片：两层。第一层是主卡片，第二层（subOpen）只在主卡片里再点开一条记录时用，
+     比如问答卡片里点「覆盖点」——知识点卡片压在上面，关掉就回到问答卡片。 */
+  function sheetInner(html) {
     var back = prefs.pendingBack;
     var backBar = "";
     if (back && back.deck && back.deck !== CUR_DECK) {
       backBar = '<div class="backbar"><button class="jump" data-cross-back="1">← 返回 ' +
         esc(deckTitle(back.deck)) + "</button><span class=\"note\">跨包只读</span></div>";
     }
-    s.innerHTML = '<div class="sheet-head"><span class="grab"></span>' +
+    return '<div class="sheet-head"><span class="grab"></span>' +
       '<span class="note" style="color:var(--fg2)">详情</span>' +
       '<button class="x" data-act="close-sheet">✕</button></div>' +
       '<div class="sheet-body">' + backBar + html + "</div>";
+  }
+
+  function fillLayer(sel, maskSel, html) {
+    var s = $(sel);
+    s.innerHTML = sheetInner(html);
+    s.setAttribute("aria-hidden", "false");
     s.classList.add("on");
-    $("#mask").classList.add("on");
+    $(maskSel).classList.add("on");
     s.scrollTop = 0;
+  }
+
+  function openSheet(html) {
+    if (subOpen) closeSubSheet();
+    fillLayer("#sheet", "#mask", html);
+    $("#sheet").classList.remove("behind");
     sheetOpen = true;
     /* 注意：这里不清 SHEET_DIRTY——卡片里改完档位再点「覆盖点」跳到别张卡片，
        关掉时仍要刷新列表，否则改动要等下次切页才看得到 */
   }
 
+  function openSubSheet(html) {
+    if (!sheetOpen) { openSheet(html); return; }
+    fillLayer("#sheet2", "#mask2", html);
+    $("#sheet").classList.add("behind");
+    subOpen = true;
+  }
+
+  function closeSubSheet() {
+    if (!subOpen) return;
+    subOpen = false;
+    var s = $("#sheet2");
+    s.classList.remove("on");
+    s.setAttribute("aria-hidden", "true");
+    $("#mask2").classList.remove("on");
+    $("#sheet").classList.remove("behind");
+    /* 这里不刷新列表：上层只是看，改过的档位等整摞卡片都关掉再刷一次 */
+  }
+
   function closeSheet() {
+    if (subOpen) { closeSubSheet(); return; }
     $("#sheet").classList.remove("on");
     $("#mask").classList.remove("on");
+    $("#sheet").classList.remove("behind");
     sheetOpen = false;
     /* 卡片里改过掌握度：只在退出卡片时整页刷一次（筛选后该消失的行才会消失） */
     if (SHEET_DIRTY) { SHEET_DIRTY = false; render(); }
@@ -1866,10 +1900,11 @@
     openSheet(html.join(""));
   }
 
-  function openCheck(id) {
+  /* nested = 叠在当前卡片上面开（问答卡片里点「覆盖点」）；关掉就回到下面那张 */
+  function openCheck(id, nested) {
     var c = CHECK[id];
     if (!c) return;
-    SHEET_ID = id;
+    if (!nested) SHEET_ID = id;
     var qs = QAS_OF_CHECK[id] || [];
     var html = [];
     html.push('<div class="meta-row"><span class="tag">' + esc(id) + '</span><span class="lvl ' + esc(c.lvl) + '">' + esc(c.lvl) + "</span></div>");
@@ -1908,7 +1943,8 @@
     html.push('<div class="note">只亮当前档位；再点一次取消（回到未学）。关掉这张卡片时列表才刷新。</div>');
     html.push('<div class="btn-row"><button class="btn" data-act="fav-check" data-id="' + id + '">' +
       (isFav(id) ? "★ 已收藏" : "☆ 收藏此" + esc(term("check")) ) + "</button></div>");
-    openSheet(html.join(""));
+    if (nested) openSubSheet(html.join(""));
+    else openSheet(html.join(""));
   }
 
   /* ---------------- 主题 ---------------- */
@@ -2207,7 +2243,8 @@
     if (act === "reveal") { drillRevealed = true; renderDrill(); return; }
     if (act === "open-check-ref") {
       var cref = t.dataset.check;
-      if (CHECK[cref]) openCheck(cref);
+      /* 叠在当前卡片上面开：问答卡片不关，关掉知识点卡片就回到它 */
+      if (CHECK[cref]) openCheck(cref, true);
       else toast("这条" + term("check") + "不在当前知识包");
       return;
     }
@@ -2249,6 +2286,7 @@
   });
 
   $("#mask").addEventListener("click", closeSheet);
+  $("#mask2").addEventListener("click", closeSheet);
 
   $("#themeBtn").addEventListener("click", function () {
     setTheme(themeNow() === "light" ? "dark" : "light");

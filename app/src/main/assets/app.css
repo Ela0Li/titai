@@ -245,7 +245,7 @@ mark { background: rgba(240, 180, 60, 0.30); color: inherit; border-radius: 3px;
 .tabbar button i { font-style: normal; font-size: 17px; line-height: 1; }
 .tabbar button.on { color: var(--accent); }
 
-/* 璇︽儏闈㈡澘 */
+/* 详情面板 */
 .sheet-mask {
   position: fixed; inset: 0; z-index: 50; background: rgba(0, 0, 0, .5);
   opacity: 0; pointer-events: none; transition: opacity .2s;
@@ -256,10 +256,16 @@ mark { background: rgba(240, 180, 60, 0.30); color: inherit; border-radius: 3px;
   max-height: 92vh; overflow-y: auto; overscroll-behavior: contain;
   background: var(--bg2); border-radius: 16px 16px 0 0;
   border-top: 1px solid var(--line2);
-  transform: translateY(102%); transition: transform .22s cubic-bezier(.25, .8, .3, 1);
+  transform: translateY(102%);
+  transition: transform .22s cubic-bezier(.25, .8, .3, 1), opacity .18s;
   padding: 0 0 calc(16px + var(--safe-b));
 }
 .sheet.on { transform: translateY(0); }
+/* 上面又叠了一张卡片：下层缩一点、暗一点，看起来「失焦」但还在 */
+.sheet.on.behind { transform: translateY(-10px) scale(.985); opacity: .88; }
+/* 第二层：问答卡片里点覆盖点，知识点卡片压在这层 */
+.sheet-mask.sub { z-index: 70; background: rgba(0, 0, 0, .26); }
+.sheet.sub { z-index: 80; max-height: 82vh; box-shadow: 0 -10px 30px rgba(0, 0, 0, .26); }
 .sheet-head {
   position: sticky; top: 0; z-index: 2;
   display: flex; align-items: center; gap: 8px;

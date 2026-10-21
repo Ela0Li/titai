@@ -106,14 +106,25 @@ window.addEventListener("load", function () {
       });
       p.qa.onCount = qon.length;
       p.qa.onCls = qon.length === 1 ? qon[0].className : qon.map(function (b) { return b.className; }).join(",");
-      /* 覆盖点 → 知识点卡片 */
+      /* 覆盖点 → 知识点卡片叠在上面，问答卡片还在后面 */
       var cov = document.querySelector('[data-act="open-check-ref"]');
       p.qa.coverBtn = !!cov;
       if (cov) {
         cov.click();
-        p.qa.checkCard = !!document.querySelector("#checkSeg");
+        p.qa.checkCard = !!document.querySelector("#sheet2 #checkSeg");
+        p.qa.subOpen = document.getElementById("sheet2").classList.contains("on");
+        p.qa.behind = document.getElementById("sheet").classList.contains("behind");
+        p.qa.mainStill = document.getElementById("sheet").classList.contains("on") &&
+          !!document.querySelector("#sheet #qaSeg");
+        /* 关掉上层：回到问答卡片，不该刷新列表 */
+        document.querySelector("#sheet2 [data-act='close-sheet']").click();
+        p.qa.backToQa = !document.getElementById("sheet2").classList.contains("on") &&
+          document.getElementById("sheet").classList.contains("on") &&
+          !!document.querySelector("#sheet #qaSeg") &&
+          !document.getElementById("sheet").classList.contains("behind");
       }
-      document.querySelector('[data-act="close-sheet"]').click();
+      /* 再关一次：整摞卡片都关了，这时才刷新列表 */
+      document.querySelector("#sheet [data-act='close-sheet']").click();
       var qaRow2 = document.querySelector("#view .qa-row");
       p.qa.afterLv = qaRow2 ? qaRow2.querySelector(".dots").dataset.lv : null;
       p.qa.nonZero = Array.prototype.filter.call(document.querySelectorAll("#view .qa-row"), function (r) {
@@ -230,6 +241,10 @@ function runOne(deckPath) {
   if (q.onCls && q.onCls.indexOf("lv2") < 0) fails.push("选「会」后亮的是 " + q.onCls);
   if (!q.coverBtn) fails.push("问答卡片里没有可点的覆盖点");
   if (q.coverBtn && !q.checkCard) fails.push("点覆盖点没有拉起知识点卡片");
+  if (q.coverBtn && !q.subOpen) fails.push("覆盖点的知识点卡片没有叠在第二层（sheet2 没开）");
+  if (q.coverBtn && !q.behind) fails.push("问答卡片没有进入失焦（behind）状态");
+  if (q.coverBtn && !q.mainStill) fails.push("点覆盖点把问答卡片关掉了，应该留在后面");
+  if (q.coverBtn && !q.backToQa) fails.push("关掉知识点卡片没有回到问答卡片");
   if (q.afterLv !== undefined && q.afterLv !== "2")
     fails.push("关卡片后问答圆点档位是 " + q.afterLv + "，应为 2");
   if (q.filtered !== undefined && q.filtered < 1)
@@ -264,7 +279,7 @@ function main() {
         "✓ " + name + " — 模块 " + c.before.pct + " → " + c.after.pct +
           " · 知识包 " + num(c.before.meta) + "% → " + num(c.after.meta) + "%" +
           " · 圆点只展示 · 卡片单亮 · 再点取消" +
-          " · 问答 会档筛出 " + ((c.qa || {}).filtered) + " 条 · 覆盖点可拉卡片"
+          " · 问答 会档筛出 " + ((c.qa || {}).filtered) + " 条 · 覆盖点叠卡片、关掉回到问答"
       );
     } else {
       bad++;
