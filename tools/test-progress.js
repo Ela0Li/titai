@@ -88,6 +88,43 @@ window.addEventListener("load", function () {
       document.querySelector('[data-act="close-sheet"]').click();
       p.afterClear = snap();
       p.afterClear.lv = document.querySelector(".mod .check .dots").dataset.lv;
+
+      /* 5. 问答：同样只能进卡片改；覆盖点能拉起知识点卡片；问答页能按掌握度筛 */
+      document.querySelector('[data-tab="qa"]').click();
+      p.qa = { dotsWithM: document.querySelectorAll("#view .qa-row .dot[data-m]").length };
+      var qaRow = document.querySelector("#view .qa-row");
+      if (!qaRow) throw new Error("问答页一行都没有");
+      p.qa.beforeLv = qaRow.querySelector(".dots").dataset.lv;
+      p.qa.rowId = qaRow.dataset.qa;
+      qaRow.click();
+      p.qa.sheet = document.getElementById("sheet").classList.contains("on");
+      var qseg2 = document.querySelector('#qaSeg button[data-qcm="2"]');
+      if (!qseg2) throw new Error("问答卡片里找不到会按钮");
+      qseg2.click();
+      var qon = Array.prototype.filter.call(document.querySelectorAll("#qaSeg button"), function (b) {
+        return b.classList.contains("on");
+      });
+      p.qa.onCount = qon.length;
+      p.qa.onCls = qon.length === 1 ? qon[0].className : qon.map(function (b) { return b.className; }).join(",");
+      /* 覆盖点 → 知识点卡片 */
+      var cov = document.querySelector('[data-act="open-check-ref"]');
+      p.qa.coverBtn = !!cov;
+      if (cov) {
+        cov.click();
+        p.qa.checkCard = !!document.querySelector("#checkSeg");
+      }
+      document.querySelector('[data-act="close-sheet"]').click();
+      var qaRow2 = document.querySelector("#view .qa-row");
+      p.qa.afterLv = qaRow2 ? qaRow2.querySelector(".dots").dataset.lv : null;
+      p.qa.nonZero = Array.prototype.filter.call(document.querySelectorAll("#view .qa-row"), function (r) {
+        return r.querySelector(".dots").dataset.lv !== "0";
+      }).map(function (r) { return r.dataset.qa + ":" + r.querySelector(".dots").dataset.lv; });
+      document.querySelector('[data-qmchip="2"]').click();
+      p.qa.filtered = document.querySelectorAll("#view .qa-row").length;
+      document.querySelector('[data-qmchip="3"]').click();
+      p.qa.filtered3 = document.querySelectorAll("#view .qa-row").length;
+      document.querySelector('[data-qmchip="all"]').click();
+      p.qa.filteredAll = document.querySelectorAll("#view .qa-row").length;
     } catch (err) {
       p.errors.push("probe: " + String(err && err.message));
     }
@@ -185,6 +222,23 @@ function runOne(deckPath) {
   if (p.afterClear && p.afterClear.lv !== "0")
     fails.push("取消后圆点档位是 " + p.afterClear.lv + "，应为 0");
 
+  /* 5. 问答掌握度：卡片内单亮、关卡片刷新、覆盖点拉卡片、按档位筛 */
+  const q = p.qa || {};
+  if (q.dotsWithM) fails.push("问答行圆点还带 data-m（" + q.dotsWithM + " 个）");
+  if (!q.sheet) fails.push("问答卡片没打开");
+  if (q.onCount !== undefined && q.onCount !== 1) fails.push("问答卡片里亮了 " + q.onCount + " 个按钮，应为 1 个");
+  if (q.onCls && q.onCls.indexOf("lv2") < 0) fails.push("选「会」后亮的是 " + q.onCls);
+  if (!q.coverBtn) fails.push("问答卡片里没有可点的覆盖点");
+  if (q.coverBtn && !q.checkCard) fails.push("点覆盖点没有拉起知识点卡片");
+  if (q.afterLv !== undefined && q.afterLv !== "2")
+    fails.push("关卡片后问答圆点档位是 " + q.afterLv + "，应为 2");
+  if (q.filtered !== undefined && q.filtered < 1)
+    fails.push("按「会」筛问答是空的，那条刚改了掌握度");
+  if (q.filtered3 !== undefined && q.filtered3 !== 0)
+    fails.push("按「熟练」筛出了 " + q.filtered3 + " 条，应为 0");
+  if (q.filteredAll !== undefined && q.filtered !== undefined && q.filteredAll < q.filtered)
+    fails.push("「全部」筛出的行数比单档还少（" + q.filteredAll + " < " + q.filtered + "）");
+
   try {
     fs.rmSync(tmp, { recursive: true, force: true });
   } catch (e) {}
@@ -209,7 +263,8 @@ function main() {
       console.log(
         "✓ " + name + " — 模块 " + c.before.pct + " → " + c.after.pct +
           " · 知识包 " + num(c.before.meta) + "% → " + num(c.after.meta) + "%" +
-          " · 圆点只展示 · 卡片单亮 · 再点取消"
+          " · 圆点只展示 · 卡片单亮 · 再点取消" +
+          " · 问答 会档筛出 " + ((c.qa || {}).filtered) + " 条 · 覆盖点可拉卡片"
       );
     } else {
       bad++;

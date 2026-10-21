@@ -161,6 +161,7 @@
     deck: D.id,
     rev: 0,
     checks: {},
+    qm: {},
     fav: {},
     quiz: {},
     settings: { theme: "dark", tab: "list" },
@@ -203,6 +204,7 @@
       var s = JSON.parse(raw);
       if (s && s.checks) {
         state.checks = s.checks || {};
+        state.qm = s.qm || {};
         state.fav = s.fav || {};
         state.quiz = s.quiz || {};
         state.settings = Object.assign(state.settings, s.settings || {});
@@ -256,12 +258,13 @@
   function deckState(did) {
     if (did === CUR_DECK) return state;
     if (DSTATE[did]) return DSTATE[did];
-    var st = { checks: {}, fav: {}, quiz: {}, rev: 0, touched: 0 };
+    var st = { checks: {}, qm: {}, fav: {}, quiz: {}, rev: 0, touched: 0 };
     try {
       var raw = (window.Native && window.Native.readState) ? window.Native.readState(did) : null;
       var s = raw ? JSON.parse(raw) : null;
       if (s && s.checks) {
         st.checks = s.checks || {};
+        st.qm = s.qm || {};
         st.fav = s.fav || {};
         st.quiz = s.quiz || {};
         st.rev = s.rev || 0;
@@ -300,6 +303,27 @@
     fav[cid] = { on: !on, t: Date.now() };
     persistDeck(did);
   }
+
+  /* ---- 问答掌握度：档位与知识点相同（0 未学 / 1 模糊 / 2 会 / 3 熟练），但独立记账 ---- */
+  function qmOfIn(did, qid) {
+    var r = (deckState(did).qm || {})[qid];
+    return r && typeof r.m === "number" ? r.m : 0;
+  }
+  function setQmIn(did, qid, m) {
+    var st = deckState(did);
+    if (!st.qm) st.qm = {};
+    st.qm[qid] = { m: m, t: Date.now() };
+    if (did === CUR_DECK) save(); else persistDeck(did);
+  }
+  /* 圆点：卡片外只展示，改档位得进卡片 */
+  function dotsHtml(m, cls) {
+    var out = '<div class="dots' + (cls ? " " + cls : "") + '" data-lv="' + m + '">';
+    [1, 2, 3].forEach(function (k) {
+      out += '<span class="dot' + (m >= k ? " on" : "") + '" aria-hidden="true"></span>';
+    });
+    return out + "</div>";
+  }
+
 
   /* 哪些知识包在列表里是展开的（设备级偏好，可同时开多个） */
   function openMap() {
@@ -466,15 +490,12 @@
     var m = mOfIn(did, c.id);
     var fav = isFavIn(did, c.id);
     /* 圆点只做展示（掌握度只能在知识点卡片里改），所以用 span 而不是 button */
-    var dots = [1, 2, 3].map(function (k) {
-      return '<span class="dot' + (m >= k ? " on" : "") + '" aria-hidden="true"></span>';
-    }).join("");
     return '<div class="check" data-check="' + esc(c.id) + '" data-d="' + esc(did) + '">' +
       '<div class="check-c" data-act="open-check"><em>' + esc(c.id) + "</em>" +
       (listQuery ? hl(c.text, QT) : rich(c.text)) +
       (metaHtml ? '<div class="cmeta">' + metaHtml + "</div>" : "") + "</div>" +
       '<span class="lvl ' + esc(c.lvl) + '">' + esc(c.lvl) + "</span>" +
-      '<div class="dots" data-lv="' + m + '">' + dots + "</div>" +
+      dotsHtml(m) +
       '<button class="star' + (fav ? " on" : "") + '" data-star="' + esc(c.id) + '">' + (fav ? "★" : "☆") + "</button>" +
       "</div>";
   }
@@ -816,6 +837,8 @@
   /* ---------------- 视图：问答 ---------------- */
   var qaFilter = "all";
   var qaQuery = "";
+  /* 问答页额外按问答自己的掌握度筛：all / 0 未学 / 1 模糊 / 2 会 / 3 熟练 */
+  var qaMastery = "all";
   /* 问答页按知识包筛选：on=false 表示“全部包” */
   var qaDecks = { on: false, ids: {} };
 
@@ -838,12 +861,20 @@
         return '<button class="chip' + (qaFilter === v ? " on" : "") + '" data-qchip="' + v + '">' + label + "</button>";
       }).join("") + "</div>");
 
+    /* 问答自己的掌握度：和知识点各记各的，这里只看问答这一层 */
+    html.push('<div class="cap">问答掌握度</div>' +
+      '<div class="chips" id="qaMChips">' +
+      [["all", "全部"], ["0", "未学"], ["1", "模糊"], ["2", "会"], ["3", "熟练"]].map(function (p) {
+        return '<button class="chip' + (qaMastery === p[0] ? " on" : "") + '" data-qmchip="' + p[0] + '">' + p[1] + "</button>";
+      }).join("") + "</div>");
+
     /* 命中集合：有关键词就走打分排序，否则按知识包顺序平铺 */
     var docs = qaDocs();
     var list = qaQuery ? searchQa(qaQuery).map(function (r) { return r.d; }) : docs;
     list = list.filter(function (row) {
       if (decks.length > 1 && qaDecks.on && !qaDecks.ids[row.deck]) return false;
       if (qaFilter !== "all" && String(row.layer) !== qaFilter) return false;
+      if (qaMastery !== "all" && qmOfIn(row.deck, row.id) !== parseInt(qaMastery, 10)) return false;
       return true;
     });
 
@@ -855,6 +886,7 @@
         '<div class="meta">' + (decks.length > 1 ? '<span class="dtag">' + esc(deckShort(row.deck)) + "</span>" : "") +
         "<span>" + esc(row.gt || row.m) + "</span>" +
         (row.tags || []).slice(0, 3).map(function (t) { return '<span class="tag">' + esc(t) + "</span>"; }).join("") +
+        dotsHtml(qmOfIn(row.deck, row.id), "sm") +
         "</div></div></div>");
     });
     if (!list.length) {
@@ -890,7 +922,7 @@
         html.push('<div class="qa-row" data-qa="' + id + '"><div class="lr">' +
           '<span class="lbadge L' + q.layer + '">L' + q.layer + "</span></div>" +
           '<div class="main"><div class="q">' + rich(q.q) + "</div>" +
-          '<div class="meta"><span>' + esc(q.id) + "</span></div></div></div>");
+          '<div class="meta"><span>' + esc(q.id) + "</span>" + dotsHtml(qmOfIn(CUR_DECK, id), "sm") + "</div></div></div>");
       });
     }
     $("#view").innerHTML = html.join("");
@@ -962,7 +994,8 @@
     var g = D.groups.filter(function (x) { return x.id === q.m; })[0];
     html.push('<div class="drill-card">');
     html.push('<div class="drill-meta"><span class="lbadge L' + q.layer + '">L' + q.layer + "</span>" +
-      "<span>" + esc(g ? g.title : q.m) + "</span><span>" + esc(q.lvl) + "</span></div>");
+      "<span>" + esc(g ? g.title : q.m) + "</span><span>" + esc(q.lvl) + "</span>" +
+      dotsHtml(qmOfIn(CUR_DECK, q.id), "sm") + "</div>");
     html.push('<div class="drill-q">' + rich(q.q) + "</div>");
     if (drillRevealed) {
       html.push('<div class="drill-ans">');
@@ -970,6 +1003,11 @@
       html.push("</div>");
     }
     html.push("</div>");
+
+    /* 收藏这题：刷题时顺手存，收藏页和「只刷收藏」都会看到 */
+    var dfav = isFav(q.id);
+    html.push('<div class="drill-fav"><button class="btn mini' + (dfav ? " on" : "") +
+      '" data-act="fav-drill" data-id="' + esc(q.id) + '">' + (dfav ? "★ 已收藏" : "☆ 收藏这题") + "</button></div>");
 
     if (!drillRevealed) {
       html.push('<button class="btn primary block" data-act="reveal">先想 10 秒，再看答案</button>');
@@ -1582,7 +1620,8 @@
     $("#mask").classList.add("on");
     s.scrollTop = 0;
     sheetOpen = true;
-    SHEET_DIRTY = false;
+    /* 注意：这里不清 SHEET_DIRTY——卡片里改完档位再点「覆盖点」跳到别张卡片，
+       关掉时仍要刷新列表，否则改动要等下次切页才看得到 */
   }
 
   function closeSheet() {
@@ -1796,7 +1835,7 @@
         q.covers.map(function (c) {
           if (splitRef(c).deck) return refBtn(c, "check");
           var chk = CHECK[c];
-          return '<button class="jump" data-check="' + esc(c) + '">' + esc(c) + " " + esc(chk ? chk.text.slice(0, 14) : "") + "…</button>";
+          return '<button class="jump" data-act="open-check-ref" data-check="' + esc(c) + '">' + esc(c) + " " + esc(chk ? chk.text.slice(0, 14) : "") + "…</button>";
         }).join("") + "</div>");
     }
     if (q.next && q.next.length) {
@@ -1814,6 +1853,13 @@
         return refBtn(x.deck + "#" + x.from, "peer");
       }).join("") + "</div>");
     }
+    html.push('<div class="sub-h"><b>掌握度</b></div>');
+    var mq = qmOfIn(CUR_DECK, q.id);
+    html.push('<div class="seg" id="qaSeg">' + [1, 2, 3].map(function (k) {
+      return '<button data-qcm="' + k + '" data-qid="' + esc(q.id) + '" class="lv' + k + (mq === k ? " on" : "") + '">' +
+        ["", "模糊", "会", "熟练"][k] + "</button>";
+    }).join("") + "</div>");
+    html.push('<div class="note">只亮当前档位；再点一次取消（回到未学）。关掉这张卡片时列表才刷新。</div>');
     html.push('<div class="btn-row" style="margin-top:16px">' +
       '<button class="btn" data-act="fav-qa" data-id="' + q.id + '">' + (isFav(q.id) ? "★ 已收藏" : "☆ 收藏此题") + "</button>" +
       '<button class="btn" data-act="drill-this" data-id="' + q.id + '">拿它刷一遍</button></div>');
@@ -1882,7 +1928,8 @@
   function mergeState(remote) {
     if (!remote || !remote.checks) return 0;
     var n = 0;
-    ["checks", "fav", "quiz"].forEach(function (k) {
+    ["checks", "qm", "fav", "quiz"].forEach(function (k) {
+      if (!state[k]) state[k] = {};
       var src = remote[k] || {};
       Object.keys(src).forEach(function (id) {
         var a = state[k][id], b = src[id];
@@ -1972,7 +2019,7 @@
   }
 
   document.addEventListener("click", function (ev) {
-    var t = ev.target.closest("[data-tab],[data-act],[data-chip],[data-qchip],[data-qdeck],[data-qa],[data-jump],[data-cross],[data-cross-back],[data-plan-back],[data-outjoin],[data-outjump],[data-star],[data-dmode],[data-rate],[data-cm],[data-deck],[data-plan-deck],[data-decksec],[data-del-deck],[data-download],[data-cw],.seg [data-theme]");
+    var t = ev.target.closest("[data-tab],[data-act],[data-chip],[data-qchip],[data-qmchip],[data-qdeck],[data-qa],[data-jump],[data-cross],[data-cross-back],[data-plan-back],[data-outjoin],[data-outjump],[data-star],[data-dmode],[data-rate],[data-cm],[data-qcm],[data-deck],[data-plan-deck],[data-decksec],[data-del-deck],[data-download],[data-cw],.seg [data-theme]");
     if (!t) { console.log("[click] miss " + ev.target.tagName); return; }
     console.log("[click] " + (t.dataset.tab ? "tab=" + t.dataset.tab : JSON.stringify(t.dataset).slice(0, 80)));
 
@@ -2059,6 +2106,7 @@
 
     if (t.dataset.chip) { listFilter = t.dataset.chip; renderList(); return; }
     if (t.dataset.qchip) { qaFilter = t.dataset.qchip; renderQa(); return; }
+    if (t.dataset.qmchip) { qaMastery = t.dataset.qmchip; renderQa(); return; }
 
     if (t.dataset.star) {
       var rowS = t.closest(".check");
@@ -2096,6 +2144,21 @@
         SHEET_DIRTY = true;
         paintRing();
         refreshAggregates(CUR_DECK, (CHECK[cid2] || {}).g);
+      }
+      return;
+    }
+
+    if (t.dataset.qcm) {
+      var qid2 = t.dataset.qid;
+      if (qid2) {
+        var want2 = parseInt(t.dataset.qcm, 10);
+        /* 再点同一档 = 取消，回到未学 */
+        setQmIn(CUR_DECK, qid2, qmOfIn(CUR_DECK, qid2) === want2 ? 0 : want2);
+        var cur3 = qmOfIn(CUR_DECK, qid2);
+        Array.prototype.forEach.call(document.querySelectorAll("#qaSeg button"), function (b) {
+          b.classList.toggle("on", cur3 === parseInt(b.dataset.qcm, 10));
+        });
+        SHEET_DIRTY = true;
       }
       return;
     }
@@ -2142,6 +2205,19 @@
       return;
     }
     if (act === "reveal") { drillRevealed = true; renderDrill(); return; }
+    if (act === "open-check-ref") {
+      var cref = t.dataset.check;
+      if (CHECK[cref]) openCheck(cref);
+      else toast("这条" + term("check") + "不在当前知识包");
+      return;
+    }
+    if (act === "fav-drill") {
+      var on4 = toggleFav(t.dataset.id);
+      t.textContent = on4 ? "★ 已收藏" : "☆ 收藏这题";
+      t.classList.toggle("on", on4);
+      toast(on4 ? "已收藏" : "已取消收藏");
+      return;
+    }
     if (act === "fav-qa") {
       var qid = t.dataset.id, on2 = toggleFav(qid);
       t.textContent = on2 ? "★ 已收藏" : "☆ 收藏此题";
@@ -2186,7 +2262,7 @@
     else if (ev.target.id === "btnDecks") fetchDeckIndex();
     else if (ev.target.id === "btnImportFile") pickDeckFile();
     else if (ev.target.id === "btnReset") {
-      state.checks = {}; state.fav = {}; state.quiz = {}; state.rev++;
+      state.checks = {}; state.qm = {}; state.fav = {}; state.quiz = {}; state.rev++;
       save(true);
       paintRing(); render();
       toast("本机进度已清空");

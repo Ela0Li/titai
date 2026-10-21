@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 题台 · 知识包校验器（协议 v1.8 的语义层）
+ * 题台 · 知识包校验器（协议 v1.9 的语义层；v1.9 只动进度层，内容层同 v1.8）
  *
  *   node validate-deck.js path/to/deck.json            # 校验指定文件
  *   node validate-deck.js --json path/to/deck.json     # 输出机器可读结果

@@ -439,3 +439,13 @@ mark { background: rgba(240, 180, 60, 0.30); color: inherit; border-radius: 3px;
 
 .dtag { display: inline-block; margin-right: 6px; padding: 1px 7px; border-radius: 6px;
   background: var(--line2); background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); font-size: 11px; }
+
+/* 问答掌握度：同一套圆点，缩一号塞进问答行的小字行里 */
+.dots.sm { align-items: center; gap: 2px; }
+.dots.sm .dot { width: 12px; height: 12px; }
+.dots.sm .dot::after { inset: 2px; }
+.drill-meta .dots { margin-left: auto; }
+.cap { font-size: 11px; color: var(--fg3); margin: 10px 0 6px; }
+.drill-fav { display: flex; justify-content: flex-end; margin: 6px 0 10px; }
+.drill-fav .btn.mini.on { color: var(--gold); border-color: var(--gold); background: var(--card2);
+  background: color-mix(in srgb, var(--gold) 12%, var(--card)); }

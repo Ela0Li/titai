@@ -61,6 +61,7 @@
   "rev": 6,
   "touched": 1792508824668,
   "checks": { "m1.1": { "m": 2, "t": 1792508671041 } },
+  "qm":     { "q.m11.layers": { "m": 1, "t": 1792508800123 } },
   "fav":    { "m1.1": { "on": true, "t": 1792509001993 } },
   "quiz":   { "q.m11.layers": { "ok": 1, "no": 0, "t": 1792508747749 } },
   "settings": { "theme": "dark", "tab": "qa" },
@@ -75,6 +76,7 @@
 | `rev` | integer | 单调递增的修订号，仅作诊断与日志用，**不参与冲突判断**。 |
 | `touched` | integer | 最后写入时间（epoch ms）。 |
 | `checks` | map | key = check id；`m` ∈ `0..3` 掌握度（0 未学 / 1 模糊 / 2 会 / 3 熟练）；`t` = 写入时间。 |
+| `qm` | map | key = qa id；问答**自己**的掌握度，档位同上，与 `checks` 各记各的（§10.4）。缺省即空表。 |
 | `fav` | map | key = check id 或 qa id；`on:false` 是**墓碑**（显式取消收藏），必须保留以覆盖其他设备的 `on:true`。 |
 | `quiz` | map | key = qa id；`ok`/`no` 累计次数，用于“薄弱项”抽取。 |
 | `settings` | object | `theme` ∈ `dark\|light`，`tab` ∈ `list\|qa\|fav\|drill\|more`。 |
@@ -82,7 +84,7 @@
 
 ### 2.1 合并规则（LWW-Register per key）
 
-对 `checks` / `fav` / `quiz` 三张表，**逐 key 取 `t` 较大的一份**；`t` 相同时保留本地。合并后 `rev = max(local.rev, remote.rev) + 1`。
+对 `checks` / `qm` / `fav` / `quiz` 四张表，**逐 key 取 `t` 较大的一份**；`t` 相同时保留本地。合并后 `rev = max(local.rev, remote.rev) + 1`。
 
 性质：
 
@@ -96,7 +98,7 @@
 
 - 首次启动：`state` 为默认空对象，不落盘直到第一次写入。
 - 写入：内存改动后 350 ms 防抖，经 `Native.saveState()` 落盘到应用私有目录 `files/states/<deck.id>.json`（网页版回退 `localStorage["studydesk.state.v1:<deck.id>"]`）。老的 `files/state.json` 在首次启动时按其中 `deck` 字段迁移。
-- 清空：「设置 → 清空本机进度」删除三张表与 `settings.tab`，保留 `sync` 与 `settings.theme`。
+- 清空：「设置 → 清空本机进度」删除四张表与 `settings.tab`，保留 `sync` 与 `settings.theme`。
 
 ---
 
@@ -260,6 +262,7 @@ node tools/conformance.js a.json b.json                # 一次测多份
 | v1.6（v0.8.5） | **计划内外的引用区分（deck §8.5.1）**：目标包在计划内/计划外/未安装三态各有标签样式；计划外可跳转但会临时离开计划，顶部给「回到计划」；判定按计划成员表而非当前渲染列表 | 1（不变） |
 | v1.7（v0.8.7） | **协议拆三册**：总纲 `protocol-core.md`（边界、进度、同步、校验、版本、掌握度、附录）、知识包 `deck-protocol.md`（示例、内容层、制作、公式、跨包引用）、计划 `plan-protocol.md`（学习计划），章节号沿用不重排，三册共用版本号；**知识点新增 `hint`（deck §1.3，及格线提示，≤60 字）**；`seeAlso` 由 MAY 升为 SHOULD 并给出唯一判据（deck §1.7） | 1（不变） |
 | v1.8（v0.9.3） | **术语统一**：协议正文、界面文案与校验器提示里的「学习包」一律写「知识包」，旧的「自查点」一律写「知识点」（deck §1.3 的 `terms` 默认值本来就是模块 / 知识点 / 问答）；字段与 id 完全不变，老包不用改 | 1（不变） |
+| v1.9（v0.9.5） | **问答独立掌握度**：`state.json` 新增 `qm` 表（key = qa id，档位同知识点，合并同 §2.1）；问答页可按掌握度筛选；问答卡片「覆盖点」可点开对应知识点卡片；刷题页可收藏当前题；`checks` 与内容层字段完全不变，老进度照旧可用 | 1（不变） |
 
 公式是**纯文本语法**，不是新字段，所以 `schema` 保持 1：老引擎会把 `$\frac{a}{b}$` 当普通文字显示，内容不丢、不崩。
 
@@ -289,6 +292,19 @@ node tools/conformance.js a.json b.json                # 一次测多份
 
 计划里的知识包是**独立文件**（可能分批导入、可能单独备份）。写两份让任何一份单独拿出来都自带掌握度，不需要“先找它的兄弟包”。
 
+### 10.4 问答自己的掌握度（v1.9 起）
+
+知识点太细、有时想整体标一句“这条问答我熟了”，所以 v1.9 给 `qa` 加了一份**独立**的自评：
+
+| 项目 | 规则 |
+|---|---|
+| 存哪儿 | `state.json` 的 `qm` 表，key = qa id，`m` 同样是 `0..3` |
+| 和知识点的关系 | 完全独立：改问答的档位**不会**动 `checks`，反之亦然。问答落在哪些知识点上由 `covers` 表达，两套分数不做加权 |
+| 在哪儿改 | 只能在**问答卡片**里改（三档单选、只亮当前档、再点一次取消）；列表、刷题、收藏页只显示三个圆点 |
+| 筛选 | 问答页可按 `未学 / 模糊 / 会 / 熟练` 筛；筛选读的就是 `qm` |
+| 生效时机 | 与知识点一致：关掉卡片时列表重刷一次 |
+| 合并 | 同 §2.1，逐 key 取 `t` 较大的一份 |
+
 ---
 
 ## 附录 A：字段速查
@@ -299,13 +315,14 @@ deck
 ├─ terms?:  {group?:str, check?:str, qa?:str}         # 界面名词，缺省 模块/知识点/问答
 ├─ deps?:   [ {id, title?} ]                          # v1.2 可选：声明引用了哪些包
 ├─ groups: [ { id, title, short?, priority, stage:1..4, signal?, keypoints?[], traps?,
-│             checks:[ {id, text, lvl, seeAlso?[]} ] } ]
+│             checks:[ {id, text, lvl, hint?, seeAlso?[]} ] } ]
 └─ qas:    [ { id, m, lvl, layer:1..4, q, tags?[], covers[], next?[], peer?[], ans:[ {p, h?, lvl?:1..3, list?[]} ], backNext†, backPeer† } ]
 
 跨包引用（v1.2）：任意 covers/next/peer/seeAlso 元素可写成 "deckId#本地id"
 state
 ├─ v:int  deck:str  rev:int  touched:int
 ├─ checks: {checkId: {m:0..3, t:int}}
+├─ qm:     {qaId:    {m:0..3, t:int}}                  # v1.9：问答自己的掌握度
 ├─ fav:    {id: {on:bool, t:int}}
 ├─ quiz:   {qaId: {ok:int, no:int, t:int}}
 ├─ settings: {theme, tab, crossWrite?}
