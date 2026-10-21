@@ -17,6 +17,12 @@ const cases = [
   ["argmax", "\\argmax_{\\theta} \\sum_{i} \\log p(x_i|\\theta)"],
   ["矩阵式连乘", "\\prod_{k=1}^{K} \\sigma_k"],
   ["积分", "\\int_{0}^{1} f(x)\\,dx"],
+  ["转置", "\\nabla f^\\top u \\ge -\\|\\nabla f\\|\\,\\|u\\|"],
+  ["黑板体", "X \\in \\mathbb{R}^{n\\times d}"],
+  ["花体", "\\mathcal{N}(0, 2/n_{in})"],
+  ["箭头标注", "\\bar X_n \\xrightarrow{p} \\mu"],
+  ["半正定", "H(x) \\succeq 0"],
+  ["手写体 l", "L = \\sum_i w_{y_i} \\ell_i"],
   ["不认识的命令", "\\foobar{x}"],
   ["单独美元符", "价格 $5 和 $6"]
 ];

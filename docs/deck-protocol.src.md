@@ -460,7 +460,7 @@ node tools/conformance.js a.json b.json                # 一次测多份
 | v1.7（v0.8.7） | **协议拆三册**：总纲 `protocol-core.md`（边界、进度、同步、校验、版本、掌握度、附录）、知识包 `deck-protocol.md`（示例、内容层、制作、公式、跨包引用）、计划 `plan-protocol.md`（学习计划），章节号沿用不重排，三册共用版本号；**知识点新增 `hint`（§1.3，及格线提示，≤60 字）**；`seeAlso` 由 MAY 升为 SHOULD 并给出唯一判据（§1.7） | 1（不变） |
 | v1.8（v0.9.3） | **术语统一**：协议正文、界面文案与校验器提示里的「学习包」一律写「知识包」，旧的「自查点」一律写「知识点」（§1.3 的 `terms` 默认值本来就是模块 / 知识点 / 问答）；字段与 id 完全不变，老包不用改 | 1（不变） |
 | v1.9（v0.9.5） | **问答独立掌握度**：`state.json` 新增 `qm` 表（key = qa id，档位同知识点，合并同 §2.1）；问答页可按掌握度筛选；问答卡片「覆盖点」可点开对应知识点卡片；刷题页可收藏当前题；`checks` 与内容层字段完全不变，老进度照旧可用 | 1（不变） |
-| v1.10（v0.9.6） | **取消掌握度自动同步（§10）**：改一个知识点只写它自己，不再联动同一条问答覆盖的其它知识点，也不再写别的包的 `state.json`；旧进度不回溯修正，要整体标记请用问答自己的 `qm` | 1（不变） |
+| v1.10（v0.9.6） | **取消掌握度自动同步（§10）**：改一个知识点只写它自己，不再联动同一条问答覆盖的其它知识点，也不再写别的包的 `state.json`；旧进度不回溯修正，要整体标记请用问答自己的 `qm`。同版补 §7：公式支持 `\mathbb`/`\mathcal`/`\xrightarrow`/`\top`/`\succeq`/`\ell` 等，并写明 `check.text` 不解析公式 | 1（不变） |
 
 公式是**纯文本语法**，不是新字段，所以 `schema` 保持 1：老引擎会把 `$\frac{a}{b}$` 当普通文字显示，内容不丢、不崩。
 
@@ -533,7 +533,7 @@ node tools/conformance.js a.json b.json                # 一次测多份
 
 **反引号里的内容不解析公式**：`` `$Species` `` 就是属性名，不会去找配对的 `$`（真实属性名里带 `$` 时要注意）。
 
-能够使用公式的字段：`ans[].p`、`ans[].list[]`、`q`（问题）、`check.text`。`title`、`group.title`、`tags` 里不解析。
+能够使用公式的字段：`ans[].p`、`ans[].list[]`、`q`（问题）。`title`、`group.title`、`check.text`、`check.hint`、`tags` 里**不解析**——知识点行按纯文本渲染，写 `$X$` 会把美元符原样显示出来，要用 Unicode 符号或反引号代替。
 
 ### 7.2 支持的命令
 
@@ -543,6 +543,9 @@ node tools/conformance.js a.json b.json                # 一次测多份
 - 大型运算符：`\sum`、`\prod`、`\int`、`\oint`，带上下限时排成上下夹
 - 函数：`\log \ln \exp \sin \cos \tan \max \min \argmax`
 - 希腊字母与常用符号：`\alpha … \omega`、`\Delta`、`\partial`、`\nabla`、`\cdot \times \pm \le \ge \ne \approx \infty \to \in \subset \cup \cap \forall \exists`
+- 转置与序关系：`\top`（⊤，转置）、`\bot`、`\succeq`（⪰）、`\preceq`、`\succ`、`\prec`、`\ll \gg`
+- 字体与箭头：`\mathbb{R}`（→ ℝ，支持 R N Z Q C P H）、`\mathcal{N}`（→ 𝒩）、`\mathfrak`、`\mathrm{}`（正体），`\xrightarrow{标注}` / `\xleftarrow{标注}`（箭头上带字）
+- 特殊字母：`\ell`（ℓ）、`\hbar`、`\aleph`、`\Re`、`\Im`、`\iff`（⟺）
 - 间距：`\,`、`\;`、`\quad`、`\qquad`
 
 不支持的写法（如 `\begin{align}`、`\ce{}`、矩阵环境）会被**原样保留**成等宽文本，不会被吞掉；校验器会给一条 `W_MATH_CMD` 警告。

@@ -31,6 +31,9 @@
     ldots: "…", dots: "…", cdots: "⋯", vdots: "⋮", ddots: "⋱",
     angle: "∠", perp: "⊥", parallel: "∥", mid: "|", vert: "|", Vert: "‖",
     prime: "′", degree: "°", therefore: "∴", because: "∵",
+    top: "⊤", bot: "⊥", succeq: "⪰", preceq: "⪯", succ: "≻", prec: "≺",
+    ell: "ℓ", hbar: "ℏ", Re: "ℜ", Im: "ℑ", aleph: "ℵ", wp: "℘",
+    iff: "⟺", impliedby: "⟸", uparrow: "↑", downarrow: "↓",
     langle: "⟨", rangle: "⟩", lfloor: "⌊", rfloor: "⌋", lceil: "⌈", rceil: "⌉",
     sum: "∑", prod: "∏", coprod: "∐", int: "∫", iint: "∬", iiint: "∭", oint: "∮",
     bigcup: "⋃", bigcap: "⋂", lim: "lim", log: "log", lg: "lg", ln: "ln",
@@ -62,6 +65,19 @@
     + "Gamma Delta Theta Lambda Xi Pi Sigma Upsilon Phi Psi Omega").split(" ").forEach(function (k) {
     GREEK[k] = 1;
   });
+
+  /* 字体映射：只覆盖常用的数学字母，其余字符原样保留 */
+  var BB = {
+    R: "ℝ", N: "ℕ", Z: "ℤ", Q: "ℚ", C: "ℂ", P: "ℙ", H: "ℍ", E: "𝔼",
+    "1": "𝟙", "0": "𝟘", "2": "𝟚"
+  };
+  var CAL = {
+    A: "𝒜", B: "ℬ", C: "𝒞", D: "𝒟", E: "ℰ", F: "ℱ", G: "𝒢", H: "ℋ",
+    I: "ℐ", J: "𝒥", K: "𝒦", L: "ℒ", M: "ℳ", N: "𝒩", O: "𝒪", P: "𝒫",
+    Q: "𝒬", R: "ℛ", S: "𝒮", T: "𝒯", U: "𝒰", V: "𝒱", W: "𝒲", X: "𝒳",
+    Y: "𝒴", Z: "𝒵"
+  };
+  var FRAK = { A: "𝔄", B: "𝔅", C: "ℭ", D: "𝔇", H: "ℌ", I: "ℑ", R: "ℜ", Z: "ℨ" };
 
   function esc(s) {
     return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -155,6 +171,24 @@
     }
     if (name === "mathbf" || name === "bm" || name === "boldsymbol") {
       return { html: '<mstyle mathvariant="bold"><mrow>' + this.arg() + "</mrow></mstyle>" };
+    }
+    /* 黑板体 / 花体：把字母换成对应的 Unicode 数学字母，换不了的保留原字，
+       这样即使 WebView 不认 mathvariant 也能显示成 ℝ、𝒩 而不是 "\mathbb{R}" */
+    if (name === "mathbb" || name === "mathcal" || name === "mathscr" || name === "mathfrak") {
+      var fontMap = name === "mathbb" ? BB : name === "mathfrak" ? FRAK : CAL;
+      var rawFont = this.rawGroup();
+      var mapped = "";
+      for (var fi = 0; fi < rawFont.length; fi++) {
+        var fc = rawFont.charAt(fi);
+        mapped += fontMap[fc] || fc;
+      }
+      return { html: "<mi>" + esc(mapped) + "</mi>" };
+    }
+    /* \xrightarrow{标注} / \xleftarrow{标注}：箭头上面带一行字 */
+    if (name === "xrightarrow" || name === "xleftarrow") {
+      var lab = this.arg();
+      var arrow = name === "xrightarrow" ? "⟶" : "⟵";
+      return { html: "<mover><mo>" + arrow + "</mo><mrow>" + lab + "</mrow></mover>" };
     }
     if (name === "overline" || name === "bar") {
       return { html: "<mover><mrow>" + this.arg() + "</mrow><mo>‾</mo></mover>" };

@@ -287,7 +287,7 @@
 
 **反引号里的内容不解析公式**：`` `$Species` `` 就是属性名，不会去找配对的 `$`（真实属性名里带 `$` 时要注意）。
 
-能够使用公式的字段：`ans[].p`、`ans[].list[]`、`q`（问题）、`check.text`。`title`、`group.title`、`tags` 里不解析。
+能够使用公式的字段：`ans[].p`、`ans[].list[]`、`q`（问题）。`title`、`group.title`、`check.text`、`check.hint`、`tags` 里**不解析**——知识点行按纯文本渲染，写 `$X$` 会把美元符原样显示出来，要用 Unicode 符号或反引号代替。
 
 ### 7.2 支持的命令
 
@@ -297,6 +297,9 @@
 - 大型运算符：`\sum`、`\prod`、`\int`、`\oint`，带上下限时排成上下夹
 - 函数：`\log \ln \exp \sin \cos \tan \max \min \argmax`
 - 希腊字母与常用符号：`\alpha … \omega`、`\Delta`、`\partial`、`\nabla`、`\cdot \times \pm \le \ge \ne \approx \infty \to \in \subset \cup \cap \forall \exists`
+- 转置与序关系：`\top`（⊤，转置）、`\bot`、`\succeq`（⪰）、`\preceq`、`\succ`、`\prec`、`\ll \gg`
+- 字体与箭头：`\mathbb{R}`（→ ℝ，支持 R N Z Q C P H）、`\mathcal{N}`（→ 𝒩）、`\mathfrak`、`\mathrm{}`（正体），`\xrightarrow{标注}` / `\xleftarrow{标注}`（箭头上带字）
+- 特殊字母：`\ell`（ℓ）、`\hbar`、`\aleph`、`\Re`、`\Im`、`\iff`（⟺）
 - 间距：`\,`、`\;`、`\quad`、`\qquad`
 
 不支持的写法（如 `\begin{align}`、`\ce{}`、矩阵环境）会被**原样保留**成等宽文本，不会被吞掉；校验器会给一条 `W_MATH_CMD` 警告。
