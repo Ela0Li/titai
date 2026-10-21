@@ -249,7 +249,7 @@
   }
   function setM(checkId, m) {
     state.checks[checkId] = { m: m, t: Date.now() };
-    propagateMastery(checkId, m);
+    /* 只改这一个知识点：不再联动同一条问答覆盖的其它知识点（协议 v1.10） */
     save();
   }
 
@@ -340,61 +340,8 @@
     setPref("deckOpen", o);
   }
 
-  /* ---- 掌握度同步：同一条问答覆盖的知识点共享掌握度（协议 v1.3 §10） ---- */
-  function splitLocal(ref) {
-    var i = String(ref).indexOf("#");
-    return i > 0 ? { deck: ref.slice(0, i), id: ref.slice(i + 1) } : { deck: "", id: String(ref) };
-  }
-  function readForeignState(deckId) {
-    try {
-      var raw = window.Native && window.Native.readState ? window.Native.readState(deckId) : null;
-      return raw ? (JSON.parse(raw) || {}) : {};
-    } catch (e) { return {}; }
-  }
-  function writeForeignState(deckId, st) {
-    try {
-      if (window.Native && window.Native.writeState) window.Native.writeState(deckId, JSON.stringify(st));
-    } catch (e) { toast("同步到 " + deckId + " 失败"); }
-  }
-  function siblingChecks(cid) {
-    var out = [], seen = {};
-    (QAS_OF_CHECK[cid] || []).forEach(function (qid) {
-      var q = QA[qid];
-      if (!q) return;
-      (q.covers || []).forEach(function (ref) {
-        var r = splitLocal(ref);
-        var deck = r.deck || CUR_DECK;
-        var key = deck + "|" + r.id;
-        if (deck === CUR_DECK && r.id === cid) return;
-        if (seen[key]) return;
-        seen[key] = 1;
-        out.push({ deck: deck, id: r.id });
-      });
-    });
-    return out;
-  }
-  function propagateMastery(cid, m) {
-    var sibs = siblingChecks(cid);
-    if (!sibs.length) return;
-    var batches = {}, touched = 0;
-    sibs.forEach(function (s) {
-      if (s.deck === CUR_DECK) {
-        if (!CHECK[s.id]) return;
-        state.checks[s.id] = { m: m, t: Date.now() };
-        touched++;
-        return;
-      }
-      if (!DECK_CACHE[s.deck]) return;          /* 对方包没装：跳过 */
-      var st = batches[s.deck] || (batches[s.deck] = readForeignState(s.deck));
-      st.checks = st.checks || {};
-      st.checks[s.id] = { m: m, t: Date.now() };
-      st.rev = (st.rev || 0) + 1;
-      st.touched = Date.now();
-      touched++;
-    });
-    Object.keys(batches).forEach(function (did) { writeForeignState(did, batches[did]); });
-    if (touched) toast("掌握度已同步到另外 " + touched + " 个" + term("check"));
-  }
+  /* 掌握度各记各的（协议 v1.10 起）：v1.3 的「同一问答覆盖的知识点共享掌握度」已移除，
+     改一个知识点不再连带改别的包/别的知识点。 */
   function isFav(id) {
     var r = state.fav[id];
     return !!(r && r.on);
@@ -1847,10 +1794,10 @@
     return refBtn(id, kind);
   }
 
-  function openQa(id) {
+  function openQa(id, nested) {
     var q = QA[id];
     if (!q) return;
-    SHEET_ID = id;
+    if (!nested) SHEET_ID = id;
     var g = D.groups.filter(function (x) { return x.id === q.m; })[0];
     var html = [];
     html.push('<div class="qa-row" style="border:0;background:transparent;padding:0">' +
@@ -1895,7 +1842,8 @@
     html.push('<div class="btn-row" style="margin-top:16px">' +
       '<button class="btn" data-act="fav-qa" data-id="' + q.id + '">' + (isFav(q.id) ? "★ 已收藏" : "☆ 收藏此题") + "</button>" +
       '<button class="btn" data-act="drill-this" data-id="' + q.id + '">拿它刷一遍</button></div>');
-    openSheet(html.join(""));
+    if (nested) openSubSheet(html.join(""));
+    else openSheet(html.join(""));
   }
 
   /* nested = 叠在当前卡片上面开（问答卡片里点「覆盖点」）；关掉就回到下面那张 */
@@ -2159,7 +2107,8 @@
       openQa(t.dataset.qa);
       return;
     }
-    if (t.dataset.jump) { openQa(t.dataset.jump); return; }
+    /* 知识点卡片里的「对应问答」叠一层开，关掉回到知识点卡片；问答卡片之间跳转仍直接替换 */
+    if (t.dataset.jump) { openQa(t.dataset.jump, sheetOpen && !subOpen && !!CHECK[SHEET_ID]); return; }
 
     if (t.dataset.dmode) { drillMode = t.dataset.dmode; drillCur = null; renderDrill(); return; }
     if (t.dataset.rate) { rate(parseInt(t.dataset.rate, 10)); return; }

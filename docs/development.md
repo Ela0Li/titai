@@ -18,7 +18,7 @@ studydeck/
 │  ├─ assets/            ← 前端（HTML/CSS/JS），WebView 直接加载
 │  │  ├─ index.html
 │  │  ├─ app.css         深色/浅色两套主题（带 color-mix 回退）
-│  │  ├─ app.js          引擎：计划/多知识包/知识点/问答/收藏/刷题/设置/掌握度同步
+│  │  ├─ app.js          引擎：计划/多知识包/知识点/问答/收藏/刷题/设置/重叠卡片
 │  │  ├─ math.js         $…$ / $$…$$ → MathML（不依赖外部库）
 │  │  ├─ deck.js         空注入位（浏览器直开兜底 / conformance 注入点）
 │  │  ├─ decks/*.json    内置知识包，一份一个文件（引擎按 id 读取）
@@ -30,8 +30,8 @@ studydeck/
 ├─ decks/                **知识包真相**（一份一个 JSON；改内容就改这里）
 ├─ decks-src/ml-intro/   ml-intro 的**已停用**生成源（留作历史；别跑 build.js）
 ├─ plans/                学习计划（ml.plan.json）
-├─ docs/                 协议 v1.9，拆成三册（章节号沿用总编号）
-│  ├─ protocol-core.md   总纲：保证边界 §0 / 进度层 §2 / 同步层 §3 / 校验器 §4 / 版本 §5 / 掌握度同步 §10 / 附录 A 字段速查
+├─ docs/                 协议 v1.10，拆成三册（章节号沿用总编号）
+│  ├─ protocol-core.md   总纲：保证边界 §0 / 进度层 §2 / 同步层 §3 / 校验器 §4 / 版本 §5 / 掌握度记账 §10 / 附录 A 字段速查
 │  ├─ deck-protocol.md   知识包：示例 §0 / 内容层 §1 / 制作 §6 / 数学公式 §7 / 跨包引用 §8
 │  ├─ plan-protocol.md   学习计划 §9
 │  └─ deck-protocol.src.md  合并前的原文（tools/split-protocol.js 的输入，改协议改这份再拆）
@@ -54,7 +54,8 @@ studydeck/
 │  ├─ hints/             知识点的「及格线」文案（tools/hints/*.json）
 │  ├─ build-pinyin.js    生成搜索用的拼音表（app/src/main/assets/pinyin.js）
 │  ├─ test-search.js     无头跑一组搜索查询，核对命中与高亮
-│  └─ test-progress.js   掌握度回归：圆点只展示、卡片单亮、关卡片后百分比刷新（含问答 `qm`）
+│  ├─ test-progress.js   掌握度回归：圆点只展示、卡片单亮、关卡片后百分比刷新（含问答 `qm`）
+│  └─ test-no-sync.js    掌握度不联动：改一个知识点，同一条问答覆盖的其它知识点不受影响
 ├─ .github/workflows/    CI：语法检查 + 协议/计划/引用/答案体检
 └─ sync/                 同步服务的运行时数据（配对码与进度，不入库）
 ```
@@ -79,7 +80,7 @@ App 内的进度按包分文件：`files/states/<deck-id>.json`；导入包放�
 
 `order` 只对内置计划有意义：本机没选过计划时，取 `order` 最小的那个。
 
-同一条问答覆盖的知识点**共享掌握度**：在一个包里点亮，跨包（`deck#id`）的那一条也会同步写一份（协议 §10）。
+掌握度**逐条各记各的**：改一个知识点只写它自己，不会连带同一条问答覆盖的其它知识点，也不会去写别的包的进度（协议 v1.10 起；v1.3–v1.9 的自动同步已移除，见 §10 的历史说明）。
 
 所有内置包的界面名词统一为「模块 / 知识点 / 问答」，模块标题统一写成「模块X · 主题」。
 
@@ -356,6 +357,7 @@ node skills/titai-deck-author/scripts/check.js decks/我的包.json
 - `node tools/split-protocol.js` —— 从 `docs/deck-protocol.src.md` 重新拆出协议三册（总纲 / 知识包 / 计划）。**改协议改 src，再跑这个**，别直接改三册产物。
 - `node tools/conformance.js [deck.json …]` —— 无头渲染一份 deck，确认引擎能真的打开它（默认测 `decks/ml-intro.json`）。
 - `node tools/test-progress.js [deck.json …]` —— 掌握度交互回归：列表圆点只展示（点它不改状态）、卡片里只亮当前档位、关掉卡片后模块百分比 / 进度条 / 知识包百分比跟着变、再点当前档位能取消；后半段跑问答：`qm` 圆点同样只展示、卡片单亮、覆盖点能拉起知识点卡片、关卡片后能按「会 / 熟练 / 全部」筛出正确条数。需要本机 Edge，CI 不跑。
+- `node tools/test-no-sync.js [deck.json …]` —— 掌握度不联动：脚本自己找一条覆盖多个知识点的问答，改其中一个到「熟练」，断言覆盖到的另一个仍是 0。需要本机 Edge，CI 不跑。
 
 ---
 
