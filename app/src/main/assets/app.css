@@ -257,14 +257,13 @@ mark { background: rgba(240, 180, 60, 0.30); color: inherit; border-radius: 3px;
   background: var(--bg2); border-radius: 16px 16px 0 0;
   border-top: 1px solid var(--line2);
   transform: translateY(102%);
-  transition: transform .22s cubic-bezier(.25, .8, .3, 1), opacity .18s;
+  transition: transform .22s cubic-bezier(.25, .8, .3, 1);
   padding: 0 0 calc(16px + var(--safe-b));
 }
 .sheet.on { transform: translateY(0); }
-/* 上面又叠了一张卡片：下层缩一点、暗一点，看起来「失焦」但还在 */
-.sheet.on.behind { transform: translateY(-10px) scale(.985); opacity: .88; }
-/* 第二层：问答卡片里点覆盖点，知识点卡片压在这层 */
-.sheet-mask.sub { z-index: 70; background: rgba(0, 0, 0, .26); }
+/* 第二层：问答卡片里点覆盖点，知识点卡片压在这层；
+   下层卡片不缩放不透明，只被这层遮罩压暗——它才是「失焦」的全部来源 */
+.sheet-mask.sub { z-index: 70; background: rgba(0, 0, 0, .34); }
 .sheet.sub { z-index: 80; max-height: 82vh; box-shadow: 0 -10px 30px rgba(0, 0, 0, .26); }
 .sheet-head {
   position: sticky; top: 0; z-index: 2;

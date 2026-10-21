@@ -1632,16 +1632,16 @@
   function openSheet(html) {
     if (subOpen) closeSubSheet();
     fillLayer("#sheet", "#mask", html);
-    $("#sheet").classList.remove("behind");
     sheetOpen = true;
     /* 注意：这里不清 SHEET_DIRTY——卡片里改完档位再点「覆盖点」跳到别张卡片，
        关掉时仍要刷新列表，否则改动要等下次切页才看得到 */
   }
 
+  /* 叠第二层时下层卡片**原样不动**：不缩小、不加透明，
+     只靠上层遮罩把它压暗——透明度会让底下那层也透出来，看起来有三层。 */
   function openSubSheet(html) {
     if (!sheetOpen) { openSheet(html); return; }
     fillLayer("#sheet2", "#mask2", html);
-    $("#sheet").classList.add("behind");
     subOpen = true;
   }
 
@@ -1652,7 +1652,6 @@
     s.classList.remove("on");
     s.setAttribute("aria-hidden", "true");
     $("#mask2").classList.remove("on");
-    $("#sheet").classList.remove("behind");
     /* 这里不刷新列表：上层只是看，改过的档位等整摞卡片都关掉再刷一次 */
   }
 
@@ -1660,7 +1659,6 @@
     if (subOpen) { closeSubSheet(); return; }
     $("#sheet").classList.remove("on");
     $("#mask").classList.remove("on");
-    $("#sheet").classList.remove("behind");
     sheetOpen = false;
     /* 卡片里改过掌握度：只在退出卡片时整页刷一次（筛选后该消失的行才会消失） */
     if (SHEET_DIRTY) { SHEET_DIRTY = false; render(); }

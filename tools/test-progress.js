@@ -113,15 +113,17 @@ window.addEventListener("load", function () {
         cov.click();
         p.qa.checkCard = !!document.querySelector("#sheet2 #checkSeg");
         p.qa.subOpen = document.getElementById("sheet2").classList.contains("on");
-        p.qa.behind = document.getElementById("sheet").classList.contains("behind");
         p.qa.mainStill = document.getElementById("sheet").classList.contains("on") &&
           !!document.querySelector("#sheet #qaSeg");
+        /* 下层卡片必须原样：不透明、不缩小（缩小 + 半透明会透出最底下一层） */
+        var rs = getComputedStyle(document.getElementById("sheet"));
+        p.qa.rearOpacity = rs.opacity;
+        p.qa.rearTransform = rs.transform;
         /* 关掉上层：回到问答卡片，不该刷新列表 */
         document.querySelector("#sheet2 [data-act='close-sheet']").click();
         p.qa.backToQa = !document.getElementById("sheet2").classList.contains("on") &&
           document.getElementById("sheet").classList.contains("on") &&
-          !!document.querySelector("#sheet #qaSeg") &&
-          !document.getElementById("sheet").classList.contains("behind");
+          !!document.querySelector("#sheet #qaSeg");
       }
       /* 再关一次：整摞卡片都关了，这时才刷新列表 */
       document.querySelector("#sheet [data-act='close-sheet']").click();
@@ -190,7 +192,10 @@ function runOne(deckPath) {
   }
 
   const m = dom.match(/PROBE (\{[\s\S]*?\})<\/title>/);
-  if (!m) return { ok: false, deckPath, fails: ["探针没有回传结果"] };
+  if (!m) {
+    if (process.env.PROBE_DEBUG) fs.writeFileSync(path.join(__dirname, ".probe-dom.html"), dom, "utf8");
+    return { ok: false, deckPath, fails: ["探针没有回传结果"] };
+  }
   let p;
   try {
     p = JSON.parse(m[1].replace(/&quot;/g, '"').replace(/&amp;/g, "&"));
@@ -242,7 +247,10 @@ function runOne(deckPath) {
   if (!q.coverBtn) fails.push("问答卡片里没有可点的覆盖点");
   if (q.coverBtn && !q.checkCard) fails.push("点覆盖点没有拉起知识点卡片");
   if (q.coverBtn && !q.subOpen) fails.push("覆盖点的知识点卡片没有叠在第二层（sheet2 没开）");
-  if (q.coverBtn && !q.behind) fails.push("问答卡片没有进入失焦（behind）状态");
+  if (q.rearOpacity !== undefined && q.rearOpacity !== "1")
+    fails.push("下层问答卡片被设成了半透明（opacity " + q.rearOpacity + "），会透出更底下一层");
+  if (q.rearTransform && q.rearTransform !== "none" && q.rearTransform.indexOf("matrix(1, 0, 0, 1") !== 0)
+    fails.push("下层问答卡片被缩放或位移了（" + q.rearTransform + "）");
   if (q.coverBtn && !q.mainStill) fails.push("点覆盖点把问答卡片关掉了，应该留在后面");
   if (q.coverBtn && !q.backToQa) fails.push("关掉知识点卡片没有回到问答卡片");
   if (q.afterLv !== undefined && q.afterLv !== "2")
