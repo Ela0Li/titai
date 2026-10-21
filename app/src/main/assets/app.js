@@ -764,6 +764,52 @@
     return '<button class="chip' + (listFilter === v ? " on" : "") + '" data-chip="' + v + '">' + label + "</button>";
   }
 
+  /* 打点后立刻刷新「模块百分比 + 进度条 + 包百分比」。
+     不整页重渲染（会丢滚动位置），只改受影响的这三个数；口径与 renderList 一致：
+     模块进度 = 通过掌握度筛选的知识点里 m≥2 的占比，包进度 = 全部知识点里 m≥2 的占比。 */
+  function refreshAggregates(did, gid) {
+    var dd = readDeckData(did);
+    if (!dd || !dd.groups) return;
+    var dt = dd.terms || {};
+    var gTerm = dt.group || term("group");
+    var cTerm = dt.check || term("check");
+
+    var total = 0, done = 0;
+    (dd.groups || []).forEach(function (g) {
+      (g.checks || []).forEach(function (c) { total++; if (mOfIn(did, c.id) >= 2) done++; });
+    });
+    var secs = document.querySelectorAll(".decksec");
+    for (var i = 0; i < secs.length; i++) {
+      if (secs[i].dataset.decksec !== did) continue;
+      var meta = secs[i].querySelector(".ds-meta");
+      if (meta) {
+        meta.innerHTML = (dd.groups || []).length + " " + esc(gTerm) + " · " + total + " " + esc(cTerm) +
+          " · " + (total ? Math.round((done / total) * 100) : 0) + "%";
+      }
+      break;
+    }
+
+    if (!gid) return;
+    var g = null;
+    (dd.groups || []).forEach(function (x) { if (x.id === gid) g = x; });
+    if (!g) return;
+    var pctEl = null, barEl = null;
+    var mods = document.querySelectorAll(".mod");
+    for (var j = 0; j < mods.length; j++) {
+      if (mods[j].dataset.d === did && mods[j].dataset.g === gid) {
+        pctEl = mods[j].querySelector(".mod-pct");
+        barEl = mods[j].querySelector(".bar > i");
+        break;
+      }
+    }
+    if (!pctEl && !barEl) return;
+    var cs = (g.checks || []).filter(function (c) { return passesMasteryIn(did, c.id); });
+    var d2 = cs.filter(function (c) { return mOfIn(did, c.id) >= 2; }).length;
+    var pct = cs.length ? Math.round((d2 / cs.length) * 100) : 0;
+    if (pctEl) pctEl.textContent = pct + "%";
+    if (barEl) barEl.style.width = pct + "%";
+  }
+
   /* ---------------- 视图：问答 ---------------- */
   var qaFilter = "all";
   var qaQuery = "";
@@ -2026,6 +2072,8 @@
       var m = parseInt(t.dataset.m, 10);
       setMIn(dck, cid, cur === m ? 0 : m);
       paintRing();
+      var modEl = row.closest(".mod");
+      refreshAggregates(dck, modEl && modEl.dataset.g);
       var item = (dck === CUR_DECK ? CHECK[cid] : deckCheckItem(readDeckData(dck), cid)) ||
         { id: cid, text: "", lvl: "" };
       var fresh = checkRow(item, dck);
@@ -2055,6 +2103,7 @@
           b.classList.toggle("on", mOf(cid2) >= parseInt(b.dataset.cm, 10));
         });
         paintRing();
+        refreshAggregates(CUR_DECK, (CHECK[cid2] || {}).g);
       }
       return;
     }
