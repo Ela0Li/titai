@@ -1,4 +1,8 @@
-/* 构建 ml-intro 学习包：生成 studydeck/decks/ml-intro.json。
+/* ⚠ 已停用（0.8.7 起）：内容以 decks/ml-intro.json 为准，直接编辑那份 JSON。
+ * 这里的源停在 0.7.0（10 模块 / 60 知识点），跑一次会把现在的 9 模块 / 54 知识点版本覆盖掉，
+ * 并丢掉 hint（及格线）等后加字段。保留只为说明当年内容是怎么生成的，别再执行。
+ *
+ * 构建 ml-intro 知识包：生成 studydeck/decks/ml-intro.json。
  * 不触碰 dist/deck.json 或 app/src/main/assets 下的内置包。
  */
 const fs = require("fs");

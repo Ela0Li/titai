@@ -2,11 +2,11 @@
 
 面向改代码、改协议、发版的人。**只是想装来用**，看仓库根目录的 [README](../README.md) 就够了。
 
-内容与程序分离：学习包是 JSON，程序是一个 WebView 壳；进度按时间戳合并，电脑端与手机端可以各自离线用，也可以局域网同步。
+内容与程序分离：知识包是 JSON，程序是一个 WebView 壳；进度按时间戳合并，电脑端与手机端可以各自离线用，也可以局域网同步。
 
 现在内置两个知识包（机器学习数学基础 / 机器学习入门）和一个学习计划，另有一个最小样例包供校验器自测。
 
-当前版本 **0.9.2**。更新日志见 [CHANGELOG](../CHANGELOG.md)，许可证 [MIT](../LICENSE)，安装包在 [Releases](https://github.com/Ela0Li/titai/releases)。
+当前版本 **0.9.3**。更新日志见 [CHANGELOG](../CHANGELOG.md)，许可证 [MIT](../LICENSE)，安装包在 [Releases](https://github.com/Ela0Li/titai/releases)。
 
 ---
 
@@ -18,7 +18,7 @@ studydeck/
 │  ├─ assets/            ← 前端（HTML/CSS/JS），WebView 直接加载
 │  │  ├─ index.html
 │  │  ├─ app.css         深色/浅色两套主题（带 color-mix 回退）
-│  │  ├─ app.js          引擎：计划/多知识包/清单/问答/收藏/刷题/设置/掌握度同步
+│  │  ├─ app.js          引擎：计划/多知识包/知识点/问答/收藏/刷题/设置/掌握度同步
 │  │  ├─ math.js         $…$ / $$…$$ → MathML（不依赖外部库）
 │  │  ├─ deck.js         空注入位（浏览器直开兜底 / conformance 注入点）
 │  │  ├─ decks/*.json    内置知识包，一份一个文件（引擎按 id 读取）
@@ -27,10 +27,10 @@ studydeck/
 │  │  ├─ MainActivity.java   WebView 壳 + 返回键接管 + 深链
 │  │  └─ Bridge.java         多包读写/切换 + 进度文件 + setChrome / http / versionName
 │  └─ res/               图标与主题
-├─ decks/                **学习包真相**（一份一个 JSON；改内容就改这里）
-├─ decks-src/ml-intro/   ml-intro 的生成源（modules.js + qa-*.js + build.js）
+├─ decks/                **知识包真相**（一份一个 JSON；改内容就改这里）
+├─ decks-src/ml-intro/   ml-intro 的**已停用**生成源（留作历史；别跑 build.js）
 ├─ plans/                学习计划（ml.plan.json）
-├─ docs/                 协议 v1.7，拆成三册（章节号沿用总编号）
+├─ docs/                 协议 v1.8，拆成三册（章节号沿用总编号）
 │  ├─ protocol-core.md   总纲：保证边界 §0 / 进度层 §2 / 同步层 §3 / 校验器 §4 / 版本 §5 / 掌握度同步 §10 / 附录 A 字段速查
 │  ├─ deck-protocol.md   知识包：示例 §0 / 内容层 §1 / 制作 §6 / 数学公式 §7 / 跨包引用 §8
 │  ├─ plan-protocol.md   学习计划 §9
@@ -46,13 +46,14 @@ studydeck/
 │  ├─ audit-answers.js   答案结构体检（按体裁判断结构是否合适）
 │  ├─ conformance.js     一致性测试：真实引擎 + 无头浏览器渲染一份 deck
 │  ├─ apply-hints.js     把 tools/hints/*.json 的「及格线」灌进知识包
-│  ├─ build-ml-math.js   生成 ml-math 包（幂等）
+│  ├─ build-ml-math.js   **已停用**的生成脚本（留作历史；别跑，会覆盖 ml-math.json）
 │  ├─ split-protocol.js  从 src 拆出协议三册
 │  ├─ test-math.js       数学解析单测（顺便产出预览页）
 │  ├─ dev.js             构建 + 安装 + 打开 + 截图（开发用）
-│  ├─ sync.js            局域网同步服务 + 电脑端浏览页面 + 学习包下发
+│  ├─ sync.js            局域网同步服务 + 电脑端浏览页面 + 知识包下发
 │  ├─ hints/             知识点的「及格线」文案（tools/hints/*.json）
-│  └─ build-pinyin.js    生成搜索用的拼音表（app/src/main/assets/pinyin.js）
+│  ├─ build-pinyin.js    生成搜索用的拼音表（app/src/main/assets/pinyin.js）
+│  └─ test-search.js     无头跑一组搜索查询，核对命中与高亮
 ├─ .github/workflows/    CI：语法检查 + 协议/计划/引用/答案体检
 └─ sync/                 同步服务的运行时数据（配对码与进度，不入库）
 ```
@@ -87,7 +88,7 @@ App 内的进度按包分文件：`files/states/<deck-id>.json`；导入包放�
 |---|---|---|
 | 目标包在**当前计划内** | 虚线 + 包名（强调色） | 软切包，不重载，顶部还是计划视图 |
 | 目标包**已安装但在计划外** | 灰色虚线 + 包名 + 「计划外」小标 | 进入该包并临时离开计划：标题变成包名，顶部出现「← 回到<计划名>」 |
-| 目标包**没装** | 点线 + 「未安装的学习包」 | 不可点 |
+| 目标包**没装** | 点线 + 「未安装的知识包」 | 不可点 |
 
 点计划外的引用时不再直接跳走，而是先弹一个二选一（v0.8.6）：**加入计划并跳转**（把该包追加到当前计划末尾，之后就是计划内跳转）或**先看看（临时离开计划）**。设置页「跨包关联」下面有一张三态图例，样子和这里一致。
 
@@ -95,26 +96,26 @@ App 内的进度按包分文件：`files/states/<deck-id>.json`；导入包放�
 
 ## 开发与测试环境（v0.8.1 起）
 
-**日常构建、安装、跑起来、截图都在模拟器上做，真机只在最终验收时用一次。**
+**构建、安装、跑起来、截图都用 `tools/dev.js`，一条命令走完；真机只在需要看真实排版时用。**
 
 | 环境 | 设备 | 系统 / WebView | 用途 |
 | --- | --- | --- | --- |
-| 模拟器 | `emulator-5554` | Android 12（API 32）/ WebView 110 | 日常开发、回归、截图 |
-| 真机 | `a27457ef`（小米 14） | Android 16（API 36）/ WebView 153 | 只在明确要求时做最终验收 |
+| 真机 | `a27457ef`（小米 14） | Android 16（API 36）/ WebView 153 | 日常开发、回归、截图（当前唯一可用设备） |
+
+> 模拟器 `emulator-5554`（Android 12 / WebView 110）曾经是日常测试床，本机已将其与 SDK 里的 emulator 组件一并删除；下面「模拟器已知差异」保留作参考，如果将来重装 SDK 模拟器还能对上。
 
 一条命令搞定（`tools/dev.js`）：
 
 ```powershell
-node tools/dev.js deploy                  # 构建 + 装模拟器 + 打开 + 截图到 shot/
+node tools/dev.js deploy                  # 构建 + 装真机 + 打开 + 截图到 shot/
 node tools/dev.js deploy --tab qa          # 顺便跳到问答页
 node tools/dev.js deploy --deck ml-math    # 指定知识包
 node tools/dev.js deploy --open q.m1.grad  # 打开某条问答
 node tools/dev.js deploy --check m1.1      # 打开某个知识点
 node tools/dev.js shot --name home         # 只截图
-node tools/dev.js deploy --phone           # 装到真机（最终验收时才用）
 ```
 
-真机验收请手动执行（等价于上面 `--phone`）：
+等价的手工步骤（`tools/dev.js` 内部就是这几步）：
 
 ```powershell
 .\gradlew.bat --offline assembleRelease
@@ -122,7 +123,7 @@ adb -s a27457ef install -r app\build\outputs\apk\release\app-release.apk
 adb -s a27457ef shell am start -n com.studydeck.app/.MainActivity
 ```
 
-**模拟器已知差异**（不是 App 的 bug，别在模拟器上追）：
+**模拟器已知差异**（不是 App 的 bug，别在模拟器上追；本机模拟器已移除，留作参考）：
 
 1. **公式会显示成方框**：模拟器镜像没有带 OpenType MATH 表的数学字体，Chromium 110 的 MathML 就掉豆腐块；真机（WebView 153）正常。数学排版只能在真机上验。
 2. **`color-mix()` 不支持**（Chromium 111 才有）：跨包 chip 的虚线强调色、包名标签底色会退化成普通边框色。样式里已写好回退值（先声明纯色再声明 `color-mix`），功能不受影响。
@@ -132,7 +133,7 @@ adb -s a27457ef shell am start -n com.studydeck.app/.MainActivity
 
 ### 答案结构（v1.5 起自由）
 
-`ans` 是有序块数组，每块必须有 `p`（段落），可选 `h`（自拟小标题）、`lvl`（1..3 级，不能跳级）、`list`（要点列表）。协议**不再要求**「结论 → 机制 → 取舍 → 实战」四段式，也不要求以结论开头：面试型学习包这么写仍然推荐，知识型/操作型可以自己分节，甚至整篇不写标题。
+`ans` 是有序块数组，每块必须有 `p`（段落），可选 `h`（自拟小标题）、`lvl`（1..3 级，不能跳级）、`list`（要点列表）。协议**不再要求**「结论 → 机制 → 取舍 → 实战」四段式，也不要求以结论开头：面试型知识包这么写仍然推荐，知识型/操作型可以自己分节，甚至整篇不写标题。
 
 天花板是 3 级：`lvl` 超过 3 或跳级（1 → 3）会被校验器拒绝（`E_ANS_LVL`）。老包无需改动，`{h:"结论", p:"…"}` 仍然是合法的一级标题块。
 
@@ -155,7 +156,7 @@ adb -s a27457ef shell am start -n com.studydeck.app/.MainActivity
 
 ## 构建与安装
 
-学习包内容是 JSON，改完直接校验，不需要编译；只有 ml-math 与 ml-intro 有生成脚本（改了源才要重跑）。
+知识包内容是 JSON，改完直接校验，不需要编译；**所有包（含 ml-intro / ml-math）都是直接编辑 `decks/<id>.json`**。
 
 ```powershell
 # 1) 校验（改过任何 decks/*.json 都跑一遍）
@@ -171,13 +172,14 @@ $env:JAVA_HOME="C:\Program Files\Eclipse Adoptium\jdk-17.0.19.10-hotspot"
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 
-有生成源的两个包：
+改完 `decks/<id>.json` 记得同步一份到 `app/src/main/assets/decks/`（内置包读的是那份）。
+
+> ⚠ `decks-src/ml-intro/build.js` 与 `tools/build-ml-math.js` 是**已停用的生成脚本**：它们停在 0.7.0 的内容，跑一次会覆盖现在的 JSON 并丢掉 `hint` 等后加字段。只在想读当年的生成逻辑时才打开。
+
+需要批量补字段时用这两个（幂等，可重复跑）：
 
 ```powershell
-node decks-src/ml-intro/build.js     # → decks/ml-intro.json
-node tools/build-ml-math.js          # → decks/ml-math.json
-node tools/demo-free-answers.js      # ml-math 重建后要重跑，恢复自由结构答案
-node tools/apply-hints.js            # 重建过任何包之后都要重跑，补回「及格线」
+node tools/apply-hints.js            # 按 tools/hints/*.json 补回「及格线」
 ```
 
 正式包：
@@ -222,15 +224,15 @@ keyPassword=……
 node tools\sync.js          # 默认 8787
 ```
 
-- 浏览器打开 `http://127.0.0.1:8787` → 控制台：配对码、本机 IP、每个学习包的进度表
+- 浏览器打开 `http://127.0.0.1:8787` → 控制台：配对码、本机 IP、每个知识包的进度表
 - 浏览器打开 `http://127.0.0.1:8787/a/` → 直接在电脑上用同一套界面（进度存浏览器本地）
-- `http://127.0.0.1:8787/a/?deck=<学习包 id>` → 指定打开某个包；控制台里点包名就是这个地址
+- `http://127.0.0.1:8787/a/?deck=<知识包 id>` → 指定打开某个包；控制台里点包名就是这个地址
 
 手机端：设置 → 局域网同步 → 填 `电脑IP:8787` + 4 位配对码
 
 - **拉取**：电脑上**当前这个包**的进度合并到手机（包对不上会拒绝合并并提示）
 - **推送**：把手机当前包的进度写到电脑
-- 合并规则：同一个自查点/收藏/刷题记录取时间戳更新的那份，不会互相覆盖；收藏的取消用 `on:false` 墓碑，取消不会“复活”
+- 合并规则：同一个知识点/收藏/刷题记录取时间戳更新的那份，不会互相覆盖；收藏的取消用 `on:false` 墓碑，取消不会“复活”
 
 > 模拟器里连宿主机用 `10.0.2.2:8787`（已在测试中验证）。
 
@@ -238,13 +240,13 @@ node tools\sync.js          # 默认 8787
 
 ## 换一个学习目标
 
-引擎不认识具体学科，它只认学习包。现在支持**多个学习包共存**，两条路：
+引擎不认识具体学科，它只认知识包。现在支持**多个知识包共存**，两条路：
 
 **A. 内置一个新包（内容随 APK 走）**
 
 现在内置包都是直接写 `decks/<id>.json`（协议见 `docs/deck-protocol.md`），最小可用模板在 `test/decks/minimal.deck.json`：拷一份改 `id` / `title` / 模块与问答，放到 `decks/`，再同步一份到 `app/src/main/assets/decks/` 即可。
 
-以前那套「`decks-src/` 写 JS 源 → 生成 JSON」的流程只给 `ml-intro` 留着（`decks-src/ml-intro/build.js`），其余包一律直接编辑 `decks/<id>.json`。
+以前那套「`decks-src/` 写 JS 源 → 生成 JSON」的流程已经停用（`decks-src/ml-intro/build.js` 留在仓库里只作历史参考，别跑）；现在所有包一律直接编辑 `decks/<id>.json`。
 
 **B. 外部导入（不重装 APK，推荐）**
 
@@ -267,7 +269,7 @@ node tools\sync.js          # 默认 8787
 
 界面名词解耦：`deck.terms = { group, check, qa }` 可覆盖显示文案，缺省是「模块 / 知识点 / 问答」；换包时想叫「章节／考点／题目」都行，不影响 id、进度与同步。
 
-进度按学习包 id 区分：每个包一份 `files/states/<id>.json`，换包后旧进度不会串味（同一个包里 id 复用则视为同一题）。升级到多包版本后，老的 `state.json` 会一次性迁移到内置包名下。
+进度按知识包 id 区分：每个包一份 `files/states/<id>.json`，换包后旧进度不会串味（同一个包里 id 复用则视为同一题）。升级到多包版本后，老的 `state.json` 会一次性迁移到内置包名下。
 
 ## 让 agent 帮你写包（skills/）
 
@@ -308,9 +310,9 @@ node skills/titai-deck-author/scripts/check.js decks/我的包.json
 
 ---
 
-## 学习包管理
+## 知识包管理
 
-「设置 → 学习包」列出所有可用包，当前包标「使用中」，其余有「切换」；导入包多一个「删」（连同它的进度一起删）。下面的「从文件导入」走系统文件选择器，「从电脑获取学习包」向 `tools/sync.js` 要列表并逐个下载。
+「设置 → 知识包」列出所有可用包，当前包标「使用中」，其余有「切换」；导入包多一个「删」（连同它的进度一起删）。下面的「从文件导入」走系统文件选择器，「从电脑获取知识包」向 `tools/sync.js` 要列表并逐个下载。
 
 导入的入口一共三个：文件选择器、其他应用的「打开方式/分享」（`.json` 文件可以选「题台」打开）、电脑下发。三条路都会先跑一遍结构体检，坏包不入库。
 
@@ -323,9 +325,9 @@ node skills/titai-deck-author/scripts/check.js decks/我的包.json
 调试用深链（`adb shell am start`）：
 
 ```bash
--e deck demo                 # 切到某个学习包
+-e deck demo                 # 切到某个知识包
 -e download demo             # 从电脑下载并切过去（需先 -e host / -e code）
--e decks 1                   # 打开「电脑上的学习包」列表
+-e decks 1                   # 打开「电脑上的知识包」列表
 -e importFile /path/x.json   # 直接导入一个文件（只认应用私有路径，调试用）
 -e plan http://电脑:端口/x.plan.json   # 从电脑取一个计划文件，导入并切过去
 ```
@@ -388,7 +390,7 @@ node tools/test-math.js
 # 4) 装机验收（真机，覆盖安装）
 adb -s a27457ef install -r app\build\outputs\apk\release\app-release.apk
 # 5) 打 tag 并推
-git tag -a v0.9.2 -m "题台 0.9.2"
+git tag -a v0.9.3 -m "题台 0.9.3"
 git push origin main --tags
 # 6) 在 GitHub 建 Release（附 app-release.apk），发布说明抄 CHANGELOG 对应段落
 ```
@@ -399,7 +401,7 @@ CI（`.github/workflows/ci.yml`）在每次 push 时跑语法检查、各知识�
 
 ## 已知取舍
 
-- 同步进度按学习包分桶：电脑端 `sync/states/<id>.json`，手机端 `files/states/<id>.json`；`push`/`pull` 的请求体带 `deck`，两边只碰当前这一个包。多包同时用同步也不会互相覆盖；但**浏览器里的进度是本地的**，与电脑端分桶文件不是同一份，要靠拉取/推送对齐。
+- 同步进度按知识包分桶：电脑端 `sync/states/<id>.json`，手机端 `files/states/<id>.json`；`push`/`pull` 的请求体带 `deck`，两边只碰当前这一个包。多包同时用同步也不会互相覆盖；但**浏览器里的进度是本地的**，与电脑端分桶文件不是同一份，要靠拉取/推送对齐。
 - 电脑端页面：`/` 是控制台（配对码、地址、每个包的进度表、点包名进对应界面），`/a/?deck=<id>` 直接打开某个包。
 - 更新：侧载 APK 覆盖安装即更新，版本号在「设置」页底部。
 - 无账号、无云端：同步只在同一局域网内、点对点，不经过任何服务器。

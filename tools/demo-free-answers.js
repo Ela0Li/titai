@@ -5,6 +5,7 @@
  *   2) ml-intro / q.m1.what：完全不写标题，只有两段
  *
  * 幂等：内容已经是对应的结构就直接跳过。
+ * 现在两个包的 JSON 里已经是这个结构，日常不需要再跑；只有整份内容被外部工具覆盖回四段式时才用它修回来。
  * 用法：node tools/demo-free-answers.js
  */
 const fs = require("fs");

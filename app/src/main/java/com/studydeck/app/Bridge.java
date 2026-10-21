@@ -20,12 +20,12 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * 网页与原生之间的桥。
- * 只做最小集合：多学习包的读写与切换、每个包独立的进度文件、一个通用 HTTP 客户端、少量杂项。
+ * 只做最小集合：多知识包的读写与切换、每个包独立的进度文件、一个通用 HTTP 客户端、少量杂项。
  * 全部方法都在 WebView 的 JS 线程被调用（非主线程），可以直接做阻塞 IO。
  *
  * 目录布局（filesDir 下）：
- *   decks/<id>.json    从电脑导入的学习包（内置包在 assets/decks/ 里，不在这个目录）
- *   states/<id>.json   每个学习包各自的进度，切包不互相污染
+ *   decks/<id>.json    从电脑导入的知识包（内置包在 assets/decks/ 里，不在这个目录）
+ *   states/<id>.json   每个知识包各自的进度，切包不互相污染
  *   state.json         旧版本的单包进度，首次启动会迁移到 states/<内置包 id>.json
  */
 public class Bridge {
@@ -233,10 +233,10 @@ public class Bridge {
         }
     }
 
-    // ---------- 学习包 ----------
+    // ---------- 知识包 ----------
 
     /**
-     * 所有可用学习包的摘要（内置 + 导入）。
+     * 所有可用知识包的摘要（内置 + 导入）。
      * @return JSON 数组：[{id,title,checks,qas,bytes,builtin}]
      */
     @JavascriptInterface
@@ -287,7 +287,7 @@ public class Bridge {
             }
             JSONObject o = new JSONObject();
             o.put("id", d.optString("id", ""));
-            o.put("title", d.optString("title", "未命名学习包"));
+            o.put("title", d.optString("title", "未命名知识包"));
             o.put("checks", checks);
             o.put("qas", d.optJSONArray("qas") == null ? 0 : d.optJSONArray("qas").length());
             o.put("builtin", builtin);
@@ -297,7 +297,7 @@ public class Bridge {
         }
     }
 
-    /** 读出某个学习包的完整 JSON；先找导入目录，再找 assets */
+    /** 读出某个知识包的完整 JSON；先找导入目录，再找 assets */
     @JavascriptInterface
     public String readDeck(String deckId) {
         if (deckId == null || deckId.isEmpty()) return "";
@@ -309,7 +309,7 @@ public class Bridge {
         return readAssetText("decks/" + safeName(deckId) + ".json");
     }
 
-    /** 保存一份导入的学习包（页面从电脑下载后调用），返回它的 id */
+    /** 保存一份导入的知识包（页面从电脑下载后调用），返回它的 id */
     @JavascriptInterface
     public String saveDeck(String json) {
         JSONObject o = summarize(json, false);
@@ -500,7 +500,7 @@ public class Bridge {
     }
 
 
-    // ---------- 进度（按学习包隔离） ----------
+    // ---------- 进度（按知识包隔离） ----------
 
     @JavascriptInterface
     public String readState(String deckId) {

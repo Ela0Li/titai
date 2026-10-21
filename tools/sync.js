@@ -6,7 +6,7 @@
  *   node tools/sync.js 9000       # 自定义端口
  *
  * 手机上打开「设置 → 局域网同步」，填本机 IP:端口 和这里打印的 4 位配对码即可。
- * 数据都放在 ./sync/ 目录：deck.json（学习包）、state.json（进度）、code.txt（配对码）。
+ * 数据都放在 ./sync/ 目录：deck.json（知识包）、state.json（进度）、code.txt（配对码）。
  * 浏览器打开 http://<ip>:<port>/ 看说明；打开 /a/ 直接在电脑上用同一套界面。
  */
 const http = require("http");
@@ -22,7 +22,7 @@ const DECK = path.join(SYNC_DIR, "deck.json");
 const STATE = path.join(SYNC_DIR, "state.json");
 const STATES_DIR = path.join(SYNC_DIR, "states");
 const CODE_FILE = path.join(SYNC_DIR, "code.txt");
-/** 想给手机装的学习包都放这里：decks/<任意文件名>.json */
+/** 想给手机装的知识包都放这里：decks/<任意文件名>.json */
 const DECKS_DIR = path.join(ROOT, "decks");
 
 fs.mkdirSync(SYNC_DIR, { recursive: true });
@@ -32,7 +32,7 @@ if (!fs.existsSync(DECK) && fs.existsSync(DIST_DECK)) {
   fs.copyFileSync(DIST_DECK, DECK);
 }
 
-/** 扫描所有可分发的学习包：当前包（sync/deck.json）+ decks/ 目录 */
+/** 扫描所有可分发的知识包：当前包（sync/deck.json）+ decks/ 目录 */
 function scanDecks() {
   const out = new Map();
   const add = (file) => {
@@ -85,7 +85,7 @@ function emptyState(deckId) {
   return { v: 1, deck: (d && d.id) || "deck", rev: 0, checks: {}, fav: {}, quiz: {}, settings: {}, sync: {} };
 }
 
-/** 进度按学习包分桶：sync/states/<id>.json，互不影响 */
+/** 进度按知识包分桶：sync/states/<id>.json，互不影响 */
 function stateFileFor(deckId) {
   return path.join(STATES_DIR, String(deckId || "deck").replace(/[^A-Za-z0-9_\-]/g, "_") + ".json");
 }
@@ -164,7 +164,7 @@ function listDeckStates() {
 
 /**
  * 电脑端 /a/ 页面：把内置的 deck.js 换成引导脚本，
- * 由它按 ?deck= 或上次选择向服务端要对应的学习包，再加载 app.js。
+ * 由它按 ?deck= 或上次选择向服务端要对应的知识包，再加载 app.js。
  */
 function withDeckBoot(html) {
   return html.replace(
@@ -255,7 +255,7 @@ function page(code, port) {
             `<td class="num">${x.favs}</td><td class="num">${x.quiz}</td></tr>`
         )
         .join("")
-    : `<tr><td colspan="5" class="dim">decks/ 目录里还没有学习包</td></tr>`;
+    : `<tr><td colspan="5" class="dim">decks/ 目录里还没有知识包</td></tr>`;
   return `<!DOCTYPE html><html lang="zh-CN"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>题台 · 电脑端</title>
@@ -287,9 +287,9 @@ tr:last-child td{border-bottom:0}
   <small>模拟器填 <code>10.0.2.2:${port}</code></small>
 </div>
 <div class="card">
-  <div>学习包 <small>（点标题在浏览器里打开对应内容；进度各自独立）</small></div>
+  <div>知识包 <small>（点标题在浏览器里打开对应内容；进度各自独立）</small></div>
   <table>
-    <tr><th>学习包</th><th style="text-align:right">版本</th><th style="text-align:right">有记录</th><th style="text-align:right">收藏</th><th style="text-align:right">刷过</th></tr>
+    <tr><th>知识包</th><th style="text-align:right">版本</th><th style="text-align:right">有记录</th><th style="text-align:right">收藏</th><th style="text-align:right">刷过</th></tr>
     ${deckRows}
   </table>
   <small>当前默认包：${d.title || "?"} · ${d.groups || 0} 个模块 · ${d.qas || 0} 条问答</small>
@@ -318,7 +318,7 @@ http
     const url = req.url.split("?")[0];
     const qs = new URLSearchParams(req.url.split("?")[1] || "");
 
-    /* 电脑端的选包引导：按 ?deck= 或上次选择加载对应学习包（必须排在 /a/ 静态分支之前） */
+    /* 电脑端的选包引导：按 ?deck= 或上次选择加载对应知识包（必须排在 /a/ 静态分支之前） */
     if (req.method === "GET" && url === "/a/deck.boot.js") {
       const boot = Buffer.from(deckBootJs(CODE), "utf8");
       res.writeHead(200, {
@@ -374,7 +374,7 @@ http
       });
     }
 
-    /* 列出电脑上可下发的学习包 */
+    /* 列出电脑上可下发的知识包 */
     if (url === "/api/decks" && req.method === "GET") {
       if (qs.get("code") !== CODE) return json(res, 200, { ok: false, msg: "配对码不对" });
       const decks = scanDecks().map((d) => {
@@ -387,12 +387,12 @@ http
       return json(res, 200, { ok: true, decks });
     }
 
-    /* 下发某个学习包的原始 JSON */
+    /* 下发某个知识包的原始 JSON */
     if (url === "/api/deck" && req.method === "GET") {
       if (qs.get("code") !== CODE) return json(res, 200, { ok: false, msg: "配对码不对" });
       const id = qs.get("id") || "";
       const hit = scanDecks().find((d) => d.id === id);
-      if (!hit) return json(res, 404, { ok: false, msg: "没有这个学习包" });
+      if (!hit) return json(res, 404, { ok: false, msg: "没有这个知识包" });
       const body = fs.readFileSync(hit.file);
       res.writeHead(200, {
         "Content-Type": "application/json; charset=utf-8",

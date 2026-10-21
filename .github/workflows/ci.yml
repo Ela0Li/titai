@@ -26,7 +26,7 @@ jobs:
       - name: 数学解析单测
         run: node tools/test-math.js
 
-      - name: 学习包协议校验
+      - name: 知识包协议校验
         run: |
           for f in decks/*.json; do
             echo "── $f"

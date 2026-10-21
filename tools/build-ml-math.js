@@ -1,5 +1,9 @@
 #!/usr/bin/env node
-/* 机器学习数学基础包：在拆出来的「数学与概率基础」之上，补齐线性代数 / 概率统计 /
+/* ⚠ 已停用（0.8.7 起）：内容以 decks/ml-math.json 为准，直接编辑那份 JSON。
+   现在跑这个脚本会用 0.7.0 时代的旧内容覆盖它，并**丢掉 hint（及格线）等后加字段**。
+   保留本文件只为说明当年 ml-math 是怎么从 ml-intro 里拆出来的，别再执行。
+
+   机器学习数学基础包：在拆出来的「数学与概率基础」之上，补齐线性代数 / 概率统计 /
    微积分与优化 / 信息论与数值稳定 四个模块，并统一标题与术语。
    输入：decks/ml-math.json（tools/split-deck.js 的产物）
    输出：decks/ml-math.json、app/src/main/assets/decks/ml-math.json

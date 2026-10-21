@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 题台 · 学习包校验器（协议 v1.7 的语义层）
+ * 题台 · 知识包校验器（协议 v1.8 的语义层）
  *
  *   node validate-deck.js path/to/deck.json            # 校验指定文件
  *   node validate-deck.js --json path/to/deck.json     # 输出机器可读结果
@@ -152,7 +152,7 @@ function validate(deck) {
 
   /* ---------- 顶层 ---------- */
   if (deck.schema !== 1) P("E_SCHEMA", "schema", "schema 必须为 1（当前 " + JSON.stringify(deck.schema) + "）");
-  if (typeof deck.id !== "string" || !RE_DECK_ID.test(deck.id)) P("E_DECK_ID", "id", "学习包 id 不合规：" + deck.id);
+  if (typeof deck.id !== "string" || !RE_DECK_ID.test(deck.id)) P("E_DECK_ID", "id", "知识包 id 不合规：" + deck.id);
   if (typeof deck.title !== "string" || !deck.title.trim()) P("E_TITLE", "title", "title 不能为空");
   if (deck.accent && !/^#[0-9a-fA-F]{6}$/.test(deck.accent)) P("E_ACCENT", "accent", "accent 必须是 #rrggbb");
   if (!Array.isArray(deck.groups) || !deck.groups.length) P("E_GROUPS", "groups", "groups 必须是非空数组");
@@ -188,8 +188,8 @@ function validate(deck) {
       else checkById.set(c.id, c);
       if (typeof c.id === "string" && c.id.indexOf(g.id + ".") !== 0)
         P("E_CHECK_PREFIX", cat + ".id", "check id 必须以 “" + g.id + ".” 开头，实际 " + c.id);
-      if (typeof c.text !== "string" || c.text.trim().length < 4) P("E_CHECK_TEXT", cat + ".text", "自查点文本过短");
-      else if (c.text.length > 300) W("W_CHECK_LONG", cat + ".text", "自查点超过 300 字，建议拆细");
+      if (typeof c.text !== "string" || c.text.trim().length < 4) P("E_CHECK_TEXT", cat + ".text", "知识点文本过短");
+      else if (c.text.length > 300) W("W_CHECK_LONG", cat + ".text", "知识点超过 300 字，建议拆细");
       else checkMath(c.text, cat + ".text", P, W);
       if (!LVL.has(c.lvl)) P("E_CHECK_LVL", cat + ".lvl", "lvl 必须是 P0/P1/P2");
       /* v1.7：可选的「及格线」提示，讲清说到哪几条算过，不写答案 */
@@ -305,7 +305,7 @@ function validate(deck) {
   deck.qas.forEach((q) => {
     (q.covers || []).forEach((cid) => {
       const id = collectRef(q.id, "covers", cid);
-      if (id && !checkById.has(id)) P("E_COVER_REF", q.id, "covers 指向不存在的自查点：" + id);
+      if (id && !checkById.has(id)) P("E_COVER_REF", q.id, "covers 指向不存在的知识点：" + id);
     });
     ["next", "peer"].forEach((k) => {
       (q[k] || []).forEach((rid) => {
@@ -336,7 +336,7 @@ function validate(deck) {
     const n = Math.min(list.length, 4);
     depth[n] = (depth[n] || 0) + 1;
   });
-  // 覆盖不是协议要求：没有问答覆盖的自查点照样能被引擎渲染（详情里显示“还没有对应问答”）
+  // 覆盖不是协议要求：没有问答覆盖的知识点照样能被引擎渲染（详情里显示“还没有对应问答”）
   uncovered.forEach((cid) => W("W_UNCOVERED", cid, "没有任何问答覆盖（协议允许，仅提示）"));
 
   /* ---------- 追问链质量 ---------- */
@@ -410,8 +410,8 @@ function main() {
   } else {
     const s = res.stats;
     if (s) {
-      console.log("学习包：" + (deck.title || "?") + "（" + (deck.id || "?") + "，schema " + deck.schema + "）");
-      console.log("  模块 " + s.groups + " · 自查点 " + s.checks + " · 问答 " + s.qas +
+      console.log("知识包：" + (deck.title || "?") + "（" + (deck.id || "?") + "，schema " + deck.schema + "）");
+      console.log("  模块 " + s.groups + " · 知识点 " + s.checks + " · 问答 " + s.qas +
         " · 交叉引用 " + s.edges + "（next " + s.edgesNext + " / peer " + s.edgesPeer + "）" +
         (s.crossRefs ? " · 跨包 " + s.crossRefs : ""));
       console.log("  覆盖 " + s.covered + "/" + s.checks + "（" + (s.coverage * 100).toFixed(1) + "%）" +

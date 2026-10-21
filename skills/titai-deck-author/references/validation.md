@@ -17,8 +17,8 @@ node scripts/validate-plan.js --decks ./decks my.plan.json
 输出分三段：
 
 ```
-学习包：Git 版本控制 · 提交与分支（git-basics，schema 1）
-  模块 2 · 自查点 5 · 问答 4 · 交叉引用 3（next 1 / peer 1）
+知识包：Git 版本控制 · 提交与分支（git-basics，schema 1）
+  模块 2 · 知识点 5 · 问答 4 · 交叉引用 3（next 1 / peer 1）
   覆盖 4/5（80.0%） · 分层 L1 2 / L2 1 / L3 0 / L4 0
   覆盖深度：1 条 4 · 2 条 0 · 3 条 0 · 4+ 条 0
 

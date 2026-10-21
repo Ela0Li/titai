@@ -11,7 +11,7 @@
  *
  * 检查项：
  *   1. 引擎加载后没有 JS 异常；
- *   2. 模块数、自查点数与 deck 声明一致（渲染不丢项）；
+ *   2. 模块数、知识点数与 deck 声明一致（渲染不丢项）；
  *   3. 列表页搜索框、底部 tab 的文案用上了 terms；
  *   4. 问答页能渲染出全部 qa 行；
  *   5. 点开一条问答，详情面板能打开。
@@ -190,7 +190,7 @@ function runOne(deckPath) {
   if (p.groups !== (raw.groups || []).length)
     fails.push("模块渲染 " + p.groups + " 个，应为 " + (raw.groups || []).length);
   if (p.checks !== totalChecks)
-    fails.push("自查点渲染 " + p.checks + " 个，应为 " + totalChecks);
+    fails.push("知识点渲染 " + p.checks + " 个，应为 " + totalChecks);
   if (p.tabList !== terms.check)
     fails.push("tab 文案是「" + p.tabList + "」，应为「" + terms.check + "」");
   if (p.tabQa !== terms.qa)
@@ -227,7 +227,7 @@ function main() {
     if (r.ok) {
       const c = r.counts;
       console.log(
-        "✓ " + name + " — 模块 " + c.groups + " · 自查点 " + c.checks + " · 问答 " + c.qas +
+        "✓ " + name + " — 模块 " + c.groups + " · 知识点 " + c.checks + " · 问答 " + c.qas +
           " · tab「" + c.tabList + "/" + c.tabQa + "」· 无 JS 异常"
       );
     } else {

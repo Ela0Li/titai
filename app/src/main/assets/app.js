@@ -1,11 +1,11 @@
-/* 题台 · 通用学习包引擎（无框架，Chromium 110 可用） */
+/* 题台 · 通用知识包引擎（无框架，Chromium 110 可用） */
 (function () {
   "use strict";
 
   var D = window.DECK || { groups: [], qas: [] };
   var STATE_KEY = "studydesk.state.v1";
 
-  /* 多学习包：内置包在 assets/decks/*.json，导入包在 files/decks/。
+  /* 多知识包：内置包在 assets/decks/*.json，导入包在 files/decks/。
      启动时先问原生当前用哪份，读不到就退回 deck.js 里内置的那份。 */
   var CUR_DECK = (D && D.id) || "builtin";
   (function hydrateDeck() {
@@ -36,7 +36,7 @@
     return "dev";
   })();
 
-  /* 界面上怎么称呼这些东西，由学习包自己定（terms 可选） */
+  /* 界面上怎么称呼这些东西，由知识包自己定（terms 可选） */
   var TERMS = Object.assign({ group: "模块", check: "知识点", qa: "问答" }, D.terms || {});
   function term(k) { return TERMS[k] || k; }
 
@@ -316,7 +316,7 @@
     setPref("deckOpen", o);
   }
 
-  /* ---- 掌握度同步：同一条问答覆盖的自查点共享掌握度（协议 v1.3 §10） ---- */
+  /* ---- 掌握度同步：同一条问答覆盖的知识点共享掌握度（协议 v1.3 §10） ---- */
   function splitLocal(ref) {
     var i = String(ref).indexOf("#");
     return i > 0 ? { deck: ref.slice(0, i), id: ref.slice(i + 1) } : { deck: "", id: String(ref) };
@@ -434,7 +434,7 @@
     $("#ringTxt").textContent = s.pct + "%";
   }
 
-  /* ---------------- 视图：自查 ---------------- */
+  /* ---------------- 视图：知识点 ---------------- */
   var listFilter = "all";
   var listQuery = "";
 
@@ -951,10 +951,10 @@
   /* ---------------- 视图：设置 ---------------- */
   var syncBusy = false;
 
-  /* ---- 学习包：多个包共存，各有各的进度 ---- */
+  /* ---- 知识包：多个包共存，各有各的进度 ---- */
   function deckList() {
     if (!window.Native || !window.Native.listDecks) {
-      return [{ id: CUR_DECK, title: D.title || "内置学习包", checks: (D.groups || []).reduce(function (n, g) { return n + (g.checks || []).length; }, 0), qas: (D.qas || []).length, builtin: true }];
+      return [{ id: CUR_DECK, title: D.title || "内置知识包", checks: (D.groups || []).reduce(function (n, g) { return n + (g.checks || []).length; }, 0), qas: (D.qas || []).length, builtin: true }];
     }
     try {
       var arr = JSON.parse(String(window.Native.listDecks() || "[]"));
@@ -1011,9 +1011,9 @@
         (!d.builtin && !on ? '<button class="btn mini danger" data-del-deck="' + esc(d.id) + '">删</button>' : "") +
         "</div>");
     });
-    html.push('<div class="btn-row"><button class="btn" id="btnDecks">从电脑获取学习包</button>' +
+    html.push('<div class="btn-row"><button class="btn" id="btnDecks">从电脑获取知识包</button>' +
       '<button class="btn" id="btnImportFile">从文件导入</button></div>');
-    html.push('<div class="note" id="deckNote">每个学习包有自己的进度；切换不会丢数据。也可以把 .json 分享给「题台」直接打开。</div>');
+    html.push('<div class="note" id="deckNote">每个知识包有自己的进度；切换不会丢数据。也可以把 .json 分享给「题台」直接打开。</div>');
     return html.join("");
   }
 
@@ -1226,7 +1226,7 @@
     if (!url) { toast("先填电脑地址"); return; }
     if (!window.Native) { toast("网页调试模式：请把 deck.json 直接放进 data/"); return; }
     var note = $("#deckNote");
-    if (note) note.textContent = "正在问电脑要学习包列表…";
+    if (note) note.textContent = "正在问电脑要知识包列表…";
     var raw = window.Native.http("GET", url, "", 5000);
     var res, data;
     try { res = JSON.parse(raw); } catch (e) { toast("返回不是 JSON"); return; }
@@ -1234,8 +1234,8 @@
     try { data = JSON.parse(res.body); } catch (e) { toast("响应解析失败"); return; }
     if (!data || data.ok === false) { if (note) note.textContent = (data && data.msg) || "配对码不对"; return; }
     var decks = data.decks || [];
-    if (!decks.length) { if (note) note.textContent = "电脑上还没有可下载的学习包。"; return; }
-    var html = ['<div class="sub-h" style="margin-top:10px"><b>电脑上的学习包</b><span>' + decks.length + " 个</span></div>"];
+    if (!decks.length) { if (note) note.textContent = "电脑上还没有可下载的知识包。"; return; }
+    var html = ['<div class="sub-h" style="margin-top:10px"><b>电脑上的知识包</b><span>' + decks.length + " 个</span></div>"];
     decks.forEach(function (d) {
       html.push('<div class="deck-row"><div class="deck-main"><div class="deck-t">' + esc(d.title || d.id) + "</div>" +
         '<div class="deck-m">' + esc(d.id) + " · " + (d.checks || 0) + " " + esc(term("check")) + " · " + (d.qas || 0) + " " + esc(term("qa")) + "</div></div>" +
@@ -1256,7 +1256,7 @@
     if (res.status !== 200) { toast("HTTP " + res.status); return; }
     var saved = "";
     try { saved = String(window.Native.saveDeck(res.body) || ""); } catch (e) { saved = ""; }
-    if (!saved) { toast("不是合法的学习包"); if (note) note.textContent = "下载失败：文件不是合法学习包"; return; }
+    if (!saved) { toast("不是合法的知识包"); if (note) note.textContent = "下载失败：文件不是合法知识包"; return; }
     toast("已导入 " + saved);
     switchDeck(saved);
   }
@@ -1361,7 +1361,7 @@
       cov.forEach(function (c) {
         if (c === q.id) bad("E_SELF_REF", q.id + " 不能覆盖自己");
         else if (isCrossRef(c)) crossSyntax(c, q.id + " covers");
-        else if (!checkIds[c]) bad("E_COVER_REF", q.id + " 覆盖了不存在的自查点 " + c);
+        else if (!checkIds[c]) bad("E_COVER_REF", q.id + " 覆盖了不存在的知识点 " + c);
       });
 
       ["next", "peer"].forEach(function (k) {
@@ -1462,14 +1462,14 @@
     html.push('<div class="seg" id="cwSeg">' +
       '<button data-cw="0" class="' + (prefs.crossWrite ? "" : "on") + '">只读</button>' +
       '<button data-cw="1" class="' + (prefs.crossWrite ? "on" : "") + '">可打点</button></div>');
-    html.push('<div class="note">其他学习包指向本包的记录会显示在详情页「被引用」里。默认跨包只读：<b>只读</b>时不改对方进度，<b>可打点</b>时允许在对方包里记掌握度（两边各记一份）。</div>');
+    html.push('<div class="note">其他知识包指向本包的记录会显示在详情页「被引用」里。默认跨包只读：<b>只读</b>时不改对方进度，<b>可打点</b>时允许在对方包里记掌握度（两边各记一份）。</div>');
     /* 三态图例：详情页里的跨包链接长什么样、点下去会怎样 */
     html.push('<div class="sub-h" style="margin-top:12px"><b>链接三态</b><span class="note">详情页里怎么看</span></div>');
     html.push('<div class="lg-x"><div class="lg-xa"><span class="jump xlink">包名</span></div>' +
       '<div class="lg-xt">在计划内：软切包，顶部还是计划视图</div></div>');
     html.push('<div class="lg-x"><div class="lg-xa"><span class="jump xlink out">包名<i>计划外</i></span></div>' +
       '<div class="lg-xt">已装但不在计划内：跳过去会临时离开计划，顶部出现「回到计划」</div></div>');
-    html.push('<div class="lg-x"><div class="lg-xa"><span class="jump stale disabled">未安装的学习包</span></div>' +
+    html.push('<div class="lg-x"><div class="lg-xa"><span class="jump stale disabled">未安装的知识包</span></div>' +
       '<div class="lg-xt">包没装：不可点，装上后自动恢复</div></div>');
     if (prefs.pendingBack && prefs.pendingBack.deck && prefs.pendingBack.deck !== CUR_DECK) {
       html.push('<div class="btn-row"><button class="btn" data-act="end-cross">结束跨包只读</button></div>');
@@ -1489,11 +1489,11 @@
 
     html.push('<div class="divider"></div>');
     html.push('<div class="sub-h"><b>数据</b></div>');
-    html.push('<div class="note">学习包：' + esc(D.title) + "（" + esc(D.id) + "）<br>" +
+    html.push('<div class="note">知识包：' + esc(D.title) + "（" + esc(D.id) + "）<br>" +
       term("group") + " " + (D.groups || []).length + " · " + term("check") + " " + s.total + " · " + term("qa") + " " + QA_LIST.length + "<br>" +
       "进度文件：" + (window.Native ? "应用私有目录 states/" + esc(D.id) + ".json" : "浏览器 localStorage（按包分开存）") + "</div>");
     html.push('<div class="btn-row"><button class="btn danger" id="btnReset">清空本机进度</button></div>');
-    html.push('<div class="note" style="margin-top:16px">题台 ' + APP_VERSION + ' · 通用学习包引擎，内容与程序分离。</div>');
+    html.push('<div class="note" style="margin-top:16px">题台 ' + APP_VERSION + ' · 通用知识包引擎，内容与程序分离。</div>');
     $("#view").innerHTML = html.join("");
   }
 
@@ -1617,7 +1617,7 @@
     var tag = '<span class="xdeck' + (out ? " out" : "") + '">' + esc(deckTitle(r.deck)) +
       (out ? '<i>计划外</i>' : "") + "</span>";
     if (!r.ok) {
-      text = r.why === "nodeck" ? "未安装的学习包 · " + esc(r.id) : "已失效 · " + esc(r.id);
+      text = r.why === "nodeck" ? "未安装的知识包 · " + esc(r.id) : "已失效 · " + esc(r.id);
       return '<button class="jump stale" disabled>' + icon + " " + tag + " " + text + "</button>";
     }
     text = r.isCheck ? esc((r.item.text || r.id).slice(0, 16)) : esc(r.item.q || r.id);
@@ -1798,7 +1798,7 @@
     if (crossCov.length) {
       html.push('<div class="foot-row"><span class="foot-k">外包装覆盖</span>' +
         crossCov.map(function (x) { return refBtn(x.deck + "#" + x.from, "peer"); }).join("") + "</div>");
-      html.push('<div class="note">其他学习包的记录也覆盖这一条；两边各自记掌握度。</div>');
+      html.push('<div class="note">其他知识包的记录也覆盖这一条；两边各自记掌握度。</div>');
     }
     html.push('<div class="sub-h"><b>掌握度</b></div>');
     html.push('<div class="seg" id="checkSeg">' + [1, 2, 3].map(function (k) {
@@ -1873,8 +1873,8 @@
       toast("连接成功");
     } else if (path === "/api/pull") {
       if (data.state && data.state.deck && data.state.deck !== D.id) {
-        toast("电脑上这份进度属于 " + data.state.deck + "，不是当前学习包");
-        if (note) note.textContent = "学习包对不上，没有合并。";
+        toast("电脑上这份进度属于 " + data.state.deck + "，不是当前知识包");
+        if (note) note.textContent = "知识包对不上，没有合并。";
         return;
       }
       var n = mergeState(data.state);
@@ -1980,7 +1980,7 @@
       return;
     }
 
-    /* 学习包切换 / 删除 / 下载 */
+    /* 知识包切换 / 删除 / 下载 */
     if (t.dataset.deck) {
       var did = t.dataset.deck;
       if (inPlan(did) && DECK_CACHE[did]) softSwitch(did);
@@ -2146,7 +2146,7 @@
     }
   });
 
-  /* 返回键：先关面板，再回自查页，否则交给系统 */
+  /* 返回键：先关面板，再回知识点页，否则交给系统 */
   window.__back = function () {
     if (sheetOpen) { closeSheet(); return true; }
     if (tab !== "list") { setTab("list"); return true; }

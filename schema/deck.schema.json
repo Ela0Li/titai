@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/Ela0Li/titai/schema/deck.schema.json",
-  "title": "题台学习包 deck.json",
-  "description": "题台 · 学习包协议 v1 的内容层。语义不变量（引用闭合、无自引用、答案分段）由 tools/validate-deck.js 检查，JSON Schema 只覆盖结构。覆盖完整性属于推荐实践，不是协议要求。",
+  "title": "题台知识包 deck.json",
+  "description": "题台 · 知识包协议 v1 的内容层。语义不变量（引用闭合、无自引用、答案分段）由 tools/validate-deck.js 检查，JSON Schema 只覆盖结构。覆盖完整性属于推荐实践，不是协议要求。",
   "type": "object",
   "required": ["schema", "id", "title", "groups", "qas"],
   "additionalProperties": true,
@@ -15,7 +15,7 @@
     "id": {
       "type": "string",
       "pattern": "^[a-z0-9][a-z0-9-]{1,40}$",
-      "description": "学习包标识，如 ml-intro"
+      "description": "知识包标识，如 ml-intro"
     },
     "title": { "type": "string", "minLength": 1, "maxLength": 120 },
     "subtitle": { "type": "string", "maxLength": 200 },
@@ -33,7 +33,7 @@
     "updatedAt": { "type": "string", "format": "date-time" },
     "deps": {
       "type": "array",
-      "description": "v1.2 可选：本包引用了哪些学习包（仅提示，不强制安装）",
+      "description": "v1.2 可选：本包引用了哪些知识包（仅提示，不强制安装）",
       "items": {
         "type": "object",
         "required": ["id"],

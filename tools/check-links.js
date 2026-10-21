@@ -119,7 +119,7 @@ function main() {
     process.exit(ok ? 0 : 1);
   }
 
-  console.log("学习包：" + decks.map((d) => d.deck.id + "（" + (d.deck.qas || []).length + " 问答）").join(" · "));
+  console.log("知识包：" + decks.map((d) => d.deck.id + "（" + (d.deck.qas || []).length + " 问答）").join(" · "));
   console.log("跨包引用 " + stat.cross + " 条：已解析 " + stat.ok + " · 目标已删 " + stat.stale +
     " · 目标包未装 " + stat.missingDeck + " · 语法错 " + stat.badSyntax);
 

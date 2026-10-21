@@ -25,8 +25,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- 分享/打开一个学习包 JSON（微信、QQ、文件管理器「用题台打开」） -->
-            <intent-filter android:label="导入学习包">
+            <!-- 分享/打开一个知识包 JSON（微信、QQ、文件管理器「用题台打开」） -->
+            <intent-filter android:label="导入知识包">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
@@ -37,7 +37,7 @@
             </intent-filter>
 
             <!-- .tdeck 单一文件容器（暂时也是 JSON，靠后缀区分） -->
-            <intent-filter android:label="导入学习包（.tdeck）">
+            <intent-filter android:label="导入知识包（.tdeck）">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />

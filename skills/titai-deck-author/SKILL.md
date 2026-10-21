@@ -1,6 +1,6 @@
 ---
 name: titai-deck-author
-description: 按题台（titai）学习包协议 v1.7 写 knowledge deck.json 与 plan.json，产出能直接「从文件导入」装进 App 的文件。当用户要把笔记／面试题／教材整理成题台知识包、扩充已有知识包、或编排学习计划时使用；自带校验器、答案结构体检、可用模板与字段速查。
+description: 按题台（titai）知识包协议 v1.8 写 knowledge deck.json 与 plan.json，产出能直接「从文件导入」装进 App 的文件。当用户要把笔记／面试题／教材整理成题台知识包、扩充已有知识包、或编排学习计划时使用；自带校验器、答案结构体检、可用模板与字段速查。
 ---
 
 # 题台知识包写作

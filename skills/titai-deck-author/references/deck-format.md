@@ -1,4 +1,4 @@
-# 知识包 deck.json 字段速查（协议 v1.7，结构 schema 1）
+# 知识包 deck.json 字段速查（协议 v1.8，结构 schema 1）
 
 一个知识包就是一个 JSON 对象。下面的表按「从外到内」排列，最后一列写的是**校验器怎么判**（错误码来自 `scripts/validate-deck.js`）。
 

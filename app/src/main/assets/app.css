@@ -357,7 +357,7 @@ mark { background: rgba(240, 180, 60, 0.30); color: inherit; border-radius: 3px;
 .note { font-size: 12px; color: var(--fg3); line-height: 1.6; }
 .divider { height: 1px; background: var(--line); margin: 16px 0; }
 
-/* 学习包列表 */
+/* 知识包列表 */
 .deck-row {
   display: flex; align-items: center; gap: 10px;
   border: 1px solid var(--line); border-radius: 10px;

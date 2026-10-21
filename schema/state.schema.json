@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/Ela0Li/titai/schema/state.schema.json",
   "title": "题台进度 state.json",
-  "description": "题台 · 学习包协议 v1 的进度层。合并规则：逐 key 取 t 较大者（fav 用 on:false 作墓碑）。",
+  "description": "题台 · 知识包协议 v1 的进度层。合并规则：逐 key 取 t 较大者（fav 用 on:false 作墓碑）。",
   "type": "object",
   "required": ["v"],
   "additionalProperties": true,
@@ -10,7 +10,7 @@
     "v": { "type": "integer", "const": 1 },
     "deck": {
       "type": "string",
-      "description": "对应的学习包 id"
+      "description": "对应的知识包 id"
     },
     "rev": {
       "type": "integer",
@@ -24,12 +24,12 @@
     },
     "checks": {
       "type": "object",
-      "description": "key = 自查点 id",
+      "description": "key = 知识点 id",
       "additionalProperties": { "$ref": "#/$defs/mark" }
     },
     "fav": {
       "type": "object",
-      "description": "key = 自查点 id 或问答 id；on:false 为取消收藏的墓碑",
+      "description": "key = 知识点 id 或问答 id；on:false 为取消收藏的墓碑",
       "additionalProperties": { "$ref": "#/$defs/fav" }
     },
     "quiz": {
