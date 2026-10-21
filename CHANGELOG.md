@@ -4,7 +4,7 @@
 
 App 版本号在 `app/build.gradle.kts`（`versionCode` / `versionName`），设置页底部显示 `versionName`；协议版本另有一套（见 `docs/protocol-core.md` §5.1）。
 
-## [未发布]
+## [0.9.6] - 2026-10-21
 
 ### 变更
 

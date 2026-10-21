@@ -6,7 +6,7 @@
 
 现在内置两个知识包（机器学习数学基础 / 机器学习入门）和一个学习计划，另有一个最小样例包供校验器自测。
 
-当前版本 **0.9.5**。更新日志见 [CHANGELOG](../CHANGELOG.md)，许可证 [MIT](../LICENSE)，安装包在 [Releases](https://github.com/Ela0Li/titai/releases)。
+当前版本 **0.9.6**。更新日志见 [CHANGELOG](../CHANGELOG.md)，许可证 [MIT](../LICENSE)，安装包在 [Releases](https://github.com/Ela0Li/titai/releases)。
 
 ---
 
@@ -394,7 +394,7 @@ node tools/test-math.js
 # 4) 装机验收（真机，覆盖安装）
 adb -s a27457ef install -r app\build\outputs\apk\release\app-release.apk
 # 5) 打 tag 并推
-git tag -a v0.9.5 -m "题台 0.9.5"
+git tag -a v0.9.6 -m "题台 0.9.6"
 git push origin main --tags
 # 6) 在 GitHub 建 Release（附 app-release.apk），发布说明抄 CHANGELOG 对应段落
 ```
